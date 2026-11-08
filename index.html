@@ -461,6 +461,7 @@
       obs.observe(launch, { attributes: true, attributeFilter: ['hidden'] });
       obs.observe(errorScreen, { attributes: true, attributeFilter: ['hidden'] });
     })();
+  </script>
   <script>
     /* v1.10 动画连贯性升级（R131 · 「打开/关闭动画中间不连贯」修复）
        诊断（scripts/anim-probe.py 逐帧 trace + project.json 积木链路精读 + 打包 app 实测）：
@@ -605,5 +606,6 @@
       applyWhenReady(600); // vm 可能晚于本脚本就绪：最长轮询 5 分钟
     })();
   </script>
+
 </body>
 </html>
