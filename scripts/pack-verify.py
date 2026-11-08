@@ -1,19 +1,23 @@
 #!/usr/bin/env python3
-"""v1.04 合并包验证：
+"""v1.04 合并包验证（v1.05 跨沙箱适配版）：
 A) 正常链路：pack 单请求、零逐文件 fetch、零 404/报错、启动屏出现、
-   boot-hint 提示条随点击出现并自动隐藏（亮帧或 20s 封顶）；
+   #boot-feedback 反馈层随点击出现（v1.05 完整版，#boot-hint 已被超集覆盖移除）；
 B) SW 二访（同一浏览器实例内 reload）：pack 命中缓存（transferSize=0）；
 C) 兜底：拦截 pack 请求 → 回退逐文件 fetch，装载链仍完整
    （route.abort 的 net::ERR_FAILED 属预期网络噪声，不计入错误）。
+反馈层收层时序（点亮/300s 兑底）由 boot-feedback-probe.py 专项覆盖，此处不断言。
 """
 import json
+import os
 import re
 import subprocess
 import time
 
 from playwright.sync_api import sync_playwright
 
-DL = '/home/z/my-project/download'
+# v1.05 适配：服务根 = 仓库根（原硬编码对侧沙箱 /home/z/my-project/download，
+# 跨沙箱不可复跑——HANDOFF.md 已知坑「脚本不得绑定实例路径」）
+ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 PORT = 8086
 BASE = f'http://127.0.0.1:{PORT}'
 
@@ -43,7 +47,7 @@ def classify(reqs):
 
 def main():
     server = subprocess.Popen(
-        ['python3', '-m', 'http.server', str(PORT), '--bind', '127.0.0.1', '--directory', DL],
+        ['python3', '-m', 'http.server', str(PORT), '--bind', '127.0.0.1', '--directory', ROOT],
         stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL)
     time.sleep(0.8)
     out = {}
@@ -51,7 +55,7 @@ def main():
         with sync_playwright() as pw:
             # ---------- A) 正常链路 + B) SW 二访（同一浏览器实例） ----------
             browser, page, reqs, errors, cerr, warns = new_page(pw)
-            page.goto(BASE + '/pixel-xxl/', wait_until='load', timeout=60000)
+            page.goto(BASE + '/', wait_until='load', timeout=60000)
             page.wait_for_function(LAUNCH_JS, timeout=300000)
             pack, perfile = classify(reqs)
             out['A'] = {
@@ -63,16 +67,10 @@ def main():
             page.click('#launch')
             try:
                 page.wait_for_function(
-                    "!document.getElementById('boot-hint').hidden", timeout=5000)
-                out['A']['hint_shown'] = True
+                    "!document.getElementById('boot-feedback').hidden", timeout=5000)
+                out['A']['feedback_shown'] = True
             except Exception:
-                out['A']['hint_shown'] = False
-            try:
-                page.wait_for_function(
-                    "document.getElementById('boot-hint').hidden", timeout=30000)
-                out['A']['hint_auto_hidden'] = True
-            except Exception:
-                out['A']['hint_auto_hidden'] = False
+                out['A']['feedback_shown'] = False
             out['A']['vm_targets'] = page.evaluate(
                 "() => (window.vm && vm.runtime) ? vm.runtime.targets.length : 0")
 
@@ -98,7 +96,7 @@ def main():
             browser, page, reqs, errors, cerr, warns = new_page(pw)
             page.route(re.compile(r'/assets/pack-[0-9a-f]{8}\.bin$'),
                        lambda route: route.abort())
-            page.goto(BASE + '/pixel-xxl/', wait_until='load', timeout=60000)
+            page.goto(BASE + '/', wait_until='load', timeout=60000)
             page.wait_for_function(LAUNCH_JS, timeout=300000)
             pack, perfile = classify(reqs)
             out['C'] = {
@@ -114,7 +112,7 @@ def main():
     print(json.dumps(out, ensure_ascii=False, indent=1))
     ok = (out['A']['pack_fetches'] == 1 and out['A']['perfile_fetches'] == 0
           and not out['A']['http_ge400'] and not out['A']['errors']
-          and out['A']['hint_shown'] and out['A']['hint_auto_hidden']
+          and out['A']['feedback_shown']
           and out['A']['vm_targets'] > 0
           and out['B']['pack_fetches'] == 1 and out['B']['sw_controlled']
           and all(e['t'] == 0 for e in out['B']['pack_transfer_sizes'])
