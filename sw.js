@@ -46,22 +46,40 @@ self.addEventListener('fetch', (event) => {
   const req = event.request;
   if (req.method !== 'GET') return;
   const url = new URL(req.url);
-  if (url.origin !== self.location.origin) return;
+  // v1.06 修复：isPackCdn 判定必须先于跨域提前 return——原顺序（origin 检查在前）
+  // 使 CDN 分片请求永远到不了缓存分支（注释意图"whichever 命中哪个源都缓存该源"
+  // 与行为相悖；对侧沙箱 CDN 404 全走同源故未暴露，本沙箱 CDN 慢速成功即复现）。
+  // CDN 分片内容寻址不可变 ⇒ cache-first 安全（cache key=完整 URL 含域名）。
+  const isPackCdn = url.hostname === 'cdn.jsdelivr.net' &&
+    url.pathname.includes('/assets/pack-') && url.pathname.endsWith('.bin');
+  if (url.origin !== self.location.origin && !isPackCdn) return;
 
   // 1) md5 命名素材与合并包分片：内容寻址不可变，cache-first
   //    （同源 assets/* 与 jsDelivr 镜像 pack-* 分片， whichever 命中哪个源都缓存该源）
-  const isPackCdn = url.hostname === 'cdn.jsdelivr.net' &&
-    url.pathname.includes('/assets/pack-') && url.pathname.endsWith('.bin');
   if (url.pathname.includes('/assets/') || isPackCdn) {
     event.respondWith(
       caches.open(ASSET_CACHE).then((cache) =>
-        cache.match(req).then((hit) =>
-          hit ||
-          fetch(req).then((resp) => {
+        cache.match(req).then((hit) => {
+          if (hit) return hit;
+          // v1.06: SW 内 CDN 分片请求硬超时兜底——部分沙箱/弱网对 CDN 域黑洞挂起，
+          // respondWith 永不 settle 即页面卡死；8s 无响应切同源（内容寻址等价，
+          // cache key 仍用原 CDN URL，下次 match 直接命中）。
+          if (isPackCdn) {
+            const localReq = new Request(
+              self.location.origin + '/assets/' + url.pathname.split('/').pop());
+            return Promise.race([
+              fetch(req),
+              new Promise((_, rej) => setTimeout(() => rej(new Error('sw cdn hard-timeout')), 8000)),
+            ]).catch(() => fetch(localReq)).then((resp) => {
+              if (resp && resp.ok) cache.put(req, resp.clone());
+              return resp;
+            });
+          }
+          return fetch(req).then((resp) => {
             if (resp && resp.ok) cache.put(req, resp.clone());
             return resp;
-          })
-        )
+          });
+        })
       )
     );
     return;

@@ -205,7 +205,6 @@
     }
   </script>
   <script>
-  <script>
     // v1.06: 启动屏进度反馈层（docs/MOBILE.md §三④ 修复路线完整版）
     // 数据源双通道：真实变量「渲染的进度/渲染数」（v1.05 对侧并行实例贡献——修正
     // v1.02「门控无出口」误判，window.vm 全局可读零红线，优先）+ 运行时阶段推断兜底；
@@ -407,86 +406,6 @@
           t0 = Date.now();
           litStreak = 0;
           fullStreak = 0;
-          runningSeen = false;
-          pixelBroken = false;
-          fb.removeAttribute('hidden');
-          barInner.style.width = '4%';
-          tick();
-          timer = setInterval(tick, 1000);
-        }
-      });
-      obs.observe(launch, { attributes: true, attributeFilter: ['hidden'] });
-      obs.observe(errorScreen, { attributes: true, attributeFilter: ['hidden'] });
-    })();
-  </script>
-      }
-      function fmt(sec) {
-        return sec < 60 ? ('已启动 ' + sec + ' 秒') : ('已启动 ' + Math.floor(sec / 60) + ' 分 ' + (sec % 60) + ' 秒');
-      }
-      function setPhase(text, pct) {
-        if (phase.textContent !== text) phase.textContent = text;
-        if (pct != null) barInner.style.width = pct + '%';
-      }
-      function showHint(sec) {
-        if (sec > 150) {
-          hint.textContent = '长时间未点亮：低端设备/软件渲染下首帧可能需要数分钟；可尝试关闭其他标签页，或换用性能更好的设备。';
-          hint.style.display = 'block';
-        } else if (sec > 45) {
-          hint.textContent = '低性能设备首次启动可能需要 1~3 分钟，请耐心等待。';
-          hint.style.display = 'block';
-        }
-      }
-      function hide() {
-        if (!fb.hasAttribute('hidden')) {
-          fb.setAttribute('hidden', '');
-          if (timer) { clearInterval(timer); timer = null; }
-        }
-      }
-      function tick() {
-        if (fb.hasAttribute('hidden')) return;
-        var sec = Math.round((Date.now() - t0) / 1000);
-        elapsed.textContent = fmt(sec);
-        showHint(sec);
-        var ratio = pixelBroken ? null : litRatio();
-        if (ratio != null && ratio > 0.005) {
-          litStreak++;
-        } else if (ratio != null) {
-          litStreak = 0;
-        }
-        if (litStreak >= 2) {
-          barInner.style.width = '100%';
-          setPhase('画面已点亮', 100);
-          setTimeout(hide, 350);
-          return;
-        }
-        var vm = window.vm;
-        if (!vm) {
-          setPhase('运行时启动中…', Math.min(10, 2 + sec * 0.1));
-        } else {
-          var rt = vm.runtime;
-          var targets = rt && rt.targets ? rt.targets.length : 0;
-          var threads = rt && rt.threads ? rt.threads.length : 0;
-          if (threads > 0) runningSeen = true;
-          if (targets === 0) {
-            setPhase('运行时启动中…', 12);
-          } else if (targets < 3) {
-            setPhase('装载舞台与角色…', 26);
-          } else if (!runningSeen) {
-            setPhase('编译工程数据…', 46);
-          } else {
-            setPhase('渲染首帧…', Math.min(92, 62 + sec * 0.4));
-          }
-          // 保守收层：像素检测通道失效时，运行线程已启动且超过 100 秒 → 放行（宁早勿挂死）
-          if (pixelBroken && runningSeen && sec > 100) hide();
-        }
-        // 全局兜底：任何渲染栈下反馈层都不允许超过 300 秒
-        if (sec > 300) hide();
-      }
-      var obs = new MutationObserver(function () {
-        if (!errorScreen.hasAttribute('hidden')) { hide(); return; }
-        if (launch.hasAttribute('hidden') && !t0) {
-          t0 = Date.now();
-          litStreak = 0;
           runningSeen = false;
           pixelBroken = false;
           fb.removeAttribute('hidden');
