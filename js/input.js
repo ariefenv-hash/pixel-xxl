@@ -48,6 +48,12 @@ function down(e) {
   G.down = true;
   G.claim = null;
   try { screenEl().setPointerCapture?.(e.pointerId); } catch { /* 合成事件可能无活动指针 */ }
+  /* 快捷设置开启态：整屏手势直路由给 shade（其余 handler 全部短路） */
+  if (state.shadeOpen) {
+    const h = handlers.get("shade");
+    if (h) { G.claim = "shade"; h.onDown?.(G); }
+    return;
+  }
   // 依优先级询问各 handler（注册顺序即优先级）
   for (const [name, h] of handlers) {
     if (!h.test || h.test(G.x, G.y)) {

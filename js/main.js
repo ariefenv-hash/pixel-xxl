@@ -10,6 +10,7 @@ import { recolorFrom } from "./monet.js";
 import { setWallpaperCanvas } from "./wallpaper-ref.js";
 import { startWallpaperFx } from "./wallpaper-fx.js";
 import { initInput } from "./input.js";
+import { buildShade, startShadeLoop } from "./shade.js";
 import { initBoot } from "./boot.js";
 import { buildDesktop, flyInIcons } from "./desktop.js";
 import { buildDrawer, startDrawerLoop } from "./drawer.js";
@@ -25,7 +26,9 @@ function main() {
   paintWallpaper(state.wallpaperId, wall);
   recolorFrom(wall, state.brightnessMode);
 
-  /* 2. 构建各 UI 层（内部只建 DOM，不启动流程） */
+  /* 2. 构建各 UI 层（内部只建 DOM，不启动流程）
+   *    shade 先于 desktop 构建 —— 手势仲裁注册顺序即优先级（顶缘下拉先于分页） */
+  buildShade();
   buildDesktop();
   buildDrawer();
   buildRecents();
@@ -38,9 +41,10 @@ function main() {
   initWindowManager(); // 应用窗口开合 / 返回路由 / md3e 返回柄
   initLockKeys();      // A/D 键与电源键
 
-  /* 4. 常驻循环：壁纸状态机（视差/亮度/模糊）+ 抽屉位移 */
+  /* 4. 常驻循环：壁纸状态机（视差/亮度/模糊）+ 抽屉位移 + shade 跟手 */
   startWallpaperFx();
   startDrawerLoop();
+  startShadeLoop();
 
   /* 5. 事件补线（跨模块广播，等价原工程「广播 open-recents / 引导结束」） */
   on("open-recents", () => {

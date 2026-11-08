@@ -1,0 +1,56 @@
+/* shade.css —— 快捷设置下拉面板（z=50：压应用/后台，低于锁屏 60） */
+
+#shade { z-index: 50; }
+
+.sh-scrim {
+  position: absolute; inset: 0;
+  background: rgba(0, 0, 0, 1);
+  opacity: 0;
+  pointer-events: auto;
+}
+
+.sh-panel {
+  position: absolute; left: 0; right: 0; top: 0;
+  height: 470px;
+  border-radius: 0 0 28px 28px;
+  background: color-mix(in srgb, var(--md-surface-container) 92%, transparent);
+  backdrop-filter: blur(18px);
+  box-shadow: 0 12px 40px rgba(0, 0, 0, .4);
+  padding: 26px 20px 14px;
+  display: flex; flex-direction: column; gap: 16px;
+  will-change: transform;
+}
+
+.sh-head { display: flex; align-items: baseline; gap: 10px; }
+.sh-clock {
+  font-size: 30px; font-weight: 600; letter-spacing: .02em;
+  color: var(--md-on-surface); font-variant-numeric: tabular-nums;
+}
+.sh-date { font-size: 12px; color: var(--md-on-surface-variant); }
+
+.sh-grid {
+  flex: 1;
+  display: grid; grid-template-columns: 1fr 1fr; grid-auto-rows: 1fr; gap: 10px;
+}
+
+.sh-tile {
+  border: none; cursor: pointer;
+  border-radius: 18px;
+  background: var(--md-surface-container-high);
+  color: var(--md-on-surface);
+  display: flex; flex-direction: column; justify-content: center; gap: 5px;
+  padding: 12px 16px;
+  text-align: left;
+  transition: transform 120ms var(--ease-emphasized), background .2s;
+}
+.sh-tile:active { transform: scale(.96); background: var(--md-surface-container-highest); }
+.sh-tile-name { font-size: 14px; font-weight: 500; }
+.sh-tile-state {
+  font-size: 12px; color: var(--md-primary);
+  white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+}
+
+.sh-foot {
+  text-align: center; font-size: 10px; letter-spacing: .12em;
+  color: var(--md-on-surface-variant); opacity: .6;
+}

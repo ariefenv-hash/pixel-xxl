@@ -114,6 +114,7 @@ function unmountSub(win) {
 
 /* 返回路由 */
 function back() {
+  if (state.shadeOpen) return;            // 快捷设置开启态：返回先归 shade 消费（见 shade.js）
   if (state.mode === "recents") { closeRecents(); setRuntime({ mode: state.openApp ? "app" : "desktop" }); return; }
   if (!current) return;
   const win = current.win;

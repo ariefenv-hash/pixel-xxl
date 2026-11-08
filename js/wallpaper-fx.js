@@ -24,14 +24,16 @@ export function startWallpaperFx() {
     fx.x = lerp(fx.x, state.pageX / 8, .1);
 
     // 尺寸 + 亮度
+    const shade = state.shadeOpen;
     const targetScale = inApp || inRecents ? 90 : 110;
-    const targetBright = inApp || inRecents ? -25 : 0;
+    const targetBright = inApp || inRecents ? -25 : shade ? -10 : 0;
     fx.scale = lerp(fx.scale, targetScale, .07);
     fx.brightness = lerp(fx.brightness, targetBright, .07);
 
     // 模糊（0~16 级 → CSS blur 0~13px 近似原 16 级云母）
     let targetBlur = 0;
     if (inApp || inRecents) targetBlur = 16;
+    else if (shade) targetBlur = 10;
     else if (drawerOpen) {
       const v = (1 - ((drawerY - 20) * -1) / 675) * 48;   // 原公式
       targetBlur = Math.min(Math.max(v, 0), 16);

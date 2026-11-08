@@ -31,6 +31,7 @@ const runtime = {
   pageX: 0,              // 显示x-角色1
   openApp: null,         // 完整打开的app
   recentsOpen: false,
+  shadeOpen: false,      // 快捷设置面板开启态
   drawer: { open: false, y: -695 },  // All Apps 显示y
   recents: [],           // 后台应用 id 列表（新在后）
   booted: false,
