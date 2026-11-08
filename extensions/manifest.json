@@ -1,0 +1,68 @@
+[
+  {
+    "file": "00-cropURL.js",
+    "id": "cropURL",
+    "bytes": 11983,
+    "head": "(function (Scratch) {\r"
+  },
+  {
+    "file": "01-materialPalettePro.js",
+    "id": "materialPalettePro",
+    "bytes": 3517,
+    "head": "class MaterialPalettePro {\r"
+  },
+  {
+    "file": "02-svgconvert.js",
+    "id": "svgconvert",
+    "bytes": 978,
+    "head": "class SVGConvertExtension {"
+  },
+  {
+    "file": "03-qiaoqiaoMica.js",
+    "id": "qiaoqiaoMica",
+    "bytes": 17083,
+    "head": "// ============================================================"
+  },
+  {
+    "file": "04-blurExportPro.js",
+    "id": "blurExportPro",
+    "bytes": 3524,
+    "head": "// 模糊导出（强度+步长）TurboWrap专用"
+  },
+  {
+    "file": "05-lmsLooksPlus.js",
+    "id": "lmsLooksPlus",
+    "bytes": 38333,
+    "head": "(function(Scratch) { // Name: Looks Plus"
+  },
+  {
+    "file": "06-lmsSkins.js",
+    "id": "lmsSkins",
+    "bytes": 22086,
+    "head": "(function(Scratch) { // Name: Skins"
+  },
+  {
+    "file": "07-skyhigh173JSON.js",
+    "id": "skyhigh173JSON",
+    "bytes": 48681,
+    "head": "(function(Scratch) { // Name: JSON"
+  },
+  {
+    "file": "08-lmsAssets.js",
+    "id": "lmsAssets",
+    "bytes": 36414,
+    "head": "(function(Scratch) { // Name: Asset Manager\r"
+  },
+  {
+    "file": "09-lmsSoundExpanded.js",
+    "id": "lmsSoundExpanded",
+    "bytes": 30870,
+    "head": "(function(Scratch) { // Name: Sound Expanded\r"
+  },
+  {
+    "file": "10-xeltallivclipblend.js",
+    "id": "xeltallivclipblend",
+    "bytes": 26862,
+    "head": "(function(Scratch) { // Name: Clipping & Blending"
+  }
+]
