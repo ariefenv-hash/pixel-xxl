@@ -35,9 +35,13 @@
    弱网"第二次打开"从 ~10 分钟级 → 秒开。
 3. ⏳ **启动空窗治理**：取色/模糊降采样上限、blur 级别压缩、或 GPU 液态玻璃方案
    （extensions-extra/qwq1018 v4）替代 CPU 整张糊；进阶为 Worker 化。
-4. ⏳ **启动屏进度反馈**：空窗期把「渲染的进度/渲染数」映射到 HTML 进度条，
-   消除"黑屏点不动"体感；门控计数器在 app bundle 闭包内无全局出口，需触碰
-   app 层红线，单独立项。
+4. ✅ **启动屏进度反馈**（v1.04 已落地，index.html 尾部追加观察层，
+   scripts/boot-feedback-probe.py）：不改 app bundle 内部（门控计数器红线不触碰），
+   纯追加外部观察层——点击绿旗瞬间叠加反馈层（标题/阶段文案/已启动秒数/进度条/
+   动画点），watchdog 轮询外部信号推断阶段（vm → targets → runtime.threads），
+   画面点亮（canvas 像素采样）自动收层 + 300s 兜底；>45s 显示低性能设备提示。
+   实测三通道 PASS（nofb 豁免/桌面全链路/移动仿真），证据 docs/boot-feedback-evidence.json；
+   方案细节 docs/PORTING.md §8。真机 GPU 下像素点亮通道待真机验收。
 
 ## 四、复现入口
 

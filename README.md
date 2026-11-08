@@ -38,13 +38,25 @@ python3 -m http.server 8080
   二次访问素材零网络；发版递增 VERSION。
 - 详见 `docs/PORTING.md` §7、`docs/MOBILE.md` §三。
 
+## v1.04 启动屏进度反馈版（2026-11-08）
+
+- 消除"黑屏点不动"：点击绿旗后的编译/软渲染空窗（低端设备实测约 144s）叠加
+  启动反馈层（阶段文案 + 已启动秒数 + 进度条 + 低性能设备提示），画面点亮自动收层；
+- 纯追加观察层：core/app 逐字节红线不动、app bundle 内部门控计数器不触碰；
+- 回归兼容：`?nofb=1` 不安装（双版像素对比回归通道，行为与 v1.03 一致）；
+- 详见 `docs/PORTING.md` §8、`docs/MOBILE.md` §三④。
+
+## 交接入口
+
+跨轮次/跨会话交接快照见 **`docs/HANDOFF.md`**（head/基线/候选任务池/续点）。
+
 ## 目录结构
 
 ```
-├── index.html              # 入口（骨架与原版逐字节一致；v1.03 尾部追加 SW 注册脚本）
+├── index.html              # 入口（骨架与原版逐字节一致；v1.03 尾部 SW 注册 / v1.04 尾部启动反馈层）
 ├── project.json            # Scratch 工程 1:1（1,054,272B；v1.03 同步 10 处 md5 键）
 ├── assets/                 # 素材 1:1（md5 命名；v1.03 起 10 张 SVG 内嵌照片为 WebP 载荷）
-├── sw.js                   # v1.03 Service Worker 缓存层
+├── sw.js                   # v1.03 Service Worker 缓存层（VERSION 随发版递增）
 ├── lib/
 │   ├── turbowarp-core.js   # 运行时 core（与原版逐字节一致）
 │   ├── pixel-xxl-app.js    # 脚手架配置 + 11 扩展装载（与原版逐字节一致）
@@ -57,6 +69,8 @@ python3 -m http.server 8080
 │   ├── ANALYSIS.md         # 详细分析报告（含 §10 架构演进决策）
 │   ├── ANDROID-PORTING.md  # md3 借鉴清单与 AOSP 对照
 │   ├── MOBILE.md           # 移动端体检报告（15 分钟构成/触控链路/修复路线）
+│   ├── HANDOFF.md          # 跨轮次交接快照（head/基线/候选池/续点）
+│   ├── boot-feedback-evidence.json # v1.04 启动反馈层冒烟证据
 │   └── slim-verify.json    # v1.03 瘦身保真度与 SW 实测证据
 └── scripts/                # 本仓库自带的回归与瘦身脚本
 ```

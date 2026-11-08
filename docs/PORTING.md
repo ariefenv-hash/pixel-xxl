@@ -121,3 +121,45 @@ python3 scripts/extract_port.py   # 从原始 HTML 全量重建（需先放回 w
 - MP3 共 6.0MB 未动（音质口径待裁决；可 128kbps 重编码约 -60%）；
 - 启动空窗期进度反馈（MOBILE.md 修复路线 #4）未动：门控计数器在 app bundle
   闭包内无全局出口，动它需要触碰"app 层逐字节一致"红线，单独立项。
+
+## 八、v1.04 启动屏进度反馈版（2026-11-08）
+
+背景：修复路线 #4（docs/MOBILE.md §三）——点击绿旗后进入运行时编译/软渲染空窗
+（低端设备实测约 144 秒），屏幕全黑零反馈，用户体感「黑屏点不动」。
+上轮 §7.3 记载的顾虑是「门控计数器在 app bundle 闭包内无全局出口，动它需要触碰
+app 层红线」——本轮方案**绕开红线**：不改 app bundle 内部任何逻辑，改为
+**纯追加外部观察层**，用运行时可观察信号间接推断启动阶段。
+
+### 8.1 方案（index.html 尾部追加 script，v1.03 SW 注册先例同律，骨架逐字节零改动）
+
+- **触发**：MutationObserver 监听 `#launch` 的 `hidden` 属性——点击绿旗瞬间
+  （launchScreen.hidden = true）叠加 `#boot-feedback` 全屏反馈层（z-index 9999，
+  黑底 + 标题 + 阶段文案 aria-live=polite + 已启动秒数 + 阶段进度条 + 脉冲动画点）；
+- **阶段推断**（watchdog 每秒轮询外部信号，零 app 层触碰）：
+  `window.vm` 未出现 →「运行时启动中…」；targets < 3 →「装载舞台与角色…」；
+  targets 就绪但 `runtime.threads` 空 →「编译工程数据…」；threads 非空 →「渲染首帧…」；
+- **收层四通道**：①画面点亮（drawImage 64×48 采样非黑像素占比 > 0.5% 连续 2 次
+  防抖 → 350ms 后收层）②像素通道失效（drawImage/getImageData 抛错）时保守放行
+  （threads 曾非空 + 100s）③全局兜底 300s 强制收层（任何渲染栈下反馈层不允许
+  超过 5 分钟）④`#error` 屏显示立即收层（错误信息优先）；
+- **长空窗提示**：>45s 显示「低性能设备首次启动可能需要 1~3 分钟」；>150s 显示
+  「长时间未点亮」建议行；
+- **回归兼容**：URL 带 `?nofb=1` 不安装（节点不创建、行为与 v1.03 逐字节一致）
+  ——双版像素对比回归（scripts/regression-headless.py）走此通道。
+
+### 8.2 实测证据（scripts/boot-feedback-probe.py → docs/boot-feedback-evidence.json）
+
+- A（nofb 豁免）：installed=false、fb 节点不存在、vm 正常启动 targets=24、零 pageerror；
+- B（桌面 720×900 全链路）：点击 1.5s 内层出现（阶段「渲染首帧…」threads=14）、
+  计时/进度条正常推进、hint 48.2s 准时出现、301s 全局兜底收层、收层后不重挂、
+  零 pageerror；
+- C（移动仿真 390×844 DPR3 touch）：层出现、阶段文案正常、零 pageerror；
+- verdict=PASS。desktop_lit=false 系 headless swiftshader 黑屏伪影
+  （docs/MOBILE.md §一），真机 GPU 下像素点亮通道待真机验收。
+
+### 8.3 已知边界
+
+- headless swiftshader 下画面恒黑（伪影），点亮通道不触发 → 300s 兜底收层是
+  设计内正确行为；真机 GPU 下画面点亮即收（350ms 防抖）。
+- `_tickCounter` 属性在打包 runtime 上不存在（实测恒 undefined），运行信号采用
+  `runtime.threads.length`（scratch-vm 稳定 API）。
