@@ -1,0 +1,33 @@
+{
+ "_note": "v1.04 合并包验证证据（scripts/pack-verify.py 生成，2026-11-08）。A=正常链路；B=同浏览器 SW 二访；C=拦截 pack 强制兜底（route.abort 的 net::ERR_FAILED 为预期网络噪声，noise_dropped=1 已剔除）。",
+ "A": {
+  "pack_fetches": 1,
+  "perfile_fetches": 0,
+  "http_ge400": [],
+  "errors": [],
+  "hint_shown": true,
+  "hint_auto_hidden": true,
+  "vm_targets": 35
+ },
+ "B": {
+  "pack_fetches": 1,
+  "perfile_fetches": 0,
+  "sw_controlled": true,
+  "pack_transfer_sizes": [
+   {
+    "name": "pack-2a59a28a.bin",
+    "t": 0
+   }
+  ],
+  "errors": []
+ },
+ "C": {
+  "pack_fetches": 0,
+  "perfile_fetches": 360,
+  "fallback_warned": true,
+  "errors": [],
+  "noise_dropped": 1
+ },
+ "verdict": "PASS",
+ "regression": "scripts/regression-headless.py 双版三检查点一致：targets 35→86、渲染的进度→671、开机引导页 0→1、0 页面错误（swiftshader 伪影告警两版同在）"
+}

@@ -10,7 +10,7 @@
  * 注意：GitHub Pages 无法自定义 Cache-Control（默认 max-age=600），
  * 本 SW 是弱网/二次访问体验的正式缓存方案。
  */
-const VERSION = 'v1.03';
+const VERSION = 'v1.04';
 const SHELL_CACHE = `pixel-xxl-shell-${VERSION}`;
 const ASSET_CACHE = 'pixel-xxl-assets-1'; // 素材内容寻址不随版本失效，跨版本复用
 const SHELL = [
