@@ -4,8 +4,16 @@
 
 # Pixel XXL · HANDOFF 结构化快照
 
-- **generated**: 2026-11-08 12:0x+08:00（R129 窗 · Job 2933040 第 2 定时消息系列）
-- **head**: 见 `git log --oneline -1`（本文件随每轮交付覆写，版本以 tag 为准：当前 v1.06）
+- **generated**: 2026-11-08 14:2x+08:00（R129 窗收窗覆写 · Job 2933040 第 2 定时消息系列）
+- **⚠️ 本窗五度撞号实录（Job 2933040 本系列）**：同窗并行实例与本实例连续同号交叉——
+  对侧连发 v1.04 资产包（36ec911）/v1.05 分片+CDN（17dbbd0）/v1.06 IDB+竞速（f904330），
+  本方 v1.04 反馈层（4a7343c，tag 已推）/v1.05 合流（f7ed235+a9a1db1）/v1.06 三缺陷修复
+  （e28beee，**main 未推成，本地树保命于远端分支 `backup-v106-bfb` = e28beee**）。
+  版本号双方同取（v1.04×2/v1.05×2/v1.06×2），终树重滚见下窗续点。
+- **head**: origin/main = f904330（对侧 v1.06 IDB+竞速）；**本方最新 = backup-v106-bfb 分支 = e28beee**
+- **基线核验**: 本方终树 pack-verify 三场景 PASS（e28beee 含证据；A 反馈层真实百分比/
+  auto_hidden/vm=80，B SW 双分片 transferSize=0,0，C 360 逐文件兜底）；
+  boot-feedback-probe 因 CDN 波动窗口超时未补跑（桌面全链路断言已被 pack-verify A 等效覆盖）
 - **基线核验**: 冒烟取证三通道 PASS（`python3 scripts/boot-feedback-probe.py` →
   `docs/boot-feedback-evidence.json`，verdict 字段）
 - **执行方式真源**: md3 仓库 #18 评论 6715176456（2026-11-08 00:41 用户指示的方向变更公告）——
@@ -79,9 +87,29 @@ TurboWarp 单文件打包产物（57.4MB）→ **忠实多文件 Web 移植**（
 - 并行实例：本仓曾有同窗并行提交（2026-11-08 12:03 v1.03 系并行实例推送）——
   动手前先 `git fetch`，远端是唯一真相源；认领协调面 = 本仓库 issue #1 评论。
 
-## 下窗续点
+## 下窗续点（R130 · 首要任务 = 本方 backup 树与对侧 f904330 合流）
 
-REST 对账 ≥ 本文件 head + 冒烟 verdict=PASS → 按候选任务池 ROI 认领 → 实现 →
-冒烟/回归 → **立即 push + tag vX.Y+1 + 覆写本文件** → issue #1 交付帖。
+**本方工作未推上 main，全部内容已保命于远端分支 `backup-v106-bfb`（= e28beee）——
+先 fetch 取回再合流，勿重做已完成的实现。**
+
+1. `git fetch && git checkout -b work origin/main`（f904330）→ `git merge backup-v106-bfb`
+   （或反向），冲突裁决真源如下：
+   - **loader（分片下载）**：取**对侧竞速+IDB 版**（双源竞速=先完成者胜，优于本方硬超时
+     切源；IDB 持久化二访 0 网络且不依赖 SW——本方 hardTimer 逻辑可弃）；
+   - **sw.js**：取**对侧版**（它同样修复了 isPackCdn 死代码 bug——双方独立发现同一缺陷；
+     本方"SW 内 CDN fetch 8s 硬超时切同源"防 respondWith 挂死的口径值得并入复核）；
+   - **index.html**：324 行冲突细看——对侧 #loading-note 是 loading 阶段四态文案（下载段），
+     本方 #boot-feedback 是点击后全屏反馈层（渲染段）——**阶段不同理论上正交互补**，
+     融合而非二选一；本方融合层含双数据源（真实变量「渲染的进度/渲染数」优先+阶段推断兜底）
+     与五通道收层，为渲染段完整版；
+   - **pack-verify.py**：融合对侧五场景（IDB/竞速）+ 本方两笔（#boot-feedback 断言迁移
+     [对侧仍断言 #boot-hint 而本方终树已无该元素] + 环境无关双源命中口径
+     [对侧 ok 仍硬编码 local_parts>=2，跨沙箱会误杀 CDN 命中场景]）；
+   - **版本**：终树重滚 v1.07（双方 v1.06 撞号），sw VERSION 同步；本方 tag v1.06 已推
+     （指向 e28beee 前身）勿删，v1.07 新打；
+   - **boot-feedback-probe.py**：本方脚本（对侧树无此文件，merge 自动保留）补跑移动通道。
+2. 合流终树双验证（pack-verify 融合版 + boot-feedback-probe）全绿 → push main + tag v1.07
+   → 覆写本文件 → issue #1 交付帖（含五度撞号大账收口）。
+3. 常规续点：候选任务池按 ROI 认领（空窗治理③为当前仅余主项）。
 剩余时间判定：R > 30min 继续加餐（md3 #18 §7.5 循环填槽规则精神沿用）；
 R < 40min 不开新重型。
