@@ -1,0 +1,168 @@
+# regression.yml — #4 CI 基线（v1.12 · Job 2933110）
+#
+# 目标（依 #4 议题验收口径）：
+# - push 触发：static-gates（内联 JS 逐块语法闸 + shell-src tsc/vitest/build）
+#              + pack-verify 五场景（playwright chromium；#4 原文「纯 Python 不依赖
+#              浏览器」经 #30 阅读闸实证为误判——脚本 import playwright 并断言
+#              SW transferSize/IndexedDB，必须真浏览器，本表已按实证修正）；
+# - 定时触发（每日 1 次，05:30 +08）：boot-feedback-probe 三通道（软渲染全链路 ~6 分钟）；
+# - 证据 artifact 上传；红灯用 GITHUB_TOKEN（非 PAT）自动回帖 #2；
+# - 约束：零运行时文件改动（仅 .github/ 与 scripts/check-inline-js.py 静态闸）。
+#
+# regression-headless（双版对比，需 57MB 原版单文件 md3 Release `nnnj` 作 8082 对照源）
+# 暂缓入 CI：外部大文件依赖脆 + Actions cache 预热成本高，留待下窗按 #4 原案补
+# （actions/cache 预热 + 双服务起 8081/8082）。本表不隐瞒该缺口，收窗帖同步披露。
+
+name: regression
+
+on:
+  push:
+    branches: [main]
+  workflow_dispatch:
+  schedule:
+    - cron: '30 21 * * *' # 05:30 +08 每日 1 次（#4 约束：频率保守）
+
+permissions:
+  contents: read
+  issues: write
+
+concurrency:
+  group: regression-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  static-gates:
+    if: github.event_name != 'schedule'
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: npm
+          cache-dependency-path: shell-src/package-lock.json
+
+      - name: 内联 JS 逐块语法闸（1a97a66 声明物化 · 吞闭合标签缺陷防线）
+        run: python3 scripts/check-inline-js.py
+
+      - name: shell-src 依赖安装
+        working-directory: shell-src
+        run: npm ci
+
+      - name: shell-src 类型检查（tsc --noEmit）
+        working-directory: shell-src
+        run: npx tsc --noEmit
+
+      - name: shell-src 契约测试（vitest）
+        working-directory: shell-src
+        run: npm test
+
+      - name: shell-src 构建（vite build）
+        working-directory: shell-src
+        run: npm run build
+
+  pack-verify:
+    if: github.event_name != 'schedule'
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+
+      - name: 安装 playwright + chromium（版本钉死，与证据窗一致）
+        run: |
+          pip install playwright==1.57.0
+          python3 -m playwright install --with-deps chromium
+
+      - name: pack-verify 五场景（VERDICT 红绿闸）
+        run: |
+          set -o pipefail
+          python3 scripts/pack-verify.py 2>&1 | tee /tmp/pv-run.log
+          grep -q "VERDICT: PASS" /tmp/pv-run.log
+
+      - name: 证据 artifact（pack-verify）
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: pack-verify-evidence
+          path: /tmp/pv-run.log
+          retention-days: 30
+
+      - name: 红灯回帖 #2（GITHUB_TOKEN，不涉及 PAT）
+        if: failure()
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          RUN_URL: ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}
+          JOB_NAME: ${{ github.job }}
+          SHA7: ${{ github.sha }}
+        run: |
+          python3 - <<'PY'
+          import json, os, urllib.request
+          body = {"body": ("🚨 CI 红灯（#4 基线自动哨兵）· job=%s @ commit %s\nrun: %s\n"
+                           "（本回帖由 workflow 内 GITHUB_TOKEN 发出，不涉及 PAT）"
+                           % (os.environ["JOB_NAME"], os.environ["SHA7"][:7], os.environ["RUN_URL"]))}
+          req = urllib.request.Request(
+              "https://api.github.com/repos/%s/issues/2/comments" % os.environ["GITHUB_REPOSITORY"],
+              data=json.dumps(body).encode("utf-8"), method="POST",
+              headers={"Authorization": "Bearer " + os.environ["GH_TOKEN"],
+                       "Accept": "application/vnd.github+json"})
+          print("comment status:", urllib.request.urlopen(req).status)
+          PY
+
+  boot-probe:
+    if: github.event_name == 'schedule' || github.event_name == 'workflow_dispatch'
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+
+      - name: 安装 playwright + chromium
+        run: |
+          pip install playwright==1.57.0
+          python3 -m playwright install --with-deps chromium
+
+      - name: boot-feedback-probe 三通道（verdict 红绿闸，软渲染 ~6 分钟）
+        run: |
+          set -o pipefail
+          python3 scripts/boot-feedback-probe.py 2>&1 | tee /tmp/bfb-run.log
+          python3 -c "import json; d=json.load(open('docs/boot-feedback-evidence.json')); exit(0 if d.get('verdict')=='PASS' else 1)"
+
+      - name: 证据 artifact（boot-feedback）
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: boot-feedback-evidence
+          path: |
+            /tmp/bfb-run.log
+            docs/boot-feedback-evidence.json
+          retention-days: 30
+
+      - name: 红灯回帖 #2（GITHUB_TOKEN，不涉及 PAT）
+        if: failure()
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          RUN_URL: ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}
+          JOB_NAME: ${{ github.job }}
+          SHA7: ${{ github.sha }}
+        run: |
+          python3 - <<'PY'
+          import json, os, urllib.request
+          body = {"body": ("🚨 CI 红灯（#4 基线自动哨兵）· job=%s @ commit %s\nrun: %s\n"
+                           "（本回帖由 workflow 内 GITHUB_TOKEN 发出，不涉及 PAT）"
+                           % (os.environ["JOB_NAME"], os.environ["SHA7"][:7], os.environ["RUN_URL"]))}
+          req = urllib.request.Request(
+              "https://api.github.com/repos/%s/issues/2/comments" % os.environ["GITHUB_REPOSITORY"],
+              data=json.dumps(body).encode("utf-8"), method="POST",
+              headers={"Authorization": "Bearer " + os.environ["GH_TOKEN"],
+                       "Accept": "application/vnd.github+json"})
+          print("comment status:", urllib.request.urlopen(req).status)
+          PY

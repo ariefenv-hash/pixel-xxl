@@ -1,5 +1,7 @@
 # Pixel XXL · 忠实多文件移植版
 
+[![regression](https://github.com/ariefenv-hash/pixel-xxl/actions/workflows/regression.yml/badge.svg)](https://github.com/ariefenv-hash/pixel-xxl/actions/workflows/regression.yml)
+
 > 来源：TurboWarp Packager 单文件打包产物 `Pixel.XL.0827.html`（57.4MB，md3 仓库 Release `nnnj`）
 > 本仓库 = 该网页的**逐代码、逐资源解包移植**：运行时与原版逐字节一致，
 > 工程数据（project.json + 328 个素材文件）1:1 落为真实文件，纯静态、零构建。

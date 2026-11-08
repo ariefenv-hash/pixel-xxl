@@ -4,7 +4,7 @@
 
 # Pixel XXL · HANDOFF 结构化快照
 
-- **generated**: 2026-11-08 17:12+08:00（R131 八度撞号合流覆写 · Job 2933110(#23 语言迁移) × Job 2933040(动画连贯性) 两窗并档收窗）
+- **generated**: 2026-11-08 18:45+08:00（R132 窗收窗覆写 · Job 2933110 · 本窗 = #4 CI 基线；R131 = 八度撞号合流 v1.11）
 - **⚠️ 本窗五度撞号实录（Job 2933040 本系列）**：同窗并行实例与本实例连续同号交叉——
   对侧连发 v1.04 资产包（36ec911）/v1.05 分片+CDN（17dbbd0）/v1.06 IDB+竞速（f904330），
   本方 v1.04 反馈层（4a7343c，tag 已推）/v1.05 合流（f7ed235+a9a1db1）/v1.06 三缺陷修复
@@ -20,7 +20,7 @@
   对方 v1.10 动画连贯性（4a181d3）——同号双树，功能面完全正交（本方 shell-src/、shell/ 产物、
   docs/SHELL.md、shell 系探针 × 对方 index 尾部 fps 块、sw.js、PORTING/MOBILE/ANALYSIS §2、
   anim/fps 探针），仅 docs/HANDOFF 覆写相撞（docs/ANALYSIS 自动合并成功），合流重滚 **v1.11** 防倒挂。
-- **head**: **v1.11 = 八度撞号合流终树**（对方 v1.10 动画连贯性 4a181d3 × 本方 v1.10 #23 语言迁移 d32f5e9 并档；L0 忠实态零触碰 + fps 修复双双保留，fidelity sha256 全 PASS + fps-probe 四通道 PASS）
+- **head**: **v1.12 = #4 CI 基线**（regression.yml：push=static-gates+pack-verify 五场景、schedule=boot-probe 三通道、红灯 GITHUB_TOKEN 回帖 #2；+ 1a97a66 声明物化 check-inline-js.py）——上一版 v1.11 = 八度撞号合流终树（对方动画 4a181d3 × 本方语言迁移 d32f5e9 并档；L0 忠实态零触碰 + fps 修复双双保留）
 - **上一窗 head 归档**：对方 v1.10 = 动画连贯性升级（4a181d3，tag v1.10）× 本方 v1.10 = #23 语言迁移（d32f5e9，未 tag，撞号让号并入 v1.11）；v1.08 = 六度撞号合流（46646d0b+81762208）；backup-v106-bfb 转归档
 - **本窗事故记录（#30 规则六首条外新增）**：开窗时误判 shell-src/ 为空白目录，在未盘点未跟踪遗留半成品（上一截断窗 08:01~08:11 的 motion/catalog/shell 组件）前先行写入，覆盖 package.json/package-lock/vite.config/tsconfig/index.html/bridge/runtime.ts 共 6 个文件——发现后按"旧版为主干恢复 + 新增作补充"合流，重建 3 个被覆盖文件（runtime.ts/index.html/配置），损失部分不可逆（旧 index.html/main 原始版未找回，按 style.css+qs-panel 引用面重建）；教训已入 #30 返工表
 - **基线核验**: v1.07 终树 pack-verify 五场景 PASS（A 同源竞速命中+IDB 写入+feedback 真实百分比/auto_hidden/vm=80、B 二访零请求 pack_source=idb、C 360 逐文件兜底、E SW 零网络+IDB 重写）；boot-feedback-probe 移动通道证据留下窗补跑（原注：
@@ -86,6 +86,25 @@ TurboWarp 单文件打包产物（57.4MB）→ **忠实多文件 Web 移植**（
   两条修复路线互不干扰。
 - **详见**：docs/SHELL.md（#23 交付正文）。
 
+## 本窗交付（v1.12 #4 CI 基线 · 本方）
+
+- **交付**：`.github/workflows/regression.yml` 三 job——① static-gates（push：check-inline-js
+  内联 JS 逐块语法闸 + shell-src `npm ci`/`tsc --noEmit`/vitest 10 例/`vite build`）；
+  ② pack-verify（push：五场景 VERDICT 红绿闸 + 证据 artifact）；③ boot-probe（每日
+  05:30+08 schedule + workflow_dispatch：三通道 verdict 红绿闸 + artifact）；红灯
+  GITHUB_TOKEN 自动回帖 #2（零 PAT 依赖）。
+- **#30 实证修正**：#4 原文「pack-verify 纯 Python 不依赖浏览器」系误判——三脚本均
+  import playwright 并断言 SW transferSize/IndexedDB（本窗依赖面 100% 通读实证），
+  CI 按 playwright==1.57.0 + chromium 真浏览器落地。
+- **物化补账（1a97a66 声明 vs 树差异，#30 返工表精神）**：对方 fixup 声明的
+  `scripts/check-inline-js.py` 与「已知坑：API 合流 index.html 须逐块语法校验」均未落库
+  ——本窗按其描述物化脚本（4 内联块全过 = 其口径复现）并补记已知坑。
+- **推送前测试（铁律三）**：本地 pack-verify 五场景 VERDICT: PASS（A 反馈层「正在渲染
+  桌面 32%…（非下载）」/B idb 零请求/C 360 兕底/E transferSize=0,0+IDB 重写2）；
+  语法闸 4/4；tsc + vitest 10/10 + build 产物哈希与库内 shell/ 一致（构建可复现）。
+- **缺口披露**：regression-headless（57MB 原版 8082 对照源）暂缓入 CI，workflow 注释 +
+  下窗续点留痕，不隐瞒。
+
 ## 红线（违反 = 返工）
 
 1. **core/app 逐字节**：`lib/turbowarp-core.js`、`lib/pixel-xxl-app.js` 不许改动；
@@ -113,6 +132,8 @@ TurboWarp 单文件打包产物（57.4MB）→ **忠实多文件 Web 移植**（
 
 ## 工具速查
 
+- CI 基线（#4，v1.12）：push 自动跑 static-gates + pack-verify，每日 05:30+08 自动跑
+  boot-probe 三通道（Actions → regression workflow，证据在 run artifact）；红灯自动回帖 #2；
 - 帧率四通道验证：`python3 scripts/fps-probe.py`（8088，A 缺省 60→降级 30 / B 显式 /
   C orig / D 显式+夺回，证据 docs/fps-probe-evidence.json）；
 - 动画逐帧诊断：`python3 scripts/anim-probe.py`（8087，逐 tick trace，需过引导页）；
@@ -139,8 +160,12 @@ TurboWarp 单文件打包产物（57.4MB）→ **忠实多文件 Web 移植**（
   API 推送产生的 commit sha 与本地不同（树一致），恢复 git 协议后先 fetch + reset --hard 对齐；
 - 并行实例：本仓曾有同窗并行提交（2026-11-08 12:03 v1.03 系并行实例推送）——
   动手前先 `git fetch`，远端是唯一真相源；认领协调面 = 本仓库 issue #1 评论。
+- **API 合流的 index.html 必须跑逐块语法校验后才可推**（1a97a66 教训，其声明未落库，
+  本窗补记并物化闸：`python3 scripts/check-inline-js.py`，4 内联块须全过）；
+- **沙箱回收后工作树全树 mode 假变化**（644→755、numstat 全 0 行）——先
+  `git config core.fileMode false` 再合并/提交，勿误判为内容改动（R132 实测）。
 
-## 下窗续点（R132）
+## 下窗续点（R133）
 
 **✅ 已完成（18197ef）**：五度撞号终融合 v1.07 已推 main（REST 回读一致）；pack-verify
 五场景 PASS；tag v1.04~v1.07 全部落远端。合流裁决实录见 PORTING §11 注记与本文件上方版本里程碑。
@@ -156,7 +181,9 @@ TurboWarp 单文件打包产物（57.4MB）→ **忠实多文件 Web 移植**（
    零翻译成本；与对方 v1.10 帧率自适应共存——壳层动画走 DOM/合成器不占 VM tick，互不干扰）；
    ④ shell-probe.py/shell-verify.py 纳入 #4 CI 基线；
    ⑤ gen-bridge-catalog.py 随 project.json 演进重生成（catalog 对账 fail loud 已兜底）；
-4. 议题池按优先级认领（设计先行 #6 冻结令优先）；R > 30min 加餐、R < 40min 不开新重型。
+4. 议题池按优先级认领（设计先行 #6 冻结令优先）；R > 30min 加餐、R < 40min 不开新重型；
+5. **#4 CI 收尾**：regression-headless 入 CI（actions/cache 预热 57MB 原版 + 8081/8082
+   双服务）；首周观察 schedule boot-probe 软渲染在 runner 上的时长漂移是否稳定绿灯。
 
 ## 版本号登记表（#3 领号制 · 与 git tags 实测同步）
 
@@ -168,6 +195,7 @@ TurboWarp 单文件打包产物（57.4MB）→ **忠实多文件 Web 移植**（
 | v1.10 | Job 2933040（R131） | 动画连贯性升级（七度撞号重滚） | v1.10 已落远端 |
 | v1.10 | Job 2933110（R131 并行窗） | #23 语言迁移（shell-src，d32f5e9） | 未 tag（撞号让号，并入 v1.11） |
 | v1.11 | 本窗合流（Job 2933110 收窗） | 八度撞号合流终树（动画 × 语言迁移并档） | v1.11 本窗落 |
+| v1.12 | Job 2933110（R132） | #4 CI 基线（regression.yml 三 job + check-inline-js 物化 + 已知坑补记） | 未 tag（docs/CI 面，零运行时；v1.09 先例同律） |
 
 ## 议题索引（2026-11-08 · 新立 29 个议题 #2~#30（含 #30 读完再动手闸门），已回读核对 + #2 已置顶）
 
