@@ -20,7 +20,7 @@
   对方 v1.10 动画连贯性（4a181d3）——同号双树，功能面完全正交（本方 shell-src/、shell/ 产物、
   docs/SHELL.md、shell 系探针 × 对方 index 尾部 fps 块、sw.js、PORTING/MOBILE/ANALYSIS §2、
   anim/fps 探针），仅 docs/HANDOFF 覆写相撞（docs/ANALYSIS 自动合并成功），合流重滚 **v1.11** 防倒挂。
-- **head**: **v1.12 = #4 CI 基线**（regression.yml：push=static-gates+pack-verify 五场景、schedule=boot-probe 三通道、红灯 GITHUB_TOKEN 回帖 #2；+ 1a97a66 声明物化 check-inline-js.py）——上一版 v1.11 = 八度撞号合流终树（对方动画 4a181d3 × 本方语言迁移 d32f5e9 并档；L0 忠实态零触碰 + fps 修复双双保留）
+- **head**: **v1.13 = 设计规范 v1.0-draft + CI 双闸**（docs/DESIGN-SPEC.md：69 token 出处 100% + 组件形态清单 + 裁剪声明 + #9 颜色系统章；regression.yml 增 shell-gates job + static-gates 增 catalog 对账闸）——上一版 v1.12 = #4 CI 基线（regression.yml 初建三 job）；再上 v1.11 = 八度撞号合流终树（对方动画 4a181d3 × 本方语言迁移 d32f5e9 并档；L0 忠实态零触碰 + fps 修复双双保留）
 - **上一窗 head 归档**：对方 v1.10 = 动画连贯性升级（4a181d3，tag v1.10）× 本方 v1.10 = #23 语言迁移（d32f5e9，未 tag，撞号让号并入 v1.11）；v1.08 = 六度撞号合流（46646d0b+81762208）；backup-v106-bfb 转归档
 - **本窗事故记录（#30 规则六首条外新增）**：开窗时误判 shell-src/ 为空白目录，在未盘点未跟踪遗留半成品（上一截断窗 08:01~08:11 的 motion/catalog/shell 组件）前先行写入，覆盖 package.json/package-lock/vite.config/tsconfig/index.html/bridge/runtime.ts 共 6 个文件——发现后按"旧版为主干恢复 + 新增作补充"合流，重建 3 个被覆盖文件（runtime.ts/index.html/配置），损失部分不可逆（旧 index.html/main 原始版未找回，按 style.css+qs-panel 引用面重建）；教训已入 #30 返工表
 - **基线核验**: v1.07 终树 pack-verify 五场景 PASS（A 同源竞速命中+IDB 写入+feedback 真实百分比/auto_hidden/vm=80、B 二访零请求 pack_source=idb、C 360 逐文件兜底、E SW 零网络+IDB 重写）；boot-feedback-probe 移动通道证据留下窗补跑（原注：
@@ -105,6 +105,35 @@ TurboWarp 单文件打包产物（57.4MB）→ **忠实多文件 Web 移植**（
 - **缺口披露**：regression-headless（57MB 原版 8082 对照源）暂缓入 CI，workflow 注释 +
   下窗续点留痕，不隐瞒。
 
+## 本窗交付（v1.13 设计规范 v1.0-draft + CI 双闸 · 本方）
+
+- **主交付：docs/DESIGN-SPEC.md（#6 冻结令交付稿）**——纯文档零代码零构建：
+  §2 颜色系统（#9：Monet 五调色板 chroma + CAM16 观察条件 + dark/light 角色→tone
+  映射 16×2 全量 + 亮暗口径 + 强调色 #ff4c4c 兜底定位 + 失效回落链）；§3 动效
+  （BackAnimationSpec 族 ST1~ST4 margin/min-scale/easing + ShadeInterpolation
+  alpha 映射公式 + DynamicAnimation MIN_VISIBLE_CHANGE 族 + integers.xml 杂项）;
+  §4 布局图标（notif 上限族）· §5 字体（Roboto Flex 三轴/ROND 不做）· §6 形状
+  （28dp/endGap 8dp/highlight 0.26 部分实证标注）· §7 组件形态清单八节
+  （状态栏/导航栏/锁屏/桌面/抽屉/对话框/QS 磁贴/通知，各节现状→AOSP 对照→目标
+  形态+级别）· §8 self:自创隔离区 6 项 · §9 裁剪声明 6 条 · §10 评审冻结与附注。
+  token 表行 69 项（程序化点数：非自创 63 + self: 6），出处 100%（#7 验收 ≥40）。
+- **语料纪律**：aosp: 值全部经 md3@main vendored 副本**逐文件复核**（本窗精读 14 件：
+  back 三件套/ShadeInterpolation/TransitionAnimator/DynamicAnimation/Force/
+  AllAppsTransitionController/DeviceProfile/ClockSize/ThemedBatteryDrawable/
+  volume integers/monet.js/theme-color.js/ui-detail-baseline/visual-token-adoption）;
+  语料副本拉自 aosp-mirror main 分支——android-17.0.0_r1 逐值回核列为下窗续点
+  （SPEC §10 附注一）；语料未含的值（SpringForce 劲度/Launcher3 栅格 px/QS 网格）
+  刻意留空不编造（附注二）。md3 方向性决策零搬运（红线 4）。
+- **加餐④⑤：CI 双闸**——static-gates 增 `gen-bridge-catalog.py --check`
+  （catalog 随 project.json 漂移即红灯）+ 新 job shell-gates（shell-probe 三通道
+  + 红线 sha256 保真，脚本自带退出码闸，playwright==1.57.0 同版）+ 证据 artifact。
+- **推送前测试（铁律三）**：语法闸 4/4；catalog --check PASS（sha16=ce5d8400cb42b1c8）;
+  workflow YAML parse OK（4 job）；本地 shell-probe 全链路 VERDICT: PASS
+  （fidelity PASS/A shell-load PASS/B bridge PASS 壁纸编号初值 3/C qs-tiles PASS
+  壁纸 3→4 亮度 500→600）。
+- **状态**：SPEC 为 v1.0-draft 待 #8 评审冻结——冻结前不作为实现依据（#6 验收
+  口径：评审通过后在交接议题登记「设计冻结」）。
+
 ## 红线（违反 = 返工）
 
 1. **core/app 逐字节**：`lib/turbowarp-core.js`、`lib/pixel-xxl-app.js` 不许改动；
@@ -164,26 +193,35 @@ TurboWarp 单文件打包产物（57.4MB）→ **忠实多文件 Web 移植**（
   本窗补记并物化闸：`python3 scripts/check-inline-js.py`，4 内联块须全过）；
 - **沙箱回收后工作树全树 mode 假变化**（644→755、numstat 全 0 行）——先
   `git config core.fileMode false` 再合并/提交，勿误判为内容改动（R132 实测）。
+- **Bash 工具输出通道会吞方括号序列**（如 `[main]` 显示成 `ain]`、`[i]` 吞成空）
+  ——bash cat/grep/repr 看到的括号内容不可信；磁盘文件本身无损（printf 55 字节
+  实证 + Read 工具括号保真）。核对括号内容用 Read 工具或 base64 传输；字节级断言
+  用 python count（R133 实测：误判 CI branches 为缺陷，白耗 ~15 分钟后经字节偏移
+  1152 处 `main]` 证实为 `[main]` 完好）。
 
-## 下窗续点（R133）
-
-**✅ 已完成（18197ef）**：五度撞号终融合 v1.07 已推 main（REST 回读一致）；pack-verify
-五场景 PASS；tag v1.04~v1.07 全部落远端。合流裁决实录见 PORTING §11 注记与本文件上方版本里程碑。
+## 下窗续点（R134）
 
 0. **开窗入口已切换**：置顶议题 #2（SOP·铁律）+ #30 读完再动手闸门 + 本文件 +
    git log --oneline -5；认领登记按 #2 §一4（认领 + 预计版本号，后到者跳号 #3）；
-1. 用户真机验收 v1.10 动画（60Hz 设备开/关动画是否顺滑；120Hz 设备应零变化）；
-2. 补跑 boot-feedback-probe.py 移动通道（R130 遗留；桌面断言已被 pack-verify A 等效覆盖）；
-3. **#23 新壳已可用**：/shell/ 双入口在线（本窗推送后）；下窗可续：
-   ① issue #23 回帖交付凭证（本窗已回帖；若 PAT 失效改 backup 分支保命）；
-   ② QS 磁贴 L2 化（逐项 AOSP 考证 + 设计 token 消费，依赖 #6/#7）；
-   ③ app 开/关动画接 vendored 内核（动画攻坚工作面，API 形状 = shell-src/src/motion/ 出口，
-   零翻译成本；与对方 v1.10 帧率自适应共存——壳层动画走 DOM/合成器不占 VM tick，互不干扰）；
-   ④ shell-probe.py/shell-verify.py 纳入 #4 CI 基线；
-   ⑤ gen-bridge-catalog.py 随 project.json 演进重生成（catalog 对账 fail loud 已兜底）；
-4. 议题池按优先级认领（设计先行 #6 冻结令优先）；R > 30min 加餐、R < 40min 不开新重型；
-5. **#4 CI 收尾**：regression-headless 入 CI（actions/cache 预热 57MB 原版 + 8081/8082
-   双服务）；首周观察 schedule boot-probe 软渲染在 runner 上的时长漂移是否稳定绿灯。
+1. **设计冻结评审（最高优先）**：DESIGN-SPEC v1.0-draft 已交（#6/#7/#9 回帖凭证），
+   待用户/复核实例确认后登记「设计冻结」→ token 引用制生效；评审意见修订本表后
+   固化 v1.0；
+2. **SPEC §10 附注一回核**：aosp: 值逐项回核 android-17.0.0_r1 分支差异
+   （cs.android.com 或 sources jar；语料副本现为 main 分支实拉）；
+3. **#23 新壳续点**（设计冻结后解锁）：
+   ② QS 磁贴 L2 化（#18 对照稿三栏表 → 首批磁贴清单，消费 SPEC token；
+   语料：motion.shade.* + motion.qs.fade-* + systemui-docs/quickaffordance.md）；
+   ③ app 开/关动画接 vendored 内核（**对侧 2933040 动画工作面，继续避开**——
+   除非对侧 #1 明示转交；API 形状 = shell-src/src/motion/ 出口）；
+   ④ ✅ 已完成（R133：shell-probe 入 CI shell-gates job）；
+   ⑤ ✅ 已完成（R133：gen-bridge-catalog --check 入 static-gates）；
+4. **SPEC 附注二留空项补考**：SpringForce 劲度/阻尼（sources jar）· Launcher3
+   栅格 px（#13 对照稿）· QS 磁贴网格尺寸（#18 对照稿）——各自随议题动工实拉；
+5. 用户真机验收 v1.10 动画（60Hz 设备开/关动画是否顺滑；120Hz 设备应零变化）+
+   补跑 boot-feedback-probe.py 移动通道（R130 遗留，桌面断言已被 pack-verify A 等效覆盖）；
+6. **#4 CI 收尾**：regression-headless 入 CI（actions/cache 预热 57MB 原版 + 8081/8082
+   双服务）；首周观察 schedule boot-probe 与新 shell-gates job 在 runner 上的时长
+   漂移是否稳定绿灯（shell-gates 首跑见 CI 页面）。
 
 ## 版本号登记表（#3 领号制 · 与 git tags 实测同步）
 
@@ -196,6 +234,7 @@ TurboWarp 单文件打包产物（57.4MB）→ **忠实多文件 Web 移植**（
 | v1.10 | Job 2933110（R131 并行窗） | #23 语言迁移（shell-src，d32f5e9） | 未 tag（撞号让号，并入 v1.11） |
 | v1.11 | 本窗合流（Job 2933110 收窗） | 八度撞号合流终树（动画 × 语言迁移并档） | v1.11 本窗落 |
 | v1.12 | Job 2933110（R132） | #4 CI 基线（regression.yml 三 job + check-inline-js 物化 + 已知坑补记） | 未 tag（docs/CI 面，零运行时；v1.09 先例同律） |
+| v1.13 | Job 2933110（R133） | 设计规范 v1.0-draft（DESIGN-SPEC.md 69 token）+ CI 双闸（shell-gates job + catalog 对账闸） | 未 tag（docs/CI 面，零运行时；v1.09/v1.12 先例同律） |
 
 ## 议题索引（2026-11-08 · 新立 29 个议题 #2~#30（含 #30 读完再动手闸门），已回读核对 + #2 已置顶）
 

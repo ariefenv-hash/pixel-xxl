@@ -1,18 +1,18 @@
 {
-  "time": "2026-11-08T08:44:23+0000",
+  "time": "2026-11-08T12:28:07+0000",
   "port": 8791,
   "checks": {
     "fidelity": {
       "verdict": "PASS",
       "files": {
         "index.html": {
-          "worktree": "d2187bbb95579c1b",
-          "head": "d2187bbb95579c1b",
+          "worktree": "6802c19229a58fd4",
+          "head": "6802c19229a58fd4",
           "match": true
         },
         "sw.js": {
-          "worktree": "6beea2c3f438f785",
-          "head": "6beea2c3f438f785",
+          "worktree": "9c1a4b10e94ad5f2",
+          "head": "9c1a4b10e94ad5f2",
           "match": true
         },
         "project.json": {
@@ -36,6 +36,23 @@
           "match": true
         }
       }
+    },
+    "a_shell_load": {
+      "verdict": "PASS"
+    },
+    "b_bridge": {
+      "verdict": "PASS",
+      "initial_壁纸编号": "3",
+      "status": "桥接就绪 · 磁贴写通道已启用 · targets=21 threads=0 · pack=origin"
+    },
+    "c_qs_tiles": {
+      "verdict": "PASS",
+      "wallpaper_before": "3",
+      "wallpaper_after": "4",
+      "brightness_before": "500",
+      "brightness_after": "600",
+      "shell_errors": []
     }
-  }
+  },
+  "verdict": "PASS"
 }
