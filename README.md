@@ -44,22 +44,32 @@ python3 -m http.server 8080
   **首访素材请求 328 → 1**，弱网下每请求排队/握手的延迟大头消除；
 - 加载层：模块初始化即并行下载包，流式读取、进度直驱进度条；
   包清单命中切片交付（零拷贝），包不可用/失败自动回退逐文件 fetch（v1.00 语义）；
-- 壳层：新增 `#boot-hint` 启动空窗提示条（不拦截点击，画布亮帧或 20s 封顶隐藏）；
+- 壳层：新增 `#boot-hint` 启动空窗提示条（20s 封顶；v1.06 起被反馈完整层超集覆盖移除）；
 - 验证：pack-verify 三场景全绿（docs/pack-verify.json）+ 权威回归双版三检查点一致。
 - 详见 `docs/PORTING.md` §8。素材变更后重跑 `python3 scripts/build-pack.py` 再生包。
 
-## v1.05 启动屏进度反馈版（撞号合流重滚 · 2026-11-08）
+## v1.05 分片包 + CDN 前置版（2026-11-08）
+
+- 分片：合并包拆为 2 片（≤16MB，适配 jsDelivr 20MB 上限），**首访素材请求 328 → 2**；
+- CDN 前置：jsDelivr 优先（CORS 全开实测）+ 首字节 6s 超时自动切同源 + 逐文件兜底；
+  SW 把 CDN 分片一并 cache-first，二访零网络；
+- **真实启动进度条**：点击启动后显示「正在准备桌面素材 N%…」，数据源 = 运行时
+  Scratch 变量「渲染的进度/渲染数」（壳层只读，不碰 app 层）；
+- 验证：pack-verify 三场景全绿（docs/pack-verify.json）+ 双版回归一致。
+- 详见 `docs/PORTING.md` §9。素材变更后重跑 `python3 scripts/build-pack.py`。
+
+## v1.06 启动屏进度反馈完整版（撞号合流重滚 · 2026-11-08）
 
 - 消除"黑屏点不动"：点击绿旗后的编译/软渲染空窗（低端设备实测约 144s）叠加
-  启动反馈层（阶段文案 + 已启动秒数 + 进度条 + 低性能设备提示），画面点亮自动收层；
-- 纯追加观察层：core/app 逐字节红线不动、app bundle 内部门控计数器不触碰；
+  全屏反馈层（标题 + 阶段文案 + 已启动秒数 + 进度条 + 动画点 + 低性能设备提示）；
+- **进度数据源双通道**：优先读运行时 Scratch 变量「渲染的进度/渲染数」
+  （`window.vm` 全局可读，v1.05 已证零红线——显示「正在准备桌面素材 N%…」），
+  变量不可读时退回运行时阶段推断（vm → targets → threads）；
+- 收层五通道：像素点亮 / 进度满~4s / 保守放行 / 180s 硬封顶 / #error 立即收层；
+- 纯追加观察层：core/app 逐字节红线不动、app bundle 内部不触碰；
 - 回归兼容：`?nofb=1` 不安装（双版像素对比回归通道，行为与 v1.03 一致）；
-- 详见 `docs/PORTING.md` §9、`docs/MOBILE.md` §三④。
-
-## 交接入口
-
-跨轮次/跨会话交接快照见 **`docs/HANDOFF.md`**（head/基线/候选任务池/续点）。
-- 对侧 v1.04 #boot-hint 轻量提示条已被本层超集覆盖合并（对账实录见 PORTING §9 注记）。
+- 对侧 `#boot-hint` 提示条被本层超集覆盖移除（二度撞号合流，实录见 PORTING §10）；
+- 详见 `docs/PORTING.md` §10、`docs/MOBILE.md` §三④。
 
 
 ## 目录结构
@@ -68,7 +78,7 @@ python3 -m http.server 8080
 ├── index.html              # 入口（骨架与原版逐字节一致；v1.03 尾部 SW 注册、v1.05 尾部启动反馈层完整版）
 ├── project.json            # Scratch 工程 1:1（1,054,272B；v1.03 同步 10 处 md5 键）
 ├── assets/                 # 素材 1:1（md5 命名；v1.03 起 10 张 SVG 内嵌照片为 WebP 载荷；
-│                           #   v1.04 起含合并包 pack-<sha8>.bin，由 scripts/build-pack.py 生成）
+│                           #   v1.05 起为分片包 pack-<sha8>-pN.bin，由 scripts/build-pack.py 生成）
 ├── sw.js                   # Service Worker 缓存层（v1.04）
 ├── lib/
 │   ├── turbowarp-core.js   # 运行时 core（与原版逐字节一致）

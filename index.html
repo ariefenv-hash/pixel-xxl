@@ -205,7 +205,11 @@
     }
   </script>
   <script>
-    // v1.04: 启动屏进度反馈层（docs/MOBILE.md §三④ 修复路线落地）
+  <script>
+    // v1.06: 启动屏进度反馈层（docs/MOBILE.md §三④ 修复路线完整版）
+    // 数据源双通道：真实变量「渲染的进度/渲染数」（v1.05 对侧并行实例贡献——修正
+    // v1.02「门控无出口」误判，window.vm 全局可读零红线，优先）+ 运行时阶段推断兜底；
+    // 收层五通道：像素点亮 / 进度满~4s / 保守放行 / 180s 硬封顶 / #error 立即收层。
     // 痛点：点击绿旗后进入运行时编译/软渲染空窗（低端设备实测约 144 秒，docs/MOBILE.md §二），
     //       屏幕全黑零反馈，用户体感「黑屏点不动」。
     // 方案：纯追加观察层——不改动上方任何既有字节（core/app 逐字节红线不动）：
@@ -272,7 +276,7 @@
       document.head.appendChild(style);
       document.body.appendChild(fb);
 
-      var t0 = 0, timer = null, litStreak = 0, runningSeen = false, pixelBroken = false;
+      var t0 = 0, timer = null, litStreak = 0, fullStreak = 0, runningSeen = false, pixelBroken = false;
       var sampleCanvas = document.createElement('canvas');
       sampleCanvas.width = 64;
       sampleCanvas.height = 48;
@@ -298,6 +302,123 @@
           pixelBroken = true;
           return null;
         }
+      }
+      // 真实进度数据源（运行时 Scratch 变量，对侧 v1.05 贡献）
+      function readVar(name) {
+        try {
+          if (!window.vm || !vm.runtime) return null;
+          var stage = vm.runtime.getTargetForStage();
+          if (!stage || !stage.variables) return null;
+          for (var k in stage.variables) {
+            var v = stage.variables[k];
+            if (v && v.name === name) return v.value;
+          }
+        } catch (e) {}
+        return null;
+      }
+      function fmt(sec) {
+        return sec < 60 ? ('已启动 ' + sec + ' 秒') : ('已启动 ' + Math.floor(sec / 60) + ' 分 ' + (sec % 60) + ' 秒');
+      }
+      function setPhase(text, pct) {
+        if (phase.textContent !== text) phase.textContent = text;
+        if (pct != null) barInner.style.width = pct + '%';
+      }
+      function showHint(sec) {
+        if (sec > 150) {
+          hint.textContent = '长时间未点亮：低端设备/软件渲染下首帧可能需要数分钟；可尝试关闭其他标签页，或换用性能更好的设备。';
+          hint.style.display = 'block';
+        } else if (sec > 45) {
+          hint.textContent = '低性能设备首次启动可能需要 1~3 分钟，请耐心等待。';
+          hint.style.display = 'block';
+        }
+      }
+      function hide() {
+        if (!fb.hasAttribute('hidden')) {
+          fb.setAttribute('hidden', '');
+          if (timer) { clearInterval(timer); timer = null; }
+        }
+      }
+      function tick() {
+        if (fb.hasAttribute('hidden')) return;
+        var sec = Math.round((Date.now() - t0) / 1000);
+        elapsed.textContent = fmt(sec);
+        showHint(sec);
+        var ratio = pixelBroken ? null : litRatio();
+        if (ratio != null && ratio > 0.005) {
+          litStreak++;
+        } else if (ratio != null) {
+          litStreak = 0;
+        }
+        if (litStreak >= 2) {
+          barInner.style.width = '100%';
+          setPhase('画面已点亮', 100);
+          setTimeout(hide, 350);
+          return;
+        }
+        var vm = window.vm;
+        var realPct = null;
+        if (vm) {
+          var p = readVar('渲染的进度');
+          var total = readVar('渲染数');
+          if (p !== null && total !== null && +total > 0) {
+            realPct = Math.max(0, Math.min(100, Math.round((+p) / (+total) * 100)));
+          }
+        }
+        if (realPct !== null && realPct >= 100) {
+          fullStreak++;
+        } else {
+          fullStreak = 0;
+        }
+        // 收层通道②：真实进度满后持续 ~4s（开机动画即将开始）→ 退场
+        if (fullStreak >= 4) {
+          barInner.style.width = '100%';
+          setPhase('画面已就绪', 100);
+          setTimeout(hide, 350);
+          return;
+        }
+        if (!vm) {
+          setPhase('运行时启动中…', Math.min(10, 2 + sec * 0.1));
+        } else if (realPct !== null) {
+          // 数据源①（优先）：真实变量驱动——进度条显示「渲染的进度/渲染数」实测百分比
+          setPhase('正在准备桌面素材 ' + realPct + '%…（首次启动需渲染，之后更快）', Math.max(4, realPct));
+        } else {
+          var rt = vm.runtime;
+          var targets = rt && rt.targets ? rt.targets.length : 0;
+          var threads = rt && rt.threads ? rt.threads.length : 0;
+          if (threads > 0) runningSeen = true;
+          if (targets === 0) {
+            setPhase('运行时启动中…', 12);
+          } else if (targets < 3) {
+            setPhase('装载舞台与角色…', 26);
+          } else if (!runningSeen) {
+            setPhase('编译工程数据…', 46);
+          } else {
+            setPhase('渲染首帧…', Math.min(92, 62 + sec * 0.4));
+          }
+          // 收层通道③：像素检测通道失效时，运行线程已启动且超过 100 秒 → 放行（宁早勿挂死）
+          if (pixelBroken && runningSeen && sec > 100) hide();
+        }
+        // 全局兜底（对侧 v1.05 口径）：任何渲染栈下反馈层都不允许超过 180 秒
+        if (sec > 180) hide();
+      }
+      var obs = new MutationObserver(function () {
+        if (!errorScreen.hasAttribute('hidden')) { hide(); return; }
+        if (launch.hasAttribute('hidden') && !t0) {
+          t0 = Date.now();
+          litStreak = 0;
+          fullStreak = 0;
+          runningSeen = false;
+          pixelBroken = false;
+          fb.removeAttribute('hidden');
+          barInner.style.width = '4%';
+          tick();
+          timer = setInterval(tick, 1000);
+        }
+      });
+      obs.observe(launch, { attributes: true, attributeFilter: ['hidden'] });
+      obs.observe(errorScreen, { attributes: true, attributeFilter: ['hidden'] });
+    })();
+  </script>
       }
       function fmt(sec) {
         return sec < 60 ? ('已启动 ' + sec + ' 秒') : ('已启动 ' + Math.floor(sec / 60) + ' 分 ' + (sec % 60) + ' 秒');

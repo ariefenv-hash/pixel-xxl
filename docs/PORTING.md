@@ -173,7 +173,59 @@ python3 scripts/extract_port.py   # 从原始 HTML 全量重建（需先放回 w
 
 剩余待裁决项不变（§7.3）：PNG 长尾 12.7MB、MP3 6.0MB。
 
-## 九、v1.05 启动屏进度反馈版（撞号合流重滚 · 2026-11-08）（2026-11-08）
+## 九、v1.05 分片包 + CDN 前置 + 真实启动进度（2026-11-08）
+
+背景：用户裁决「先把进度条改掉」——体感两大问题：① 首访字节全走 GitHub Pages
+（大陆链路慢、且与设备好坏无关）；② 点击启动后有一段黑屏空窗，此时 HTML 进度条已
+消失，体感"卡死/点不动"。
+
+### 9.1 分片包（scripts/build-pack.py → pack-2a59a28a-p1/p2.bin）
+
+- jsDelivr GH 源单文件上限 20MB（实测 403 "File size exceeded the configured limit
+  of 20 MB."），22.34MB 拆为 2 片（14.92MB + 7.42MB），内容指纹不变（同 stem）；
+- PACK 清单升级：`files: {md5ext: [分片号, 片内offset, 长度]}`，两片并行下载。
+
+### 9.2 CDN 前置与回退链（lib/project-loader.js）
+
+- 每片两个源：`https://cdn.jsdelivr.net/gh/<repo>@main/assets/<part>`（实测 CORS
+  `access-control-allow-origin: *`、CDN 缓存 12h）优先 → **首字节 6s 超时**
+  （AbortController，防 CDN 拥塞卡死）或失败即切同源 `assets/<part>`（SW cache-first，
+  二访零网络）→ 全失败逐文件兜底（v1.00 语义原样）；
+- SW v1.05：jsDelivr 的 pack 分片同样纳入 ASSET_CACHE cache-first（cors 响应可安全
+  缓存）——哪个源命中就缓存哪个源，跨版本内容寻址不串档；
+- 分片进度按片累计上报，并行下载下进度条 0.1→0.75 段依然平滑。
+
+### 9.3 真实启动进度条（index.html #boot-hint 升级）
+
+- 数据源：运行时 Scratch 变量「渲染的进度/渲染数」（回归实测位于 stage.variables，
+  `window.vm` 全局可读）——壳层只读，不触碰 app 层逐字节红线；
+- 点击启动后显示「正在准备桌面素材 N%…」+ 180px 迷你进度条（0.3s 平滑过渡）；
+- 隐藏条件：画布亮帧（开机动画开始）或 进度满 ~4s 或 180s 硬封顶；
+- 顺带修复 v1.04 的 20s 封顶过早消失（软渲染空窗 ~144s 远超 20s）。
+
+### 9.4 验证（scripts/pack-verify.py，证据 docs/pack-verify.json）
+
+- A：分片 2 次装载、CDN 尝试 2 次（本地未推送期 404→按设计回退同源）、逐文件=0、
+  提示条真实百分比（实测文案「正在准备桌面素材 52%…」）并自动隐藏、0 报错、
+  vm targets=80；
+- B：SW 二访两分片 transferSize=0（零网络）；
+- C：拦截分片 → 360 次逐文件兜底完整；
+- 权威回归（regression-headless.py 双版三检查点）：targets 35→86、渲染的进度→671、
+  开机引导页 0→1、0 页面错误，移植版与原版一致。
+
+### 9.5 用户体感账（对「一点进去一小会就进去」的回答）
+
+| 场景 | v1.02 及以前 | v1.05 |
+| --- | --- | --- |
+| 首访字节 | 52.8MB | 22.34MB |
+| 首访请求数 | 328 | **2**（CDN 优先，超时自动切同源） |
+| 弱网路径 | GitHub Pages 单路 | jsDelivr CDN + GitHub Pages 双路 |
+| 点击启动后 | 黑屏无反馈 | 真实百分比进度条 |
+| 二次访问 | 328 × 304 往返 | SW 缓存零网络 |
+
+待裁决项不变（§7.3）：PNG 长尾 12.7MB、MP3 6.0MB。
+
+## 十、v1.06 启动屏进度反馈完整版（撞号合流重滚 · 2026-11-08）
 
 背景：修复路线 #4（docs/MOBILE.md §三）——点击绿旗后进入运行时编译/软渲染空窗
 （低端设备实测约 144 秒），屏幕全黑零反馈，用户体感「黑屏点不动」。
@@ -181,7 +233,7 @@ python3 scripts/extract_port.py   # 从原始 HTML 全量重建（需先放回 w
 app 层红线」——本轮方案**绕开红线**：不改 app bundle 内部任何逻辑，改为
 **纯追加外部观察层**，用运行时可观察信号间接推断启动阶段。
 
-### 9.1 方案（index.html 尾部追加 script，v1.03 SW 注册先例同律，骨架逐字节零改动）
+### 10.1 方案（index.html 尾部追加 script，v1.03 SW 注册先例同律，骨架逐字节零改动）
 
 - **触发**：MutationObserver 监听 `#launch` 的 `hidden` 属性——点击绿旗瞬间
   （launchScreen.hidden = true）叠加 `#boot-feedback` 全屏反馈层（z-index 9999，
@@ -198,7 +250,7 @@ app 层红线」——本轮方案**绕开红线**：不改 app bundle 内部任
 - **回归兼容**：URL 带 `?nofb=1` 不安装（节点不创建、行为与 v1.03 逐字节一致）
   ——双版像素对比回归（scripts/regression-headless.py）走此通道。
 
-### 9.2 实测证据（scripts/boot-feedback-probe.py → docs/boot-feedback-evidence.json）
+### 10.2 实测证据（scripts/boot-feedback-probe.py → docs/boot-feedback-evidence.json）
 
 - A（nofb 豁免）：installed=false、fb 节点不存在、vm 正常启动 targets=24、零 pageerror；
 - B（桌面 720×900 全链路）：点击 1.5s 内层出现（阶段「渲染首帧…」threads=14）、
@@ -208,7 +260,7 @@ app 层红线」——本轮方案**绕开红线**：不改 app bundle 内部任
 - verdict=PASS。desktop_lit=false 系 headless swiftshader 黑屏伪影
   （docs/MOBILE.md §一），真机 GPU 下像素点亮通道待真机验收。
 
-### 9.3 已知边界
+### 10.3 已知边界
 
 - headless swiftshader 下画面恒黑（伪影），点亮通道不触发 → 300s 兜底收层是
   设计内正确行为；真机 GPU 下画面点亮即收（350ms 防抖）。
@@ -222,3 +274,13 @@ app 层红线」——本轮方案**绕开红线**：不改 app bundle 内部任
 > #boot-feedback 完整层（阶段文案+秒数+进度条+像素点亮收层+四通道收层）超集覆盖，
 > 合并终树保留本方层、移除对侧 hint 段，版本重滚 v1.04→v1.05 防倒挂（v10.57/v10.66 先例同律）。
 
+
+> 撞号合流注记（二度）：本段原随本实例 v1.04（4a7343c）/v1.05 合流（f7ed235+2）演进；
+> 对侧并行实例同窗连发 v1.04（36ec911 资产合并包）与 v1.05（17dbbd0 分片包+CDN 前置+
+> 真实启动进度）。本窗终树 v1.06 全融合：对侧分片/CDN 面与 loader 包层全量保留；
+> 壳层进度 UI 保留本方 #boot-feedback 完整层并**采纳对侧真实数据源**——
+> 「渲染的进度/渲染数」运行时变量经 window.vm 全局可读（对侧修正 v1.02「门控无出口」
+> 误判），进度条百分比由真实变量驱动、阶段推断仅作变量不可读时兜底；
+> 收层五通道 = 像素点亮 / 进度满~4s（对侧口径）/ 保守放行 / 180s 硬封顶（对侧口径，
+> 替代本方 v1.05 的 300s）/ #error 立即收层。对侧 #boot-hint 提示条被本方层超集覆盖移除
+> （二度）。版本重滚 v1.05→v1.06 防倒挂（v10.57/v10.66 先例同律）。
