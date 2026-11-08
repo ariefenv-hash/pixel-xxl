@@ -38,17 +38,25 @@ python3 -m http.server 8080
   二次访问素材零网络；发版递增 VERSION。
 - 详见 `docs/PORTING.md` §7、`docs/MOBILE.md` §三。
 
-## v1.07 进度条单调化（2026-11-08）
+## v1.04 资产合并包版（2026-11-08）
 
-- **修复「先跑完一根条、再出现一根真条」**：只有一根条——根因是下载段与素材段
-  都映射 0.1→0.75，包下载完成（75%）后第一个素材解码把条拉回 ~10% 重填
-  （bar-trace.py 取证：首访 75→10.57%、二访 75→31.59%）；
-- pack 命中时素材段改为 **0.75→0.98**（解码）与下载段无缝衔接；逐文件兜底仍为
-  真实下载保留 0.1→0.75；loader 侧全部进度过单调闸，只进不退；
-- 加载屏新增「解码素材 X%」真实进度；boot-hint 措辞改为「正在渲染桌面 N%
-  （非下载）」，与下载/解码明确区分；
-- 验证：bar-trace 首访/二访单调（drops=0）+ pack-verify 五场景全绿 +
-  权威回归双版三检查点一致。详见 `docs/PORTING.md` §11、`docs/bar-trace.json`。
+- 合并包：328 个素材拼接为单个内容寻址包 `assets/pack-2a59a28a.bin`（22.34MB），
+  **首访素材请求 328 → 1**，弱网下每请求排队/握手的延迟大头消除；
+- 加载层：模块初始化即并行下载包，流式读取、进度直驱进度条；
+  包清单命中切片交付（零拷贝），包不可用/失败自动回退逐文件 fetch（v1.00 语义）；
+- 壳层：新增 `#boot-hint` 启动空窗提示条（20s 封顶；v1.06 起被反馈完整层超集覆盖移除）；
+- 验证：pack-verify 三场景全绿（docs/pack-verify.json）+ 权威回归双版三检查点一致。
+- 详见 `docs/PORTING.md` §8。素材变更后重跑 `python3 scripts/build-pack.py` 再生包。
+
+## v1.05 分片包 + CDN 前置版（2026-11-08）
+
+- 分片：合并包拆为 2 片（≤16MB，适配 jsDelivr 20MB 上限），**首访素材请求 328 → 2**；
+- CDN 前置：jsDelivr 优先（CORS 全开实测）+ 首字节 6s 超时自动切同源 + 逐文件兜底；
+  SW 把 CDN 分片一并 cache-first，二访零网络；
+- **真实启动进度条**：点击启动后显示「正在准备桌面素材 N%…」，数据源 = 运行时
+  Scratch 变量「渲染的进度/渲染数」（壳层只读，不碰 app 层）；
+- 验证：pack-verify 三场景全绿（docs/pack-verify.json）+ 双版回归一致。
+- 详见 `docs/PORTING.md` §9。素材变更后重跑 `python3 scripts/build-pack.py`。
 
 ## v1.06 IndexedDB 本地素材库 + 双源竞速版（2026-11-08）
 
@@ -63,30 +71,37 @@ python3 -m http.server 8080
 - 验证：pack-verify 五场景 PASS（含清 IDB 后 SW 兜底命中）+ 双版权威回归一致。
 - 详见 `docs/PORTING.md` §10。
 
-## v1.05 分片包 + CDN 前置版（2026-11-08）
+## v1.06 启动屏进度反馈完整版（撞号合流重滚 · 2026-11-08）
 
-- 分片：合并包拆为 2 片（≤16MB，适配 jsDelivr 20MB 上限），**首访素材请求 328 → 2**；
-- CDN 前置：jsDelivr 优先（CORS 全开实测）+ 首字节 6s 超时自动切同源 + 逐文件兜底；
-  SW 把 CDN 分片一并 cache-first，二访零网络；
-- **真实启动进度条**：点击启动后显示「正在准备桌面素材 N%…」，数据源 = 运行时
-  Scratch 变量「渲染的进度/渲染数」（壳层只读，不碰 app 层）；
-- 验证：pack-verify 三场景全绿（docs/pack-verify.json）+ 双版回归一致。
-- 详见 `docs/PORTING.md` §9。素材变更后重跑 `python3 scripts/build-pack.py`。
+- 消除"黑屏点不动"：点击绿旗后的编译/软渲染空窗（低端设备实测约 144s）叠加
+  全屏反馈层（标题 + 阶段文案 + 已启动秒数 + 进度条 + 动画点 + 低性能设备提示）；
+- **进度数据源双通道**：优先读运行时 Scratch 变量「渲染的进度/渲染数」
+  （`window.vm` 全局可读，v1.05 已证零红线——显示「正在准备桌面素材 N%…」），
+  变量不可读时退回运行时阶段推断（vm → targets → threads）；
+- 收层五通道：像素点亮 / 进度满~4s / 保守放行 / 180s 硬封顶 / #error 立即收层；
+- 纯追加观察层：core/app 逐字节红线不动、app bundle 内部不触碰；
+- 回归兼容：`?nofb=1` 不安装（双版像素对比回归通道，行为与 v1.03 一致）；
+- 对侧 `#boot-hint` 提示条被本层超集覆盖移除（二度撞号合流，实录见 PORTING §10）；
+- 详见 `docs/PORTING.md` §10、`docs/MOBILE.md` §三④。
 
-## v1.04 资产合并包版（2026-11-08）
 
-- 合并包：328 个素材拼接为单个内容寻址包 `assets/pack-2a59a28a.bin`（22.34MB），
-  **首访素材请求 328 → 1**，弱网下每请求排队/握手的延迟大头消除；
-- 加载层：模块初始化即并行下载包，流式读取、进度直驱进度条；
-  包清单命中切片交付（零拷贝），包不可用/失败自动回退逐文件 fetch（v1.00 语义）；
-- 壳层：新增 `#boot-hint` 启动空窗提示条（不拦截点击，画布亮帧或 20s 封顶隐藏）；
-- 验证：pack-verify 三场景全绿（docs/pack-verify.json）+ 权威回归双版三检查点一致。
-- 详见 `docs/PORTING.md` §8。素材变更后重跑 `python3 scripts/build-pack.py` 再生包。
+## v1.08 进度条单调化（撞号合流重滚 · 2026-11-08）
+
+- （六度撞号：对侧 v1.07=五度撞号融合树 18197ef，本方 v1.07=进度条单调化，终树重滚 v1.08）
+- **修复「先跑完一根条、再出现一根真条」**：只有一根条——根因是下载段与素材段
+  都映射 0.1→0.75，包下载完成（75%）后第一个素材解码把条拉回 ~10% 重填
+  （bar-trace.py 取证：首访 75→10.57%、二访 75→31.59%）；
+- pack 命中时素材段改为 **0.75→0.98**（解码）与下载段无缝衔接；逐文件兜底仍为
+  真实下载保留 0.1→0.75；loader 侧全部进度过单调闸，只进不退；
+- 加载屏新增「解码素材 X%」真实进度；#boot-feedback 反馈层措辞改为「正在渲染
+  桌面 N%（非下载）」，与下载/解码明确区分；
+- 验证：bar-trace 首访/二访单调（drops=0）+ pack-verify 五场景全绿 +
+  权威回归双版三检查点一致。详见 `docs/PORTING.md` §12、`docs/bar-trace.json`。
 
 ## 目录结构
 
 ```
-├── index.html              # 入口（骨架与原版逐字节一致；v1.03 尾部追加 SW 注册、v1.04 追加启动空窗提示）
+├── index.html              # 入口（骨架与原版逐字节一致；v1.03 尾部 SW 注册、v1.05 尾部启动反馈层完整版）
 ├── project.json            # Scratch 工程 1:1（1,054,272B；v1.03 同步 10 处 md5 键）
 ├── assets/                 # 素材 1:1（md5 命名；v1.03 起 10 张 SVG 内嵌照片为 WebP 载荷；
 │                           #   v1.05 起为分片包 pack-<sha8>-pN.bin，由 scripts/build-pack.py 生成）
@@ -104,10 +119,13 @@ python3 -m http.server 8080
 │   ├── ANALYSIS.md         # 详细分析报告（含 §10 架构演进决策）
 │   ├── ANDROID-PORTING.md  # md3 借鉴清单与 AOSP 对照
 │   ├── MOBILE.md           # 移动端体检报告（15 分钟构成/触控链路/修复路线）
+│   ├── HANDOFF.md          # 跨轮次交接快照（head/基线/候选池/续点）
 │   ├── slim-verify.json    # v1.03 瘦身保真度与 SW 实测证据
-│   └── pack-verify.json    # v1.04 合并包三场景验证证据
-└── scripts/                # 本仓库自带的回归/瘦身/合包脚本（regression-headless、
-                            #   mobile-probe*、slim_assets、slim-verify、build-pack、pack-verify）
+│   ├── pack-verify.json    # 合并包三场景验证证据
+│   └── boot-feedback-evidence.json # 启动反馈层冒烟证据（三通道 A/B/C）
+└── scripts/                # 本仓库自带的回归/瘦身/合包/冒烟脚本（regression-headless、
+                            #   mobile-probe*、slim_assets、slim-verify、build-pack、pack-verify、
+                            #   boot-feedback-probe）
 ```
 
 ## 运行时配置（与原版一致，见 lib/pixel-xxl-app.js）

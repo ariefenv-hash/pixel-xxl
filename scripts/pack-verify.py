@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""v1.06 IndexedDB 本地素材库 + SW 跨域修复验证：
+"""v1.07 IndexedDB 本地素材库 + SW 跨域修复验证（跨沙箱适配 + #boot-feedback 断言迁移）：
 A) 正常链路（本地：CDN 已有 v1.05 分片 → CDN 优先成功）：
    分片恰 2 个、逐文件 fetch=0、装载完整、启动屏出现、提示条显示真实百分比、
    自动隐藏、首访后 IndexedDB 分片计数=2（本地素材库写入成功）；
@@ -13,13 +13,16 @@ E) SW 兜底层（IDB 失效场景，如 iOS Safari 配额逐出）：about:blan
    （SW 内部发起的 fetch 不经 page.route，故只在首访前拦 CDN：此时 SW 尚未控制页面）
 """
 import json
+import os
 import re
 import subprocess
 import time
 
 from playwright.sync_api import sync_playwright
 
-DL = '/home/z/my-project/download'
+# v1.07 跨沙箱适配：服务根 = 仓库根推导（原硬编码实例路径跨沙箱不可复跑——
+# HANDOFF.md 已知坑「脚本不得绑定实例路径」；对侧 v1.06 硬编码实证会踩）
+ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 PORT = 8086
 BASE = f'http://127.0.0.1:{PORT}'
 
@@ -100,7 +103,7 @@ def wait_idb_count(page, want, timeout_s=60):
 
 def main():
     server = subprocess.Popen(
-        ['python3', '-m', 'http.server', str(PORT), '--bind', '127.0.0.1', '--directory', DL],
+        ['python3', '-m', 'http.server', str(PORT), '--bind', '127.0.0.1', '--directory', ROOT],
         stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL)
     time.sleep(0.8)
     out = {}
@@ -108,7 +111,7 @@ def main():
         with sync_playwright() as pw:
             # ---------- A) 正常链路 + B) 二访快路径（同一浏览器实例） ----------
             browser, page, reqs, errors, cerr, warns, resps = new_page(pw)
-            page.goto(BASE + '/pixel-xxl/', wait_until='load', timeout=60000)
+            page.goto(BASE + '/', wait_until='load', timeout=60000)
             page.wait_for_function(LAUNCH_JS, timeout=300000)
             part, cdn_part, local_part, perfile = classify(reqs)
             cdn_tried = sum(1 for r in resps
@@ -125,21 +128,22 @@ def main():
             page.click('#launch')
             try:
                 page.wait_for_function(
-                    "!document.getElementById('boot-hint').hidden", timeout=5000)
-                out['A']['hint_shown'] = True
+                    "!document.getElementById('boot-feedback').hidden", timeout=5000)
+                out['A']['feedback_shown'] = True
             except Exception:
-                out['A']['hint_shown'] = False
+                out['A']['feedback_shown'] = False
             # ~30s 后检查百分比（渲染的进度/渲染数 变量驱动）
             time.sleep(30)
-            out['A']['hint_text'] = page.evaluate(
-                "document.getElementById('boot-hint-text') && document.getElementById('boot-hint-text').textContent")
-            out['A']['hint_pct_shown'] = bool(re.search(r'\d+%', out['A']['hint_text'] or ''))
+            out['A']['feedback_text'] = page.evaluate(
+                "(function(){var fb=document.getElementById('boot-feedback');"
+                "return fb&&fb.children[1]?fb.children[1].textContent:null})()")
+            out['A']['feedback_pct_shown'] = bool(re.search(r'\d+%', out['A']['feedback_text'] or ''))
             try:
                 page.wait_for_function(
-                    "document.getElementById('boot-hint').hidden", timeout=120000)
-                out['A']['hint_auto_hidden'] = True
+                    "document.getElementById('boot-feedback').hidden", timeout=240000)
+                out['A']['feedback_auto_hidden'] = True
             except Exception:
-                out['A']['hint_auto_hidden'] = False
+                out['A']['feedback_auto_hidden'] = False
             out['A']['vm_targets'] = page.evaluate(
                 "() => (window.vm && vm.runtime) ? vm.runtime.targets.length : 0")
 
@@ -162,7 +166,7 @@ def main():
             browser, page, reqs, errors, cerr, warns, resps = new_page(pw)
             page.route(re.compile(r'/assets/pack-[0-9a-f]{8}-p\d+\.bin$'),
                        lambda route: route.abort())
-            page.goto(BASE + '/pixel-xxl/', wait_until='load', timeout=60000)
+            page.goto(BASE + '/', wait_until='load', timeout=60000)
             page.wait_for_function(LAUNCH_JS, timeout=300000)
             part, cdn_part, local_part, perfile = classify(reqs)
             cerr_filtered = [m for m in cerr if 'net::ERR_FAILED' not in m]
@@ -181,7 +185,7 @@ def main():
             out['E_pre_idb_deleted'] = page.evaluate(JS_IDB_DELETE)
             page.route(re.compile(r'cdn\.jsdelivr\.net/.*/assets/pack-[0-9a-f]{8}-p\d+\.bin$'),
                        lambda route: route.abort())
-            page.goto(BASE + '/pixel-xxl/', wait_until='load', timeout=60000)
+            page.goto(BASE + '/', wait_until='load', timeout=60000)
             page.wait_for_function(LAUNCH_JS, timeout=300000)
             part, cdn_part, local_part, perfile = classify(reqs)
             out['E'] = {
@@ -196,7 +200,7 @@ def main():
                 page.evaluate(JS_IDB_DELETE)
                 reqs.clear()
                 errors.clear()
-                page.goto(BASE + '/pixel-xxl/', wait_until='load', timeout=60000)
+                page.goto(BASE + '/', wait_until='load', timeout=60000)
                 page.wait_for_function(LAUNCH_JS, timeout=300000)
                 if n == 3:
                     part, cdn_part, local_part, perfile = classify(reqs)
@@ -218,8 +222,8 @@ def main():
     ok = (out['A']['part_fetches'] >= 2
           and out['A']['perfile_fetches'] == 0
           and not out['A']['http_ge400_non_cdn'] and not out['A']['errors']
-          and out['A']['idb_written'] and out['A']['hint_shown']
-          and out['A']['hint_pct_shown'] and out['A']['hint_auto_hidden']
+          and out['A']['idb_written'] and out['A']['feedback_shown']
+          and out['A']['feedback_pct_shown'] and out['A']['feedback_auto_hidden']
           and out['A']['vm_targets'] > 0
           and out['B']['part_fetches'] == 0 and out['B']['perfile_fetches'] == 0
           and out['B']['sw_controlled'] and out['B']['pack_source'] == 'idb'
