@@ -157,6 +157,23 @@
       transition: opacity 0.4s;
       white-space: nowrap;
     }
+    #boot-hint-barwrap {
+      display: block;
+      margin: 6px auto 0;
+      height: 4px;
+      width: 180px;
+      border-radius: 2px;
+      background: rgba(255, 255, 255, 0.25);
+      overflow: hidden;
+    }
+    #boot-hint-bar {
+      display: block;
+      height: 100%;
+      width: 0;
+      border-radius: 2px;
+      background: #fff;
+      transition: width 0.3s;
+    }
     
   </style>
   <meta name="theme-color" content="#000000">
@@ -190,7 +207,10 @@
     </details>
   </div>
 
-  <div id="boot-hint" hidden>首次启动需要准备素材与桌面，请稍候…（已下载过的设备走本地缓存，更快）</div>
+  <div id="boot-hint" hidden>
+    <span id="boot-hint-text">正在准备素材与桌面…</span>
+    <span id="boot-hint-barwrap"><span id="boot-hint-bar"></span></span>
+  </div>
 
   <script src="lib/turbowarp-core.js"></script>
 <script src="lib/pixel-xxl-app.js"></script>
@@ -224,40 +244,67 @@
     }
   </script>
   <script>
-    // v1.04: 启动空窗提示（docs/MOBILE.md 修复路线 #4）——点击启动后画布有一段
-    // 壁纸取色/云母/预渲染的主线程空窗（黑屏、输入被吞）。壳层加一枚不拦截点击
-    // （pointer-events:none）的提示；画布出现亮帧即隐藏。WebGL 上下文无
-    // preserveDrawingBuffer，采样不可靠时以 20s 封顶兜底。
+    // v1.05: 启动进度提示条（docs/MOBILE.md 修复路线 #4 壳层完整版）——点击启动后有
+    // 壁纸取色/云母/预渲染的主线程空窗（黑屏、输入被吞）。此条 pointer-events:none
+    // 不拦截点击；进度读取运行时 Scratch 变量「渲染的进度/渲染数」（window.vm 全局
+    // 可查，不触碰 app 层逐字节红线）；画布亮帧（开机动画开始）或进度满 ~4s 后隐藏，
+    // 180s 硬封顶。WebGL 无 preserveDrawingBuffer，亮帧采样不可靠时由进度/封顶兜底。
     (function () {
       var hint = document.getElementById('boot-hint');
+      var textEl = document.getElementById('boot-hint-text');
+      var barEl = document.getElementById('boot-hint-bar');
       if (!hint) return;
       var shown = false;
       var ticks = 0;
+      var fullTicks = 0;
       var timer = null;
       function hide() {
         if (timer) { clearInterval(timer); timer = null; }
         hint.style.opacity = '0';
         setTimeout(function () { hint.hidden = true; }, 450);
       }
-      function sample() {
-        ticks++;
+      function readVar(name) {
+        try {
+          if (!window.vm || !vm.runtime) return null;
+          var stage = vm.runtime.getTargetForStage();
+          if (!stage || !stage.variables) return null;
+          for (var k in stage.variables) {
+            var v = stage.variables[k];
+            if (v && v.name === name) return v.value;
+          }
+        } catch (e) {}
+        return null;
+      }
+      function canvasLit() {
         try {
           var canvas = document.querySelector('#app canvas');
-          if (canvas && canvas.width) {
-            var s = document.createElement('canvas');
-            s.width = 24;
-            s.height = 24;
-            var ctx = s.getContext('2d');
-            ctx.drawImage(canvas, 0, 0, 24, 24);
-            var d = ctx.getImageData(0, 0, 24, 24).data;
-            var lit = 0;
-            for (var i = 0; i < d.length; i += 4) {
-              if (d[i + 3] > 8 && d[i] + d[i + 1] + d[i + 2] > 24) lit++;
-            }
-            if (lit > 8) { hide(); return; }
+          if (!canvas || !canvas.width) return false;
+          var s = document.createElement('canvas');
+          s.width = 24;
+          s.height = 24;
+          var ctx = s.getContext('2d');
+          ctx.drawImage(canvas, 0, 0, 24, 24);
+          var d = ctx.getImageData(0, 0, 24, 24).data;
+          var lit = 0;
+          for (var i = 0; i < d.length; i += 4) {
+            if (d[i + 3] > 8 && d[i] + d[i + 1] + d[i + 2] > 24) lit++;
           }
-        } catch (e) { /* 采样失败按超时兜底 */ }
-        if (ticks >= 66) { hide(); } // 300ms × 66 ≈ 20s 封顶
+          return lit > 8;
+        } catch (e) { return false; }
+      }
+      function sample() {
+        ticks++;
+        if (canvasLit()) { hide(); return; } // 开机动画开始 ⇒ 空窗结束
+        var p = readVar('渲染的进度');
+        var total = readVar('渲染数');
+        if (p !== null && total !== null && +total > 0) {
+          var pct = Math.max(0, Math.min(100, Math.round((+p) / (+total) * 100)));
+          if (barEl) barEl.style.width = pct + '%';
+          if (textEl) textEl.textContent = '正在准备桌面素材 ' + pct + '%…（首次启动需渲染，之后更快）';
+          fullTicks = pct >= 100 ? fullTicks + 1 : 0;
+          if (fullTicks >= 14) { hide(); return; } // 进度满后 ~4s 退场
+        }
+        if (ticks >= 600) hide(); // 300ms × 600 ≈ 180s 硬封顶
       }
       document.getElementById('launch').addEventListener('click', function () {
         if (shown) return;

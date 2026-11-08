@@ -172,3 +172,55 @@ python3 scripts/extract_port.py   # 从原始 HTML 全量重建（需先放回 w
 | v1.04 | 22.34MB | **1**（包） | 弱网延迟大头（每请求排队/握手）消除 |
 
 剩余待裁决项不变（§7.3）：PNG 长尾 12.7MB、MP3 6.0MB。
+
+## 九、v1.05 分片包 + CDN 前置 + 真实启动进度（2026-11-08）
+
+背景：用户裁决「先把进度条改掉」——体感两大问题：① 首访字节全走 GitHub Pages
+（大陆链路慢、且与设备好坏无关）；② 点击启动后有一段黑屏空窗，此时 HTML 进度条已
+消失，体感"卡死/点不动"。
+
+### 9.1 分片包（scripts/build-pack.py → pack-2a59a28a-p1/p2.bin）
+
+- jsDelivr GH 源单文件上限 20MB（实测 403 "File size exceeded the configured limit
+  of 20 MB."），22.34MB 拆为 2 片（14.92MB + 7.42MB），内容指纹不变（同 stem）；
+- PACK 清单升级：`files: {md5ext: [分片号, 片内offset, 长度]}`，两片并行下载。
+
+### 9.2 CDN 前置与回退链（lib/project-loader.js）
+
+- 每片两个源：`https://cdn.jsdelivr.net/gh/<repo>@main/assets/<part>`（实测 CORS
+  `access-control-allow-origin: *`、CDN 缓存 12h）优先 → **首字节 6s 超时**
+  （AbortController，防 CDN 拥塞卡死）或失败即切同源 `assets/<part>`（SW cache-first，
+  二访零网络）→ 全失败逐文件兜底（v1.00 语义原样）；
+- SW v1.05：jsDelivr 的 pack 分片同样纳入 ASSET_CACHE cache-first（cors 响应可安全
+  缓存）——哪个源命中就缓存哪个源，跨版本内容寻址不串档；
+- 分片进度按片累计上报，并行下载下进度条 0.1→0.75 段依然平滑。
+
+### 9.3 真实启动进度条（index.html #boot-hint 升级）
+
+- 数据源：运行时 Scratch 变量「渲染的进度/渲染数」（回归实测位于 stage.variables，
+  `window.vm` 全局可读）——壳层只读，不触碰 app 层逐字节红线；
+- 点击启动后显示「正在准备桌面素材 N%…」+ 180px 迷你进度条（0.3s 平滑过渡）；
+- 隐藏条件：画布亮帧（开机动画开始）或 进度满 ~4s 或 180s 硬封顶；
+- 顺带修复 v1.04 的 20s 封顶过早消失（软渲染空窗 ~144s 远超 20s）。
+
+### 9.4 验证（scripts/pack-verify.py，证据 docs/pack-verify.json）
+
+- A：分片 2 次装载、CDN 尝试 2 次（本地未推送期 404→按设计回退同源）、逐文件=0、
+  提示条真实百分比（实测文案「正在准备桌面素材 52%…」）并自动隐藏、0 报错、
+  vm targets=80；
+- B：SW 二访两分片 transferSize=0（零网络）；
+- C：拦截分片 → 360 次逐文件兜底完整；
+- 权威回归（regression-headless.py 双版三检查点）：targets 35→86、渲染的进度→671、
+  开机引导页 0→1、0 页面错误，移植版与原版一致。
+
+### 9.5 用户体感账（对「一点进去一小会就进去」的回答）
+
+| 场景 | v1.02 及以前 | v1.05 |
+| --- | --- | --- |
+| 首访字节 | 52.8MB | 22.34MB |
+| 首访请求数 | 328 | **2**（CDN 优先，超时自动切同源） |
+| 弱网路径 | GitHub Pages 单路 | jsDelivr CDN + GitHub Pages 双路 |
+| 点击启动后 | 黑屏无反馈 | 真实百分比进度条 |
+| 二次访问 | 328 × 304 往返 | SW 缓存零网络 |
+
+待裁决项不变（§7.3）：PNG 长尾 12.7MB、MP3 6.0MB。

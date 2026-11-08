@@ -38,6 +38,16 @@ python3 -m http.server 8080
   二次访问素材零网络；发版递增 VERSION。
 - 详见 `docs/PORTING.md` §7、`docs/MOBILE.md` §三。
 
+## v1.05 分片包 + CDN 前置版（2026-11-08）
+
+- 分片：合并包拆为 2 片（≤16MB，适配 jsDelivr 20MB 上限），**首访素材请求 328 → 2**；
+- CDN 前置：jsDelivr 优先（CORS 全开实测）+ 首字节 6s 超时自动切同源 + 逐文件兜底；
+  SW 把 CDN 分片一并 cache-first，二访零网络；
+- **真实启动进度条**：点击启动后显示「正在准备桌面素材 N%…」，数据源 = 运行时
+  Scratch 变量「渲染的进度/渲染数」（壳层只读，不碰 app 层）；
+- 验证：pack-verify 三场景全绿（docs/pack-verify.json）+ 双版回归一致。
+- 详见 `docs/PORTING.md` §9。素材变更后重跑 `python3 scripts/build-pack.py`。
+
 ## v1.04 资产合并包版（2026-11-08）
 
 - 合并包：328 个素材拼接为单个内容寻址包 `assets/pack-2a59a28a.bin`（22.34MB），
@@ -54,7 +64,7 @@ python3 -m http.server 8080
 ├── index.html              # 入口（骨架与原版逐字节一致；v1.03 尾部追加 SW 注册、v1.04 追加启动空窗提示）
 ├── project.json            # Scratch 工程 1:1（1,054,272B；v1.03 同步 10 处 md5 键）
 ├── assets/                 # 素材 1:1（md5 命名；v1.03 起 10 张 SVG 内嵌照片为 WebP 载荷；
-│                           #   v1.04 起含合并包 pack-<sha8>.bin，由 scripts/build-pack.py 生成）
+│                           #   v1.05 起为分片包 pack-<sha8>-pN.bin，由 scripts/build-pack.py 生成）
 ├── sw.js                   # Service Worker 缓存层（v1.04）
 ├── lib/
 │   ├── turbowarp-core.js   # 运行时 core（与原版逐字节一致）

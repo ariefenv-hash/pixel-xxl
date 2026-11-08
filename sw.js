@@ -2,7 +2,8 @@
  * sw.js — v1.03 Service Worker 缓存层
  *
  * 策略（依据 docs/MOBILE.md 修复路线 #2）：
- * - assets/*：素材文件名 = 内容 md5（Scratch 官方素材规范），内容寻址 ⇒ 永不变化
+ * - assets/* 与 jsDelivr 包分片：素材文件名/包名 = 内容哈希（Scratch 官方素材规范），
+ *   内容寻址 ⇒ 永不变化
  *   ⇒ cache-first 永久缓存，首次访问后二次加载零网络；
  * - lib/* 与 project.json：stale-while-revalidate（秒回缓存，后台刷新）；
  * - index.html：network-first（保更新），离线回退缓存；
@@ -10,7 +11,7 @@
  * 注意：GitHub Pages 无法自定义 Cache-Control（默认 max-age=600），
  * 本 SW 是弱网/二次访问体验的正式缓存方案。
  */
-const VERSION = 'v1.04';
+const VERSION = 'v1.05';
 const SHELL_CACHE = `pixel-xxl-shell-${VERSION}`;
 const ASSET_CACHE = 'pixel-xxl-assets-1'; // 素材内容寻址不随版本失效，跨版本复用
 const SHELL = [
@@ -47,8 +48,11 @@ self.addEventListener('fetch', (event) => {
   const url = new URL(req.url);
   if (url.origin !== self.location.origin) return;
 
-  // 1) md5 命名素材：不可变，cache-first
-  if (url.pathname.includes('/assets/')) {
+  // 1) md5 命名素材与合并包分片：内容寻址不可变，cache-first
+  //    （同源 assets/* 与 jsDelivr 镜像 pack-* 分片， whichever 命中哪个源都缓存该源）
+  const isPackCdn = url.hostname === 'cdn.jsdelivr.net' &&
+    url.pathname.includes('/assets/pack-') && url.pathname.endsWith('.bin');
+  if (url.pathname.includes('/assets/') || isPackCdn) {
     event.respondWith(
       caches.open(ASSET_CACHE).then((cache) =>
         cache.match(req).then((hit) =>
