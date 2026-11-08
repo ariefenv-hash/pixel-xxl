@@ -10,17 +10,20 @@ import { makeIcon, makeClockIcon } from "./icons.js";
 
 const el = () => document.getElementById("desktop");
 
-/* 图标布局（scratch 坐标，页宽 324；bilibili 的 204 = -120 + 324 页内位） */
+/* 图标布局（scratch 坐标，页宽 324；bilibili 的 204 = -120 + 324 页内位）
+ * 行距说明：原工程行距 70（=49css），小于「图标54+间距5+标签15」的堆叠高度 74css，
+ * 直接复刻会让下一行容器盖住上一行标签；此处行距放大到 108（=75.6css），
+ * x 坐标保持 1:1 忠实。 */
 const GRID = [
   { id: "设置", x: -120, y: 60, page: 0 },
   { id: "相册", x: -40, y: 60, page: 0 },
   { id: "商店", x: 40, y: 60, page: 0 },
   { id: "通知", x: 120, y: 60, page: 0 },
-  { id: "视频", x: -120, y: -10, page: 0 },
-  { id: "电话", x: -40, y: -10, page: 0 },
-  { id: "个性化", x: 40, y: -10, page: 0 },
-  { id: "music", x: 120, y: -10, page: 0 },
-  { id: "计算器", x: -120, y: -80, page: 0 },
+  { id: "视频", x: -120, y: -48, page: 0 },
+  { id: "电话", x: -40, y: -48, page: 0 },
+  { id: "个性化", x: 40, y: -48, page: 0 },
+  { id: "music", x: 120, y: -48, page: 0 },
+  { id: "计算器", x: -120, y: -156, page: 0 },
   { id: "bilibili", x: 204, y: 60, page: 1 },
 ];
 const CLOCK_POS = { x: -80, y: 200, size: 200 };

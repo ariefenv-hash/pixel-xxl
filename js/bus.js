@@ -14,10 +14,6 @@ export function off(evt, fn) {
 }
 
 export function emit(evt, payload) {
-  if (typeof window !== "undefined") {
-    (window.__busLog = window.__busLog || []).push([Date.now() % 1000000, evt]);
-    if (window.__busLog.length > 400) window.__busLog.shift();
-  }
   listeners.get(evt)?.forEach((fn) => {
     try { fn(payload); } catch (err) { console.error(`[bus:${evt}]`, err); }
   });

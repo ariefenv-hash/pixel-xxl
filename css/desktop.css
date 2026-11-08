@@ -4,8 +4,8 @@
 
 .d-icon {
   position: absolute;
-  width: 66px; height: 66px;
-  margin: -33px 0 0 -33px;             /* 中心定位：scratch 半径 32 */
+  width: 66px; height: 76px;
+  margin: -33px 0 0 -33px;             /* 中心定位：scratch 半径 32（盒加高容纳标签，中心不变） */
   display: flex; flex-direction: column; align-items: center; gap: 5px;
   will-change: left, top;
   cursor: pointer;
