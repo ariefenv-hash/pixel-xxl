@@ -4,7 +4,7 @@
 
 # Pixel XXL · HANDOFF 结构化快照
 
-- **generated**: 2026-11-08 18:45+08:00（R132 窗收窗覆写 · Job 2933110 · 本窗 = #4 CI 基线；R131 = 八度撞号合流 v1.11）
+- **generated**: 2026-11-09 02:00+08:00（R134 窗收窗覆写 · Job 2933110 · 本窗 = 设计冻结复核审计 + 锚点定谳；R133 = SPEC v1.0-draft + CI 双闸）
 - **⚠️ 本窗五度撞号实录（Job 2933040 本系列）**：同窗并行实例与本实例连续同号交叉——
   对侧连发 v1.04 资产包（36ec911）/v1.05 分片+CDN（17dbbd0）/v1.06 IDB+竞速（f904330），
   本方 v1.04 反馈层（4a7343c，tag 已推）/v1.05 合流（f7ed235+a9a1db1）/v1.06 三缺陷修复
@@ -20,7 +20,7 @@
   对方 v1.10 动画连贯性（4a181d3）——同号双树，功能面完全正交（本方 shell-src/、shell/ 产物、
   docs/SHELL.md、shell 系探针 × 对方 index 尾部 fps 块、sw.js、PORTING/MOBILE/ANALYSIS §2、
   anim/fps 探针），仅 docs/HANDOFF 覆写相撞（docs/ANALYSIS 自动合并成功），合流重滚 **v1.11** 防倒挂。
-- **head**: **v1.13 = 设计规范 v1.0-draft + CI 双闸**（docs/DESIGN-SPEC.md：69 token 出处 100% + 组件形态清单 + 裁剪声明 + #9 颜色系统章；regression.yml 增 shell-gates job + static-gates 增 catalog 对账闸）——上一版 v1.12 = #4 CI 基线（regression.yml 初建三 job）；再上 v1.11 = 八度撞号合流终树（对方动画 4a181d3 × 本方语言迁移 d32f5e9 并档；L0 忠实态零触碰 + fps 修复双双保留）
+- **head**: **v1.14 = DESIGN-SPEC 复核冻结 v1.0（76/76 审计 PASS）+ 锚点定谳 + 锚点治理议题**（docs/DESIGN-SPEC-AUDIT.md + docs/design-spec-audit.json；SPEC 标题/状态行固化 v1.0，附注一按审计结论更新；#2 设计冻结登记）——上一版 v1.13 = 设计规范 v1.0-draft + CI 双闸；再上 v1.12 = #4 CI 基线；再上 v1.11 = 八度撞号合流终树（对方动画 4a181d3 × 本方语言迁移 d32f5e9 并档；L0 忠实态零触碰 + fps 修复双双保留）
 - **上一窗 head 归档**：对方 v1.10 = 动画连贯性升级（4a181d3，tag v1.10）× 本方 v1.10 = #23 语言迁移（d32f5e9，未 tag，撞号让号并入 v1.11）；v1.08 = 六度撞号合流（46646d0b+81762208）；backup-v106-bfb 转归档
 - **本窗事故记录（#30 规则六首条外新增）**：开窗时误判 shell-src/ 为空白目录，在未盘点未跟踪遗留半成品（上一截断窗 08:01~08:11 的 motion/catalog/shell 组件）前先行写入，覆盖 package.json/package-lock/vite.config/tsconfig/index.html/bridge/runtime.ts 共 6 个文件——发现后按"旧版为主干恢复 + 新增作补充"合流，重建 3 个被覆盖文件（runtime.ts/index.html/配置），损失部分不可逆（旧 index.html/main 原始版未找回，按 style.css+qs-panel 引用面重建）；教训已入 #30 返工表
 - **基线核验**: v1.07 终树 pack-verify 五场景 PASS（A 同源竞速命中+IDB 写入+feedback 真实百分比/auto_hidden/vm=80、B 二访零请求 pack_source=idb、C 360 逐文件兜底、E SW 零网络+IDB 重写）；boot-feedback-probe 移动通道证据留下窗补跑（原注：
@@ -133,6 +133,34 @@ TurboWarp 单文件打包产物（57.4MB）→ **忠实多文件 Web 移植**（
   壁纸 3→4 亮度 500→600）。
 - **状态**：SPEC 为 v1.0-draft 待 #8 评审冻结——冻结前不作为实现依据（#6 验收
   口径：评审通过后在交接议题登记「设计冻结」）。
+  → **R134 已复核冻结，见下节。**
+
+## 本窗交付（v1.14 设计冻结复核 · 本方 R134）
+
+- **审计主交付**：DESIGN-SPEC v1.0-draft 复核审计——**76/76 程序化断言全 PASS**
+  （§2.2 monet 45（含角色→tone 表 32/32 全对，语料实含 40 行、SPEC 收录 16×2 子集）
+  + §3.1 back 13 + §3.2 shade 3 + §3.3 spring 4 + §3.4/§4 integers 10 + SPEC 自证 1）；
+  证据 docs/design-spec-audit.json（逐条含语料原文证据）+ 报告 docs/DESIGN-SPEC-AUDIT.md。
+- **provenance 链实证**：md3 语料 integers.xml 剥头注释后与镜像 main
+  packages/SystemUI/res/values/integers.xml **逐字节一致（2392B）**——语料出处
+  声明（实拉自 aosp-mirror main 2026-11-06）获得直接实证。
+- **锚点定谳（附注一回核的替代结论）**：android-17.0.0_r1 在本执行环境双通道均
+  不可达——① 镜像 aosp-mirror/platform_frameworks_base：无任何 android-17 系 tag
+  （PAT matching-refs 空集，最新 = 16.0.0_r1/r2/r3），main 冻结 2025-03-27
+  （1cdfff555f，与 googlesource main 探测 HEAD 同 sha），SystemUI animation 包
+  main/r1/r2/r3 均 404（镜像为扁平化抽样残缺副本）；② googlesource：间歇可达
+  （1 次 info/refs 200），tag 枚举不可达（广告体 443 超时 / gitiles JSON 空响应）。
+  **处置**：aosp: 项按 §9-3 口径持续有效；锚点差异风险 + 补救路径（镜像补全 /
+  用户侧 sources jar / cs.android.com 人工通道）转锚点治理议题长期跟踪。
+- **冻结动作**：SPEC 标题/状态行固化 v1.0（冻结版），附注一按审计结论更新；
+  交接议题 #2 登记「设计冻结」（复核实例口径依 #6 验收，用户保留撤销权）；
+  token 引用制自冻结起生效——解锁 R135 候选② QS 磁贴 L2 化。
+- **推送前测试（铁律三）**：审计脚本三通道断言可复现（76/76）；SPEC/HANDOFF/AUDIT
+  纯 docs 面 diff，零运行时字节；check-inline-js 语法闸不涉及（未触 index.html）；
+  gen-bridge-catalog --check 与 CI 面零改动。
+- **零运行时声明**：本窗 diff = docs/DESIGN-SPEC.md（附注一+状态行+页脚）+
+  docs/DESIGN-SPEC-AUDIT.md（新）+ docs/design-spec-audit.json（新）+ 本文件；
+  sw VERSION 保持 v1.11（v1.09/v1.12/v1.13 docs-only 先例同律）；L0 红线零触碰。
 
 ## 红线（违反 = 返工）
 
@@ -199,29 +227,27 @@ TurboWarp 单文件打包产物（57.4MB）→ **忠实多文件 Web 移植**（
   用 python count（R133 实测：误判 CI branches 为缺陷，白耗 ~15 分钟后经字节偏移
   1152 处 `main]` 证实为 `[main]` 完好）。
 
-## 下窗续点（R134）
+## 下窗续点（R135）
 
 0. **开窗入口已切换**：置顶议题 #2（SOP·铁律）+ #30 读完再动手闸门 + 本文件 +
    git log --oneline -5；认领登记按 #2 §一4（认领 + 预计版本号，后到者跳号 #3）；
-1. **设计冻结评审（最高优先）**：DESIGN-SPEC v1.0-draft 已交（#6/#7/#9 回帖凭证），
-   待用户/复核实例确认后登记「设计冻结」→ token 引用制生效；评审意见修订本表后
-   固化 v1.0；
-2. **SPEC §10 附注一回核**：aosp: 值逐项回核 android-17.0.0_r1 分支差异
-   （cs.android.com 或 sources jar；语料副本现为 main 分支实拉）；
-3. **#23 新壳续点**（设计冻结后解锁）：
-   ② QS 磁贴 L2 化（#18 对照稿三栏表 → 首批磁贴清单，消费 SPEC token；
-   语料：motion.shade.* + motion.qs.fade-* + systemui-docs/quickaffordance.md）；
-   ③ app 开/关动画接 vendored 内核（**对侧 2933040 动画工作面，继续避开**——
-   除非对侧 #1 明示转交；API 形状 = shell-src/src/motion/ 出口）；
-   ④ ✅ 已完成（R133：shell-probe 入 CI shell-gates job）；
-   ⑤ ✅ 已完成（R133：gen-bridge-catalog --check 入 static-gates）；
+1. **② QS 磁贴 L2 化（设计冻结已解锁，R135 首选）**：#18 对照稿三栏表 →
+   首批磁贴清单，消费 SPEC v1.0 token（引用制生效）；语料：motion.shade.* +
+   motion.qs.fade-* + systemui-docs/quickaffordance.md；落点 = shell-src 新壳
+   （qs-panel/tiles POC 升级），写通道只复用工程既有事件链（VMBridge catalog 对账）；
+2. **③ app 开/关动画接 vendored 内核**：**对侧 2933040 动画工作面，继续避开**——
+   除非对侧 #1 明示转交；API 形状 = shell-src/src/motion/ 出口；
+3. **锚点治理议题跟踪**：android-17.0.0_r1 可达性恢复时（镜像补全/用户侧 sources
+   jar），按 SPEC 附注一纪律逐项回核 aosp: 值，有差异即修订 SPEC 并披露；
 4. **SPEC 附注二留空项补考**：SpringForce 劲度/阻尼（sources jar）· Launcher3
    栅格 px（#13 对照稿）· QS 磁贴网格尺寸（#18 对照稿）——各自随议题动工实拉；
 5. 用户真机验收 v1.10 动画（60Hz 设备开/关动画是否顺滑；120Hz 设备应零变化）+
    补跑 boot-feedback-probe.py 移动通道（R130 遗留，桌面断言已被 pack-verify A 等效覆盖）；
 6. **#4 CI 收尾**：regression-headless 入 CI（actions/cache 预热 57MB 原版 + 8081/8082
-   双服务）；首周观察 schedule boot-probe 与新 shell-gates job 在 runner 上的时长
-   漂移是否稳定绿灯（shell-gates 首跑见 CI 页面）。
+   双服务）；首周观察 schedule boot-probe 与 shell-gates job 在 runner 上的时长
+   漂移是否稳定绿灯；
+7. **#31 方针持续执行**：测试发现的问题即修即录；无议题时自行批量立议题
+   （填充内容类优先级最低）。
 
 ## 版本号登记表（#3 领号制 · 与 git tags 实测同步）
 
@@ -235,6 +261,7 @@ TurboWarp 单文件打包产物（57.4MB）→ **忠实多文件 Web 移植**（
 | v1.11 | 本窗合流（Job 2933110 收窗） | 八度撞号合流终树（动画 × 语言迁移并档） | v1.11 本窗落 |
 | v1.12 | Job 2933110（R132） | #4 CI 基线（regression.yml 三 job + check-inline-js 物化 + 已知坑补记） | 未 tag（docs/CI 面，零运行时；v1.09 先例同律） |
 | v1.13 | Job 2933110（R133） | 设计规范 v1.0-draft（DESIGN-SPEC.md 69 token）+ CI 双闸（shell-gates job + catalog 对账闸） | 未 tag（docs/CI 面，零运行时；v1.09/v1.12 先例同律） |
+| v1.14 | Job 2933110（R134） | 设计冻结复核（76/76 审计 PASS + SPEC 固化 v1.0 + #2 冻结登记）+ 锚点定谳（android-17.0.0_r1 不可达）+ 锚点治理议题 | 未 tag（docs 面，零运行时；v1.09/v1.12/v1.13 先例同律） |
 
 ## 议题索引（2026-11-08 · 新立 29 个议题 #2~#30（含 #30 读完再动手闸门），已回读核对 + #2 已置顶）
 

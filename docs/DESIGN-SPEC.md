@@ -1,10 +1,12 @@
-# Pixel XXL 设计规范 v1.0-draft（#6 冻结令交付稿 · 待 #8 评审冻结）
+# Pixel XXL 设计规范 v1.0（#6 冻结令交付稿 · R134 复核冻结版）
 
 > 定位：本仓库一切"安卓真实化"改动的设计单一真源。冻结后，任何真移植议题的
 > 验收标准必须引用本文档的 token 名，不得出现无出处魔数（#6 验收）。
 >
-> 状态：**v1.0-draft**——纯文档零代码零构建，不引入任何组件库（#6 交付物约束）；
-> 经用户（或复核实例）评审通过后在本议题登记"设计冻结"，冻结前不作为实现依据。
+> 状态：**v1.0（冻结版）**——纯文档零代码零构建，不引入任何组件库（#6 交付物约束）；
+> 经复核实例（R134 窗）逐值审计通过后于交接议题登记"设计冻结"（#2 评论留痕）；
+> 冻结后本文件版本号固化，修订走新对照稿。审计证据：docs/DESIGN-SPEC-AUDIT.md +
+> docs/design-spec-audit.json（76 项程序化断言全 PASS）；用户保留撤销权。
 >
 > 出处约定（#7 规则 1）：
 > - `aosp:` = AOSP 源码文件（本窗经 md3@main 语料 vendored 副本**逐文件复核**，
@@ -283,9 +285,19 @@ android-17 分支后再入表。此处只冻结：现状桌面双页魔数坐标
 
 - **评审流程**（#8）：本文档在 #6 议题回帖交付凭证 → 用户/复核实例确认 →
   交接议题登记"设计冻结"；冻结后本文件版本号 v1.0 固化，修订走新对照稿。
-- **附注一（语料分支披露）**：md3 语料 vendored 副本拉自 aosp-mirror main
-  （integers.xml 头注释实证）；本仓基准锚点为 android-17.0.0_r1。下窗续点：
-  对 §3/§4 已复核值逐项回核 android-17 分支差异（cs.android.com 或 sources jar），
+- **附注一（语料分支披露 · R134 审计后更新）**：md3 语料 vendored 副本拉自
+  aosp-mirror main（integers.xml 头注释"实拉入库 2026-11-06"，R134 实证其与镜像
+  main `packages/SystemUI/res/values/integers.xml` 剥头注释后逐字节一致 2392B）。
+  本仓基准锚点为 android-17.0.0_r1；**R134 锚点可达性定谳：本环境双通道均不可达**——
+  ① GitHub 镜像 aosp-mirror/platform_frameworks_base 无任何 android-17 系 tag
+  （authenticated matching-refs 空集，最新 = android-16.0.0_r1/r2/r3），main 冻结于
+  2025-03-27（HEAD 1cdfff555f，与 googlesource main 探测 HEAD 同 sha），且 SystemUI
+  animation 包不在其抽样树上（src/com/android/systemui/animation main/r1/r2/r3 均 404）；
+  ② android.googlesource.com 间歇可达（1 次 info/refs 200 成功），tag 枚举不可达
+  （refs 广告体超大 443 超时 / gitiles JSON 空响应）。
+  **处置**：aosp: 项口径按 §9-3 持续有效（"经语料副本复核"，本审计 76/76 PASS 覆盖
+  §2.2/§3/§4 全部 aosp:·md3: 可验证值）；android-17 锚点差异风险与锚点治理
+  （镜像补全 / 用户侧 sources jar / cs.android.com 人工通道）转锚点治理议题长期跟踪，
   有差异即修订本表并披露。
 - **附注二（未考证不编造）**：SpringForce 劲度/阻尼、Launcher3 栅格 px、
   QS 磁贴网格尺寸等语料未含或不随分支稳定的值，本表**刻意留空**（§3.3/§4/§7.7），
@@ -300,3 +312,8 @@ android-17 分支后再入表。此处只冻结：现状桌面双页魔数坐标
 *生成：Job 2933110 · R133 窗 · 2026-11-08 20:26+08:00 · commit 本窗 v1.13*
 *语料复核快照：md3@main docs/reference/（frameworks-base 92 件 / launcher3 67 件 /
 deskclock 26 件 / systemui-docs 6 件）· 本窗逐文件精读 14 件*
+*R134 复核冻结记录：2026-11-09 · Job 2933110 R134 窗——转录保真审计 76/76 PASS
+（§2.2 monet 45 断言 + §3.1 back 13 + §3.2 shade 3 + §3.3 spring 4 + §3.4/§4 integers
+10 + SPEC 自证 1），证据 docs/design-spec-audit.json；语料 integers.xml 与镜像 main
+逐字节一致（provenance 链实证）；android-17.0.0_r1 锚点不可达定谳入附注一。
+复核实例口径依 #6 验收（"文档评审通过后，在交接议题登记设计冻结"）执行。*

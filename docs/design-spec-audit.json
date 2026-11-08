@@ -1,0 +1,603 @@
+{
+ "meta": {
+  "window": "R134",
+  "job": "2933110",
+  "date": "2026-11-09T02:00+08:00",
+  "method": "md3@main vendored 语料 ↔ SPEC v1.0-draft 逐值程序化断言（显式子串/XML 解析/结构化解析三通道）",
+  "corpus_repo": "ariefenv-hash/md3 main (22e7ac94b07373c539fd869fd1f3cda83877f62d 树快照)",
+  "spec_file": "docs/DESIGN-SPEC.md @ v1.13 (ddb7bab)"
+ },
+ "files": {
+  "BackAnimationConstants.java": {
+   "bytes": 813,
+   "sha256": "e11c0949804bb3d9b1ff3ccf6f22e381617889d050006899b4d445a87d87553f"
+  },
+  "BackAnimationSpec.kt": {
+   "bytes": 3131,
+   "sha256": "ea2d521b633b2f1398f65634d3336d9f892aa6dbcfe5f2819cfe1ff5b9f80a7d"
+  },
+  "BackAnimationSpecForSysUi.kt": {
+   "bytes": 3048,
+   "sha256": "78e653a8584633309609ecd5b50d6e343b524288153d2466cd2e2bb3c6812016"
+  },
+  "DynamicAnimation.java": {
+   "bytes": 28821,
+   "sha256": "2532faa4af7a29fd79c6aeb8ad8fbf39ac1d98d66b4a2b9f9ea9694b2b32d801"
+  },
+  "ShadeInterpolation.kt": {
+   "bytes": 1194,
+   "sha256": "de3d76a1cf76bd45fdb65a2c78eba453ea83e33f4a923fec6b5783a3480deb4a"
+  },
+  "integers.xml": {
+   "bytes": 2677,
+   "sha256": "898b97e293df5d18f20037b10318fad8c2d450a31a13464f230526b056ab4bea"
+  },
+  "monet.js": {
+   "bytes": 22608,
+   "sha256": "aed00ef45c011a1c16d6c8c6af17df7109cf298f6b82c379658980c679cdd8f3"
+  }
+ },
+ "checks": [
+  {
+   "token": "motion.back.dismiss-app.margin",
+   "section": "§3.1",
+   "spec_expect": "8dp × 8dp",
+   "corpus_evidence": "maxMarginXdp = 8f,         maxMarginYdp = 8f",
+   "verdict": "PASS"
+  },
+  {
+   "token": "motion.back.dismiss-app.min-scale",
+   "section": "§3.1",
+   "spec_expect": "0.8",
+   "corpus_evidence": "substring hit",
+   "verdict": "PASS"
+  },
+  {
+   "token": "motion.back.cross-task.margin",
+   "section": "§3.1",
+   "spec_expect": "8dp × 8dp",
+   "corpus_evidence": "maxMarginXdp = 8f,         maxMarginYdp = 8f",
+   "verdict": "PASS"
+  },
+  {
+   "token": "motion.back.cross-task.min-scale",
+   "section": "§3.1",
+   "spec_expect": "0.8",
+   "corpus_evidence": "substring hit",
+   "verdict": "PASS"
+  },
+  {
+   "token": "motion.back.inner-area-dismiss.margin",
+   "section": "§3.1",
+   "spec_expect": "0dp × 0dp",
+   "corpus_evidence": "maxMarginXdp = 0f,         maxMarginYdp = 0f",
+   "verdict": "PASS"
+  },
+  {
+   "token": "motion.back.inner-area-dismiss.min-scale",
+   "section": "§3.1",
+   "spec_expect": "0.9",
+   "corpus_evidence": "substring hit",
+   "verdict": "PASS"
+  },
+  {
+   "token": "motion.back.floating-surfaces.margin",
+   "section": "§3.1",
+   "spec_expect": "8dp × 8dp",
+   "corpus_evidence": "maxMarginXdp = 8f,         maxMarginYdp = 8f",
+   "verdict": "PASS"
+  },
+  {
+   "token": "motion.back.floating-surfaces.min-scale",
+   "section": "§3.1",
+   "spec_expect": "0.9",
+   "corpus_evidence": "substring hit",
+   "verdict": "PASS"
+  },
+  {
+   "token": "motion.back.easing.translate-x",
+   "section": "§3.1",
+   "spec_expect": "Interpolators.BACK_GESTURE（createFloatingSurfaceAnimationSpec 缺省实参）",
+   "corpus_evidence": "translateXEasing: Interpolator = Interpolators.BACK_GESTURE",
+   "verdict": "PASS"
+  },
+  {
+   "token": "motion.back.easing.translate-y",
+   "section": "§3.1",
+   "spec_expect": "Interpolators.LINEAR",
+   "corpus_evidence": "translateYEasing: Interpolator = Interpolators.LINEAR",
+   "verdict": "PASS"
+  },
+  {
+   "token": "motion.back.easing.scale",
+   "section": "§3.1",
+   "spec_expect": "Interpolators.BACK_GESTURE",
+   "corpus_evidence": "scaleEasing: Interpolator = Interpolators.BACK_GESTURE",
+   "verdict": "PASS"
+  },
+  {
+   "token": "motion.back.geometry.formula",
+   "section": "§3.1",
+   "spec_expect": "maxTranslationX = (screenW − screenW×minScale)/2 − maxMarginX；scale = 1 − ratioScale×(1−minScale)",
+   "corpus_evidence": "3 行公式子串命中",
+   "verdict": "PASS"
+  },
+  {
+   "token": "motion.back.sysui-flags-threshold",
+   "section": "§3.1",
+   "spec_expect": "0.20",
+   "corpus_evidence": "UPDATE_SYSUI_FLAGS_THRESHOLD = 0.20f",
+   "verdict": "PASS"
+  },
+  {
+   "token": "motion.shade.scrim-alpha.map",
+   "section": "§3.2",
+   "spec_expect": "展开分数 [0→0.5] 区间映射后 ease-in-out",
+   "corpus_evidence": "constrainedMap(0f, 1f, 0f, 0.5f, fraction)",
+   "verdict": "PASS"
+  },
+  {
+   "token": "motion.shade.content-alpha.map",
+   "section": "§3.2",
+   "spec_expect": "展开分数 [0.3→1.0] 区间映射后 ease-in-out",
+   "corpus_evidence": "constrainedMap(0f, 1f, 0.3f, 1f, fraction)",
+   "verdict": "PASS"
+  },
+  {
+   "token": "motion.shade.ease-in-out.formula",
+   "section": "§3.2",
+   "spec_expect": "f′=f×1.2−0.2；α=1−0.5×(1−cos(π(1−f′)²))",
+   "corpus_evidence": "mappedFraction = fraction * 1.2f - 0.2f + 1f - 0.5f * (1f - cos(3.14159f * (1-f′)²))",
+   "verdict": "PASS"
+  },
+  {
+   "token": "motion.spring.min-visible.pixels",
+   "section": "§3.3",
+   "spec_expect": "1f",
+   "corpus_evidence": "MIN_VISIBLE_CHANGE_PIXELS = 1f;",
+   "verdict": "PASS"
+  },
+  {
+   "token": "motion.spring.min-visible.rotation",
+   "section": "§3.3",
+   "spec_expect": "1/10",
+   "corpus_evidence": "MIN_VISIBLE_CHANGE_ROTATION_DEGREES = 1f / 10f;",
+   "verdict": "PASS"
+  },
+  {
+   "token": "motion.spring.min-visible.alpha",
+   "section": "§3.3",
+   "spec_expect": "1/256",
+   "corpus_evidence": "MIN_VISIBLE_CHANGE_ALPHA = 1f / 256f;",
+   "verdict": "PASS"
+  },
+  {
+   "token": "motion.spring.min-visible.scale",
+   "section": "§3.3",
+   "spec_expect": "1/500",
+   "corpus_evidence": "MIN_VISIBLE_CHANGE_SCALE = 1f / 500f;",
+   "verdict": "PASS"
+  },
+  {
+   "token": "motion.volume.dialog-gravity",
+   "section": "§3.4",
+   "spec_expect": "21",
+   "corpus_evidence": "integer=21",
+   "verdict": "PASS"
+  },
+  {
+   "token": "motion.dock.enter-exit",
+   "section": "§3.4",
+   "spec_expect": "250",
+   "corpus_evidence": "integer=250",
+   "verdict": "PASS"
+  },
+  {
+   "token": "motion.lockscreen.shade-overscroll-release",
+   "section": "§3.4",
+   "spec_expect": "0",
+   "corpus_evidence": "integer=0",
+   "verdict": "PASS"
+  },
+  {
+   "token": "motion.qs.fade-out-complete-frame",
+   "section": "§3.4",
+   "spec_expect": "14",
+   "corpus_evidence": "integer=14",
+   "verdict": "PASS"
+  },
+  {
+   "token": "motion.qs.fade-in-start-frame",
+   "section": "§3.4",
+   "spec_expect": "58",
+   "corpus_evidence": "integer=58",
+   "verdict": "PASS"
+  },
+  {
+   "token": "motion.qs.percent-displacement-at-fade-out",
+   "section": "§3.4",
+   "spec_expect": "0.1066",
+   "corpus_evidence": "dimen=0.1066",
+   "verdict": "PASS"
+  },
+  {
+   "token": "notif.status-bar.max-static-icons",
+   "section": "§4",
+   "spec_expect": "4",
+   "corpus_evidence": "integer=4",
+   "verdict": "PASS"
+  },
+  {
+   "token": "notif.lockscreen.max-icons",
+   "section": "§4",
+   "spec_expect": "3",
+   "corpus_evidence": "integer=3",
+   "verdict": "PASS"
+  },
+  {
+   "token": "notif.aod.max-icons",
+   "section": "§4",
+   "spec_expect": "3",
+   "corpus_evidence": "integer=3",
+   "verdict": "PASS"
+  },
+  {
+   "token": "qs.security-footer.max-lines",
+   "section": "§4",
+   "spec_expect": "2",
+   "corpus_evidence": "integer=2",
+   "verdict": "PASS"
+  },
+  {
+   "token": "monet.palette.accent1.chroma",
+   "section": "§2.2",
+   "spec_expect": "max(seedChroma, 48)",
+   "corpus_evidence": "const seedChroma = Math.max(48, seedHct.c)",
+   "verdict": "PASS"
+  },
+  {
+   "token": "monet.palette.accent2.chroma",
+   "section": "§2.2",
+   "spec_expect": "16",
+   "corpus_evidence": "accent2: TonalPalette.fromHueAndChroma(hue, 16)",
+   "verdict": "PASS"
+  },
+  {
+   "token": "monet.palette.accent3.chroma",
+   "section": "§2.2",
+   "spec_expect": "32 @ hue+60",
+   "corpus_evidence": "accent3: TonalPalette.fromHueAndChroma((hue + 60) % 360, 32)",
+   "verdict": "PASS"
+  },
+  {
+   "token": "monet.palette.neutral1.chroma",
+   "section": "§2.2",
+   "spec_expect": "4",
+   "corpus_evidence": "neutral1: TonalPalette.fromHueAndChroma(hue, 4)",
+   "verdict": "PASS"
+  },
+  {
+   "token": "monet.palette.neutral2.chroma",
+   "section": "§2.2",
+   "spec_expect": "8",
+   "corpus_evidence": "neutral2: TonalPalette.fromHueAndChroma(hue, 8)",
+   "verdict": "PASS"
+  },
+  {
+   "token": "monet.cam16.white-point",
+   "section": "§2.2",
+   "spec_expect": "D65 = (95.047, 100, 108.883)",
+   "corpus_evidence": "const WHITE_POINT = [95.047, 100.0, 108.883]",
+   "verdict": "PASS"
+  },
+  {
+   "token": "monet.cam16.adapting-luminance",
+   "section": "§2.2",
+   "spec_expect": "200/π ≈ 63.619",
+   "corpus_evidence": "头注释 La = 200/π ≈ 63.619",
+   "verdict": "PASS"
+  },
+  {
+   "token": "monet.cam16.background-lstar",
+   "section": "§2.2",
+   "spec_expect": "50",
+   "corpus_evidence": "头注释 背景 L*=50",
+   "verdict": "PASS"
+  },
+  {
+   "token": "monet.tone.definition",
+   "section": "§2.2",
+   "spec_expect": "tone = CIE L*（Y=100 尺度）",
+   "corpus_evidence": "lstarFromY(y) 函数（tone=L*）",
+   "verdict": "PASS"
+  },
+  {
+   "token": "color.role.dark.primary",
+   "section": "§2.2",
+   "spec_expect": "accent1·80",
+   "corpus_evidence": "accent1·80",
+   "verdict": "PASS"
+  },
+  {
+   "token": "color.role.dark.on-primary",
+   "section": "§2.2",
+   "spec_expect": "accent1·20",
+   "corpus_evidence": "accent1·20",
+   "verdict": "PASS"
+  },
+  {
+   "token": "color.role.dark.primary-container",
+   "section": "§2.2",
+   "spec_expect": "accent1·30",
+   "corpus_evidence": "accent1·30",
+   "verdict": "PASS"
+  },
+  {
+   "token": "color.role.dark.on-primary-container",
+   "section": "§2.2",
+   "spec_expect": "accent1·90",
+   "corpus_evidence": "accent1·90",
+   "verdict": "PASS"
+  },
+  {
+   "token": "color.role.dark.secondary",
+   "section": "§2.2",
+   "spec_expect": "accent2·80",
+   "corpus_evidence": "accent2·80",
+   "verdict": "PASS"
+  },
+  {
+   "token": "color.role.dark.secondary-container",
+   "section": "§2.2",
+   "spec_expect": "accent2·30",
+   "corpus_evidence": "accent2·30",
+   "verdict": "PASS"
+  },
+  {
+   "token": "color.role.dark.tertiary",
+   "section": "§2.2",
+   "spec_expect": "accent3·80",
+   "corpus_evidence": "accent3·80",
+   "verdict": "PASS"
+  },
+  {
+   "token": "color.role.dark.tertiary-container",
+   "section": "§2.2",
+   "spec_expect": "accent3·30",
+   "corpus_evidence": "accent3·30",
+   "verdict": "PASS"
+  },
+  {
+   "token": "color.role.dark.surface",
+   "section": "§2.2",
+   "spec_expect": "neutral1·6",
+   "corpus_evidence": "neutral1·6",
+   "verdict": "PASS"
+  },
+  {
+   "token": "color.role.dark.surface-container",
+   "section": "§2.2",
+   "spec_expect": "neutral1·12",
+   "corpus_evidence": "neutral1·12",
+   "verdict": "PASS"
+  },
+  {
+   "token": "color.role.dark.surface-container-high",
+   "section": "§2.2",
+   "spec_expect": "neutral1·17",
+   "corpus_evidence": "neutral1·17",
+   "verdict": "PASS"
+  },
+  {
+   "token": "color.role.dark.on-surface",
+   "section": "§2.2",
+   "spec_expect": "neutral1·90",
+   "corpus_evidence": "neutral1·90",
+   "verdict": "PASS"
+  },
+  {
+   "token": "color.role.dark.on-surface-variant",
+   "section": "§2.2",
+   "spec_expect": "neutral2·80",
+   "corpus_evidence": "neutral2·80",
+   "verdict": "PASS"
+  },
+  {
+   "token": "color.role.dark.outline",
+   "section": "§2.2",
+   "spec_expect": "neutral2·60",
+   "corpus_evidence": "neutral2·60",
+   "verdict": "PASS"
+  },
+  {
+   "token": "color.role.dark.outline-variant",
+   "section": "§2.2",
+   "spec_expect": "neutral1·30",
+   "corpus_evidence": "neutral1·30",
+   "verdict": "PASS"
+  },
+  {
+   "token": "color.role.dark.accent",
+   "section": "§2.2",
+   "spec_expect": "accent1·80",
+   "corpus_evidence": "accent1·80",
+   "verdict": "PASS"
+  },
+  {
+   "token": "color.role.light.primary",
+   "section": "§2.2",
+   "spec_expect": "accent1·40",
+   "corpus_evidence": "accent1·40",
+   "verdict": "PASS"
+  },
+  {
+   "token": "color.role.light.on-primary",
+   "section": "§2.2",
+   "spec_expect": "accent1·100",
+   "corpus_evidence": "accent1·100",
+   "verdict": "PASS"
+  },
+  {
+   "token": "color.role.light.primary-container",
+   "section": "§2.2",
+   "spec_expect": "accent1·90",
+   "corpus_evidence": "accent1·90",
+   "verdict": "PASS"
+  },
+  {
+   "token": "color.role.light.on-primary-container",
+   "section": "§2.2",
+   "spec_expect": "accent1·10",
+   "corpus_evidence": "accent1·10",
+   "verdict": "PASS"
+  },
+  {
+   "token": "color.role.light.secondary",
+   "section": "§2.2",
+   "spec_expect": "accent2·40",
+   "corpus_evidence": "accent2·40",
+   "verdict": "PASS"
+  },
+  {
+   "token": "color.role.light.secondary-container",
+   "section": "§2.2",
+   "spec_expect": "accent2·90",
+   "corpus_evidence": "accent2·90",
+   "verdict": "PASS"
+  },
+  {
+   "token": "color.role.light.tertiary",
+   "section": "§2.2",
+   "spec_expect": "accent3·40",
+   "corpus_evidence": "accent3·40",
+   "verdict": "PASS"
+  },
+  {
+   "token": "color.role.light.tertiary-container",
+   "section": "§2.2",
+   "spec_expect": "accent3·90",
+   "corpus_evidence": "accent3·90",
+   "verdict": "PASS"
+  },
+  {
+   "token": "color.role.light.surface",
+   "section": "§2.2",
+   "spec_expect": "neutral1·98",
+   "corpus_evidence": "neutral1·98",
+   "verdict": "PASS"
+  },
+  {
+   "token": "color.role.light.surface-container",
+   "section": "§2.2",
+   "spec_expect": "neutral1·94",
+   "corpus_evidence": "neutral1·94",
+   "verdict": "PASS"
+  },
+  {
+   "token": "color.role.light.surface-container-high",
+   "section": "§2.2",
+   "spec_expect": "neutral1·90",
+   "corpus_evidence": "neutral1·90",
+   "verdict": "PASS"
+  },
+  {
+   "token": "color.role.light.on-surface",
+   "section": "§2.2",
+   "spec_expect": "neutral1·10",
+   "corpus_evidence": "neutral1·10",
+   "verdict": "PASS"
+  },
+  {
+   "token": "color.role.light.on-surface-variant",
+   "section": "§2.2",
+   "spec_expect": "neutral2·30",
+   "corpus_evidence": "neutral2·30",
+   "verdict": "PASS"
+  },
+  {
+   "token": "color.role.light.outline",
+   "section": "§2.2",
+   "spec_expect": "neutral2·50",
+   "corpus_evidence": "neutral2·50",
+   "verdict": "PASS"
+  },
+  {
+   "token": "color.role.light.outline-variant",
+   "section": "§2.2",
+   "spec_expect": "neutral1·80",
+   "corpus_evidence": "neutral1·80",
+   "verdict": "PASS"
+  },
+  {
+   "token": "color.role.light.accent",
+   "section": "§2.2",
+   "spec_expect": "accent1·40",
+   "corpus_evidence": "accent1·40",
+   "verdict": "PASS"
+  },
+  {
+   "token": "SPEC自证:motion.qs.percent-displacement-at-fade-out",
+   "section": "audit",
+   "spec_expect": "SPEC 文本含 \"0.1066\"",
+   "corpus_evidence": "count=1",
+   "verdict": "PASS"
+  },
+  {
+   "token": "SPEC自证:monet.palette.accent1.chroma",
+   "section": "audit",
+   "spec_expect": "SPEC 文本含 \"max(seedChroma, 48)\"",
+   "corpus_evidence": "count=1",
+   "verdict": "PASS"
+  },
+  {
+   "token": "SPEC自证:motion.back.geometry.formula",
+   "section": "audit",
+   "spec_expect": "SPEC 文本含 \"1 − ratioScale×(1−minScale)\"",
+   "corpus_evidence": "count=1",
+   "verdict": "PASS"
+  },
+  {
+   "token": "SPEC自证:color.role.dark.surface",
+   "section": "audit",
+   "spec_expect": "SPEC 文本含 \"n1·06\"",
+   "corpus_evidence": "count=1",
+   "verdict": "PASS"
+  },
+  {
+   "token": "SPEC自证:color.role.light.surface",
+   "section": "audit",
+   "spec_expect": "SPEC 文本含 \"n1·98\"",
+   "corpus_evidence": "count=1",
+   "verdict": "PASS"
+  }
+ ],
+ "summary": {
+  "total": 76,
+  "pass": 76,
+  "fail": 0
+ },
+ "anchor_environment": {
+  "aosp_mirror_platform_frameworks_base": {
+   "main_head_sha": "1cdfff555f4a21f71ccc978290e2e212e2f8b168",
+   "main_head_commit_date": "2025-03-27T03:38:51Z",
+   "repo_pushed_at": "2025-11-12T05:57:50Z",
+   "android17_tags_matching_refs": 0,
+   "android16_tags": [
+    "android-16.0.0_r1",
+    "android-16.0.0_r2",
+    "android-16.0.0_r3"
+   ],
+   "systemui_src_animation_package": "ABSENT（main/r1/r2/r3 均 404）",
+   "systemui_src_flat_tree_note": "systemui/ 167 entries 0 dirs；statusbar/ 95 entries 0 dirs；keyguard/ 31 entries 0 dirs —— 副本为扁平化抽样树"
+  },
+  "googlesource": {
+   "probe_success": "1 次（info/refs HTTP 200，HEAD symref → refs/heads/main @ 1cdfff555f…——与镜像 main 同 sha）",
+   "tag_enumeration": "不可达（refs 广告体超大，ls-remote 443 超时 129s；gitiles JSON 空响应）"
+  },
+  "provenance_test": {
+   "integers.xml": "语料副本剥 md3 头注释后与镜像 main packages/SystemUI/res/values/integers.xml 逐字节一致（2392B，mirror sha1 cc102e3b8374…）",
+   "r1_integers_xml_blob_sha16": "fad4d4ff8abe"
+  },
+  "conclusion": "android-17.0.0_r1 在本环境双通道（GitHub 镜像 / googlesource）均不可达；本审计口径 = 语料↔SPEC 转录保真（含 integers.xml 逐字节 provenance 链），android-17 锚点差异风险转锚点治理议题长期跟踪"
+ }
+}
