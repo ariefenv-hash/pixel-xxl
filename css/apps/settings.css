@@ -1,0 +1,63 @@
+/* apps/settings.css —— 设置：master(推拉 -100/亮度-30%) + 关于本机 + 彩蛋(曲线风格 0/1) */
+
+.st-device-card {
+  margin: 10px 4px 16px;
+  border-radius: 26px;
+  background: var(--md-primary-container);
+  color: var(--md-on-primary-container);
+  padding: 20px 18px;
+  display: flex; align-items: center; gap: 16px;
+}
+.st-device-card .avatar {
+  width: 58px; height: 58px; border-radius: 999px;
+  background: var(--md-primary);
+  color: var(--md-on-primary);
+  display: grid; place-items: center;
+  font-size: 24px; font-weight: 600;
+}
+.st-device-card .t { font-size: 18px; font-weight: 600; }
+.st-device-card .s { font-size: 12px; opacity: .75; margin-top: 2px; }
+
+.st-about-hero { text-align: center; padding: 26px 0 8px; }
+.st-about-hero .logo {
+  width: 84px; height: 84px; margin: 0 auto 14px;
+  border-radius: 26%;
+  background: conic-gradient(from 210deg, #4c8df6, #ea4335, #fbbc05, #34a853, #4c8df6);
+  animation: splash-spin 9s linear infinite;
+}
+.st-about-hero .name { font-size: 22px; font-weight: 600; }
+.st-about-hero .ver { font-size: 12px; color: var(--md-on-surface-variant); margin-top: 4px; }
+
+.st-kv {
+  display: flex; justify-content: space-between; align-items: center;
+  padding: 13px 16px;
+  border-radius: 16px;
+  font-size: 14px;
+}
+.st-kv + .st-kv { margin-top: 2px; }
+.st-kv .k { color: var(--md-on-surface-variant); }
+.st-kv .v { font-weight: 500; font-variant-numeric: tabular-nums; }
+
+.st-egg-sw {
+  display: flex; align-items: center; justify-content: space-between;
+  padding: 16px;
+  border-radius: 18px;
+  background: var(--md-surface-container);
+  margin-top: 10px;
+}
+.m3-switch {
+  width: 52px; height: 32px; border-radius: 999px;
+  background: var(--md-surface-container-highest);
+  position: relative;
+  transition: background .25s;
+  cursor: pointer;
+  flex: 0 0 auto;
+}
+.m3-switch::after {
+  content: ""; position: absolute; top: 6px; left: 6px;
+  width: 20px; height: 20px; border-radius: 999px;
+  background: var(--md-outline);
+  transition: all .25s var(--ease-emphasized);
+}
+.m3-switch.on { background: var(--md-primary); }
+.m3-switch.on::after { left: 26px; width: 20px; background: var(--md-on-primary); }

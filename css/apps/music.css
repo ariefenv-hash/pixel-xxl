@@ -1,0 +1,61 @@
+/* apps/music.css —— 进度条 250 逻辑 px（x = AppX-125 + t/len×125），播放列表两行 */
+
+.mu-hero {
+  margin: 8px 4px 0;
+  border-radius: 24px;
+  background: linear-gradient(160deg, var(--md-primary-container), var(--md-tertiary-container));
+  color: var(--md-on-primary-container);
+  padding: 18px;
+  display: flex; flex-direction: column; gap: 10px;
+  min-height: 210px;
+}
+.mu-art {
+  width: 96px; height: 96px; border-radius: 18px;
+  background: rgba(0,0,0,.18);
+  display: grid; place-items: center;
+  align-self: center;
+  margin-top: 4px;
+}
+.mu-art svg { width: 44px; height: 44px; }
+.mu-now { text-align: center; font-size: 14px; font-weight: 600; }
+.mu-state { text-align: center; font-size: 12px; opacity: .8; }
+
+.mu-mini {
+  position: absolute; left: 40px; bottom: 43px;   /* scratch (-122,-317) r24 */
+  width: 48px; height: 48px;
+  border-radius: 999px;
+  background: var(--md-primary);
+  color: var(--md-on-primary);
+  display: grid; place-items: center;
+  box-shadow: 0 6px 18px rgba(0,0,0,.3);
+}
+.mu-mini:active { transform: scale(.92); }
+
+.mu-progress {
+  margin: 6px 22px 0;
+  height: 26px;
+  position: relative;
+  display: flex; align-items: center;
+}
+.mu-track {
+  position: absolute; left: 0; right: 0; height: 6px;
+  border-radius: 999px;
+  background: var(--md-surface-container-highest);
+  overflow: hidden;
+}
+.mu-fill {
+  height: 100%; width: 0%;
+  border-radius: 999px;
+  background: var(--md-primary);
+  transition: width .25s linear;
+}
+.mu-times {
+  display: flex; justify-content: space-between;
+  font-size: 11px; color: var(--md-on-surface-variant);
+  margin: 4px 22px 0;
+  font-variant-numeric: tabular-nums;
+}
+
+.mu-track-row { border-radius: 18px; }
+.mu-track-row.playing { background: var(--md-secondary-container); }
+.mu-track-row.playing .rt .t { color: var(--md-on-secondary-container); }

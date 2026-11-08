@@ -1,0 +1,25 @@
+/* frame.css —— 机身（侧边电源键可点击）与画布层 */
+
+#btn-power {
+  position: absolute;
+  right: calc(var(--scale, 1) * -15px);
+  top: calc(var(--scale, 1) * 210px);
+  width: calc(var(--scale, 1) * 5px);
+  height: calc(var(--scale, 1) * 84px);
+  border-radius: 3px;
+  background: linear-gradient(180deg, #3a4046, #22272c 60%, #171b1f);
+  cursor: pointer;
+}
+#btn-power:active { filter: brightness(1.4); }
+
+#wallpaper {
+  position: absolute;
+  /* 壁纸画布比屏幕大 24px（左右/上下各 12），承载位移视差与 110/90 缩放 */
+  left: -12px;
+  top: -12px;
+  width: 348px;
+  height: 744px;
+  will-change: transform, filter;
+}
+
+/* 桌面态 / 应用态 的壁纸缩放与亮度由 js 直接写内联样式（filter: brightness / blur） */

@@ -1,0 +1,50 @@
+/* drawer.css —— All Apps 抽屉：自 -695 滑入，模糊随进度 0→16 级耦合 */
+
+#drawer { z-index: 20; will-change: transform; }
+
+.drawer-sheet {
+  position: absolute; inset: 0;
+  border-radius: 32px 32px 0 0;
+  background: color-mix(in srgb, var(--md-surface-container) 88%, transparent);
+  backdrop-filter: blur(0px);
+  padding: 26px 18px;
+}
+
+.drawer-grab {
+  width: 44px; height: 5px; border-radius: 999px;
+  background: var(--md-on-surface-variant);
+  opacity: .5;
+  margin: 0 auto 18px;
+}
+
+.drawer-search {
+  height: 44px;
+  border-radius: 999px;
+  background: var(--md-surface-container-highest);
+  color: var(--md-on-surface-variant);
+  display: flex; align-items: center; gap: 10px;
+  padding: 0 18px;
+  font-size: 14px;
+  margin-bottom: 20px;
+}
+.drawer-search svg { width: 18px; height: 18px; }
+
+.drawer-grid {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 20px 8px;
+  justify-items: center;
+}
+.dr-app {
+  display: flex; flex-direction: column; align-items: center; gap: 6px;
+  width: 64px;
+  cursor: pointer;
+}
+.dr-app .ic {
+  width: 52px; height: 52px; border-radius: var(--radius-icon);
+  display: grid; place-items: center;
+  box-shadow: 0 3px 10px rgba(0,0,0,.22);
+  transition: transform 120ms var(--ease-emphasized);
+}
+.dr-app:active .ic { transform: scale(.9); }
+.dr-app .lbl { font-size: 11px; color: var(--md-on-surface); white-space: nowrap; }

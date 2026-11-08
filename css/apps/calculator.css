@@ -1,0 +1,36 @@
+/* apps/calculator.css —— 键位坐标忠实于原工程：
+ * 行 y=-80/-150/-220/-290，列 x=-105/-35/35/105，= 在 (105,-255)，按下态缩放 0.8 */
+
+.calc-screen {
+  padding: 26px 22px 10px;
+  display: flex; flex-direction: column; align-items: flex-end; gap: 6px;
+  min-height: 132px;
+  justify-content: flex-end;
+}
+.calc-expr { font-size: 18px; color: var(--md-on-surface-variant); min-height: 24px; font-variant-numeric: tabular-nums; max-width: 100%; overflow: hidden; white-space: nowrap; }
+.calc-out { font-size: 44px; font-weight: 400; color: var(--md-on-surface); font-variant-numeric: tabular-nums; max-width: 100%; overflow: hidden; white-space: nowrap; }
+
+.calc-pad {
+  /* 键位使用窗口绝对坐标（scratch 300×648），故 pad 铺满窗口 */
+  position: absolute;
+  inset: 0;
+}
+.calc-screen {
+  position: relative;
+  z-index: 2;
+  pointer-events: none;
+}
+.calc-key {
+  position: absolute;
+  width: 56px; height: 56px;
+  margin: -28px 0 0 -28px;
+  border-radius: 999px;
+  background: var(--md-surface-container-high);
+  color: var(--md-on-surface);
+  font-size: 22px;
+  display: grid; place-items: center;
+  transition: transform 110ms var(--ease-emphasized), background 110ms;
+}
+.calc-key.op { background: var(--md-primary-container); color: var(--md-on-primary-container); }
+.calc-key.eq { background: var(--md-primary); color: var(--md-on-primary); }
+.calc-key.pressed { transform: scale(.8); background: var(--pressed); }

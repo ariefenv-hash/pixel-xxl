@@ -1,0 +1,64 @@
+/* onboarding.css —— 三页开机引导：视差入场（ghost 100→0、云母模糊 7→0、尺寸插值） */
+
+#onboarding { z-index: 80; overflow: hidden; }
+
+.ob-el {
+  position: absolute;
+  will-change: transform, opacity, filter;
+  filter: blur(7px);
+  opacity: 0;
+  transition: none; /* 逐帧由 js 驱动（对应原工程每帧 1/10 插值） */
+}
+.ob-el.settled {
+  transition:
+    transform var(--dur-xl) var(--ease-emphasized),
+    opacity var(--dur-xl) var(--ease-emphasized),
+    filter var(--dur-xl) var(--ease-emphasized),
+    width var(--dur-xl) var(--ease-emphasized),
+    height var(--dur-xl) var(--ease-emphasized);
+}
+
+.ob-title { font-size: 34px; font-weight: 600; color: #fff; letter-spacing: .02em; white-space: nowrap; }
+.ob-sub { font-size: 15px; line-height: 1.55; color: rgba(255,255,255,.82); white-space: nowrap; }
+.ob-card {
+  background: rgba(255,255,255,.1);
+  border: 1px solid rgba(255,255,255,.16);
+  backdrop-filter: blur(18px);
+  border-radius: 24px;
+}
+.ob-blob { border-radius: 42%; filter: blur(1px); }
+
+.ob-gesture-pill {
+  display: flex; align-items: center; justify-content: center;
+  font-size: 12px; color: rgba(255,255,255,.9);
+  background: rgba(255,255,255,.14);
+  border-radius: 999px;
+}
+
+.ob-next {
+  position: absolute;
+  left: 162px; top: 680px;               /* scratch (95, -320) */
+  transform: translate(-50%, -50%);
+  width: 120px; height: 44px;
+  border-radius: 999px;
+  background: rgba(255,255,255,.92);
+  color: #10151c;
+  font-size: 16px;
+  font-weight: 600;
+  letter-spacing: .2em;
+  display: grid; place-items: center;
+  box-shadow: 0 6px 22px rgba(0,0,0,.35);
+  opacity: 0;
+}
+.ob-next:active { transform: translate(-50%, -50%) scale(.94); }
+
+.ob-dots {
+  position: absolute; top: 24px; left: 0; right: 0;
+  display: flex; justify-content: center; gap: 8px;
+}
+.ob-dots i {
+  width: 7px; height: 7px; border-radius: 999px;
+  background: rgba(255,255,255,.35);
+  transition: background .3s, width .3s;
+}
+.ob-dots i.on { background: #fff; width: 20px; }

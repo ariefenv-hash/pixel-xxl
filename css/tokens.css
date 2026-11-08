@@ -1,0 +1,46 @@
+/* tokens.css —— Material You 令牌（运行时由 js/monet.js 按壁纸动态重写）
+ * 与原工程的「亮度模式」变量对应：同一 hue 生成 light/dark 两套 tonal 值，
+ * 数据键 50~900，极端亮度饱和度 ×0.8（忠实于 materialPalettePro 的实现）。 */
+
+:root {
+  /* 以下变量会在每次取色后被 monet.js 覆盖 */
+  --md-primary: #535980;
+  --md-on-primary: #ffffff;
+  --md-primary-container: #dde1ff;
+  --md-on-primary-container: #10144c;
+  --md-secondary: #5b5d72;
+  --md-on-secondary: #ffffff;
+  --md-secondary-container: #e0e0f9;
+  --md-on-secondary-container: #181a2c;
+  --md-tertiary: #77536d;
+  --md-on-tertiary: #ffffff;
+  --md-tertiary-container: #ffd8ee;
+  --md-on-tertiary-container: #2d1228;
+  --md-surface: #fbf8ff;
+  --md-on-surface: #1b1b21;
+  --md-surface-variant: #e3e1ec;
+  --md-on-surface-variant: #46464f;
+  --md-surface-container-lowest: #ffffff;
+  --md-surface-container-low: #f5f2fa;
+  --md-surface-container: #efedf5;
+  --md-surface-container-high: #e9e7ef;
+  --md-surface-container-highest: #e4e1e9;
+  --md-outline: #767680;
+  --md-outline-variant: #c7c5d0;
+  --md-inverse-surface: #303036;
+  --md-inverse-on-surface: #f2eff7;
+  --md-scrim: rgba(0, 0, 0, .45);
+  --md-shadow: rgba(16, 21, 22, .28);
+
+  /* 状态层与动效令牌 */
+  --hover: color-mix(in srgb, var(--md-on-surface) 8%, transparent);
+  --pressed: color-mix(in srgb, var(--md-on-surface) 12%, transparent);
+  --ease-emphasized: cubic-bezier(.2, 0, 0, 1);
+  --ease-emphasized-accel: cubic-bezier(.3, 0, .8, .15);
+  --ease-emphasized-decel: cubic-bezier(.05, .7, .1, 1);
+  --dur-med: 380ms;
+  --dur-long: 520ms;
+  --dur-xl: 700ms;
+  --radius-window: 28px;
+  --radius-icon: 24%;
+}

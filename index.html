@@ -1,0 +1,67 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="theme-color" content="#101516">
+<title>Pixel XXL · Web</title>
+<meta name="description" content="Pixel XXL —— 由 Scratch 工程原生重写的 Material You 手机系统模拟器（纯 ES Modules，无构建，无二进制素材）">
+<link rel="stylesheet" href="css/tokens.css">
+<link rel="stylesheet" href="css/base.css">
+<link rel="stylesheet" href="css/frame.css">
+<link rel="stylesheet" href="css/boot.css">
+<link rel="stylesheet" href="css/onboarding.css">
+<link rel="stylesheet" href="css/desktop.css">
+<link rel="stylesheet" href="css/drawer.css">
+<link rel="stylesheet" href="css/recents.css">
+<link rel="stylesheet" href="css/lockscreen.css">
+<link rel="stylesheet" href="css/window.css">
+<link rel="stylesheet" href="css/apps/calculator.css">
+<link rel="stylesheet" href="css/apps/music.css">
+<link rel="stylesheet" href="css/apps/settings.css">
+<link rel="stylesheet" href="css/apps/personalization.css">
+<link rel="stylesheet" href="css/apps/simple-apps.css">
+</head>
+<body>
+<div id="stage">
+  <div id="device">
+    <div id="screen" aria-label="Pixel XXL 手机屏幕">
+      <canvas id="wallpaper" width="648" height="1440"></canvas>
+
+      <!-- 桌面（图标分页 + 时钟大件 + 页点） -->
+      <div id="desktop" class="layer" hidden></div>
+
+      <!-- All Apps 抽屉 -->
+      <div id="drawer" class="layer" hidden></div>
+
+      <!-- 应用窗口层 -->
+      <div id="windows" class="layer" hidden></div>
+
+      <!-- 多任务后台卡片 -->
+      <div id="recents" class="layer" hidden></div>
+
+      <!-- 开机引导 -->
+      <div id="onboarding" class="layer" hidden></div>
+
+      <!-- 锁屏 / AOD -->
+      <div id="lockscreen" class="layer" hidden></div>
+
+      <!-- 开机动画 -->
+      <div id="boot" class="layer">
+        <canvas id="boot-canvas" width="648" height="1440"></canvas>
+      </div>
+
+      <!-- 点击开始遮罩（对应打包器的启动屏） -->
+      <div id="splash" class="layer">
+        <div class="splash-logo" aria-hidden="true"></div>
+        <div class="splash-title">Pixel&nbsp;XXL</div>
+        <div class="splash-sub">点击任意处启动</div>
+        <div class="splash-hint">原生 Web 重写 · 非积木块转换</div>
+      </div>
+    </div>
+    <div id="btn-power" title="电源键：锁屏 / 解锁（也可用 A / D 键）"></div>
+  </div>
+</div>
+<script type="module" src="js/main.js"></script>
+</body>
+</html>

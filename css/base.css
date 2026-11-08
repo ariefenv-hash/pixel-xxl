@@ -1,0 +1,53 @@
+/* base.css —— 逻辑视口 324×720（与原工程舞台 1:1），等比缩放居中。
+ * Scratch 坐标系 y 向上，本工程统一换算：cssY = 360 - scratchY。 */
+
+* { margin: 0; padding: 0; box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
+
+html, body { height: 100%; }
+
+body {
+  background:
+    radial-gradient(1200px 800px at 20% -10%, #1b2027 0%, #0d1116 55%, #090c10 100%);
+  font-family: "Roboto Flex", Roboto, "Noto Sans SC", "PingFang SC", "Microsoft YaHei", system-ui, sans-serif;
+  color: #e8eaf0;
+  overflow: hidden;
+  user-select: none;
+  -webkit-user-select: none;
+  touch-action: none;
+}
+
+#stage { height: 100%; display: grid; place-items: center; }
+
+#device {
+  position: relative;
+  width: calc(var(--scale, 1) * 344px);
+  height: calc(var(--scale, 1) * 740px);
+}
+
+#screen {
+  position: absolute;
+  inset: 0;
+  width: 324px;
+  height: 720px;
+  transform-origin: top left;
+  transform: scale(var(--scale));
+  border-radius: 38px;
+  overflow: hidden;
+  background: #101516;
+  box-shadow:
+    0 0 0 2px #0a0d0f,
+    0 0 0 10px #16191d,
+    0 0 0 11px #2a2f35,
+    0 34px 80px var(--md-shadow, rgba(0,0,0,.5)),
+    0 10px 28px rgba(0,0,0,.45);
+  contain: strict;
+}
+
+.layer { position: absolute; inset: 0; }
+.layer[hidden] { display: none !important; }
+
+/* 逻辑坐标工具类：left = 162 + scratchX, top = 360 - scratchY，减去自身尺寸的一半由调用方计算 */
+button { font: inherit; color: inherit; background: none; border: 0; cursor: pointer; }
+button:focus-visible { outline: 2px solid var(--md-primary); outline-offset: 2px; }
+
+@keyframes pxl-fade-in { from { opacity: 0; } to { opacity: 1; } }

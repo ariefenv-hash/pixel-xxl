@@ -1,0 +1,45 @@
+/* recents.css —— 后台卡片：x = 200 + 90·e^(0.001·((n-1)·(-160)+后台x))，拖动 ×1.5 跟手 */
+
+#recents { z-index: 40; }
+
+.rc-hint {
+  position: absolute; top: 40px; left: 0; right: 0;
+  text-align: center;
+  font-size: 13px; color: rgba(255,255,255,.85);
+  text-shadow: 0 1px 6px rgba(0,0,0,.5);
+  pointer-events: none;
+}
+
+.rc-card {
+  position: absolute;
+  width: 236px; height: 500px;              /* scratch: 236×500，中心对齐 */
+  margin: -250px 0 0 -118px;
+  border-radius: 24px;
+  overflow: hidden;
+  background: var(--md-surface-container-low);
+  box-shadow: 0 18px 50px rgba(0,0,0,.45);
+  will-change: transform;
+  cursor: pointer;
+}
+.rc-card .rc-shot {
+  position: absolute; inset: 0;
+  display: flex; flex-direction: column; align-items: center; justify-content: center;
+  gap: 14px;
+}
+.rc-card .rc-shot .ic { width: 72px; height: 72px; border-radius: var(--radius-icon); display: grid; place-items: center; box-shadow: 0 6px 18px rgba(0,0,0,.3); }
+.rc-card .rc-shot .name { font-size: 16px; font-weight: 600; color: var(--md-on-surface); }
+.rc-card .rc-shot .sub { font-size: 12px; color: var(--md-on-surface-variant); }
+.rc-card .rc-bar {
+  position: absolute; left: 0; right: 0; top: 0; height: 34px;
+  display: flex; align-items: center; gap: 8px; padding: 0 12px;
+  background: color-mix(in srgb, var(--md-surface-container-high) 92%, transparent);
+  font-size: 12px; color: var(--md-on-surface-variant);
+}
+.rc-card .rc-bar .ic-mini { width: 20px; height: 20px; border-radius: 6px; display: grid; place-items: center; }
+.rc-empty {
+  position: absolute; inset: 0;
+  display: grid; place-items: center;
+  color: rgba(255,255,255,.85); font-size: 15px;
+  text-shadow: 0 1px 6px rgba(0,0,0,.5);
+}
+.rc-card.dismiss { transition: transform 260ms var(--ease-emphasized-accel), opacity 260ms; opacity: 0; }

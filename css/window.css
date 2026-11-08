@@ -1,0 +1,97 @@
+/* window.css —— 应用窗口：图标→窗口变焦开合（FLIP）+ md3e 预测性返回柄 + 子页推拉 */
+
+#windows { z-index: 30; pointer-events: none; }
+#windows.live { pointer-events: auto; }
+
+.app-window {
+  position: absolute;
+  width: 300px; height: 648px;             /* scratch: App 300×648 @ (0,0) */
+  left: 162px; top: 360px;
+  margin: -324px 0 0 -150px;
+  border-radius: var(--radius-window);
+  background: var(--md-surface-container-low);
+  color: var(--md-on-surface);
+  overflow: hidden;
+  box-shadow: 0 24px 70px rgba(0,0,0,.5);
+  will-change: transform, border-radius;
+  display: flex;
+  flex-direction: column;
+}
+
+/* 双页结构：master（被推时 x→-100、亮度→-30%）+ detail（自 +100 滑入） */
+.aw-master, .aw-detail {
+  position: absolute; inset: 0;
+  display: flex; flex-direction: column;
+  background: var(--md-surface-container-low);
+  will-change: transform, filter, opacity;
+}
+.aw-detail {
+  transform: translateX(100px);
+  opacity: 0;
+  background: var(--md-surface-container);
+}
+.aw-detail.show { transform: translateX(0); opacity: 1; transition: all var(--dur-long) var(--ease-emphasized); }
+.aw-detail.hide { transform: translateX(100px); opacity: 0; }
+.aw-master.pushed { transform: translateX(-100px); filter: brightness(.7); transition: all var(--dur-long) var(--ease-emphasized); }
+
+.aw-header {
+  flex: 0 0 64px;
+  display: flex; align-items: center; gap: 12px;
+  padding: 14px 12px 6px 8px;
+  font-size: 20px; font-weight: 500;
+  color: var(--md-on-surface);
+}
+.aw-header .back {
+  width: 40px; height: 40px; border-radius: 999px;
+  display: grid; place-items: center;
+  color: var(--md-on-surface-variant);
+}
+.aw-header .back:active { background: var(--pressed); }
+.aw-body { flex: 1; overflow-y: auto; overscroll-behavior: contain; padding: 4px 16px 24px; }
+.aw-body::-webkit-scrollbar { width: 0; }
+
+/* md3e-返回柄：常驻 x→200（右缘外），拖入 x<80 触发预测性返回，松手 x<140 提交 */
+.md3e-handle {
+  position: absolute;
+  right: -18px; top: 50%;
+  width: 44px; height: 96px;
+  margin-top: -48px;
+  border-radius: 999px 0 0 999px;
+  background: color-mix(in srgb, var(--md-primary-container) 86%, transparent);
+  color: var(--md-on-primary-container);
+  display: grid; place-items: center;
+  will-change: transform;
+  cursor: grab;
+  z-index: 5;
+}
+.md3e-handle.stretch { border-radius: 999px; padding-right: 0; }
+.md3e-handle svg { pointer-events: none; }
+
+/* 列表行（设置 / 个性化 / 各列表页通用，对应原触控热区 r(147.5,34)） */
+.m3-row {
+  display: flex; align-items: center; gap: 14px;
+  min-height: 68px;
+  padding: 8px 14px;
+  border-radius: 20px;
+  cursor: pointer;
+  color: var(--md-on-surface);
+}
+.m3-row:active { background: var(--pressed); }
+.m3-row .ri {
+  width: 40px; height: 40px; border-radius: 12px;
+  display: grid; place-items: center;
+  background: var(--md-primary-container);
+  color: var(--md-on-primary-container);
+  flex: 0 0 auto;
+}
+.m3-row .rt { flex: 1; min-width: 0; }
+.m3-row .rt .t { font-size: 15px; font-weight: 500; }
+.m3-row .rt .s { font-size: 12px; color: var(--md-on-surface-variant); margin-top: 2px; }
+.m3-row .chev { color: var(--md-on-surface-variant); }
+
+.m3-list-title {
+  font-size: 13px; font-weight: 600;
+  color: var(--md-primary);
+  padding: 18px 16px 8px;
+  letter-spacing: .04em;
+}

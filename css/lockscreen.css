@@ -1,0 +1,39 @@
+/* lockscreen.css —— AOD 锁屏（对应原工程 a/d 键；此为忠实补全的视觉层） */
+
+#lockscreen { z-index: 60; background: rgba(6, 9, 12, .68); backdrop-filter: blur(14px); }
+
+.ls-time {
+  position: absolute; left: 0; right: 0; top: 132px;
+  text-align: center;
+  font-size: 76px; font-weight: 200;
+  color: #fff;
+  font-variant-numeric: tabular-nums;
+  letter-spacing: .02em;
+  text-shadow: 0 2px 18px rgba(0,0,0,.4);
+}
+.ls-date {
+  position: absolute; left: 0; right: 0; top: 224px;
+  text-align: center;
+  font-size: 15px; color: rgba(255,255,255,.78);
+}
+.ls-unlock {
+  position: absolute; left: 50%; bottom: 64px;
+  transform: translateX(-50%);
+  font-size: 13px; color: rgba(255,255,255,.75);
+  padding: 10px 20px;
+  border-radius: 999px;
+  background: rgba(255,255,255,.12);
+  animation: pxl-blink 2.2s ease-in-out infinite;
+}
+
+.ls-ripple {
+  position: absolute;
+  width: 14px; height: 14px; border-radius: 999px;
+  background: rgba(255,255,255,.85);
+  transform: translate(-50%, -50%) scale(0);
+  pointer-events: none;
+}
+.ls-ripple.go { animation: ls-rip 700ms var(--ease-emphasized-decel) forwards; }
+@keyframes ls-rip {
+  to { transform: translate(-50%, -50%) scale(46); opacity: 0; }
+}

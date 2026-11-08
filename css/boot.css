@@ -1,0 +1,42 @@
+/* boot.css —— 启动遮罩 + 174 帧开机动画画布 */
+
+#splash {
+  z-index: 100;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 14px;
+  background: #101516;
+  cursor: pointer;
+}
+
+.splash-logo {
+  width: 96px; height: 96px; border-radius: 26%;
+  background: conic-gradient(from 210deg, #4c8df6, #ea4335, #fbbc05, #34a853, #4c8df6);
+  filter: saturate(1.1);
+  animation: splash-spin 6s linear infinite;
+  box-shadow: 0 10px 40px rgba(0,0,0,.5);
+}
+@keyframes splash-spin { to { transform: rotate(360deg); } }
+
+.splash-title { font-size: 30px; font-weight: 600; letter-spacing: .12em; }
+.splash-sub { font-size: 14px; opacity: .65; animation: pxl-blink 1.6s ease-in-out infinite; }
+@keyframes pxl-blink { 50% { opacity: .25; } }
+.splash-hint { position: absolute; bottom: 34px; font-size: 11px; opacity: .35; letter-spacing: .08em; }
+
+#boot { z-index: 90; background: #101516; }
+#boot-canvas { position: absolute; inset: 0; width: 324px; height: 720px; }
+
+.boot-skip {
+  position: absolute;
+  right: 20px; bottom: 26px;
+  font-size: 12px;
+  color: #9aa3ad;
+  padding: 8px 14px;
+  border-radius: 999px;
+  background: rgba(255,255,255,.06);
+  opacity: 0;
+  transition: opacity .4s;
+}
+#boot.live .boot-skip { opacity: .8; }

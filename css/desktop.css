@@ -1,0 +1,77 @@
+/* desktop.css —— 图标分页（页宽 324、越界阻尼 ÷5、当前页图标 ×0.7 向心）、时钟大件、页点 */
+
+#desktop { z-index: 10; }
+
+.d-icon {
+  position: absolute;
+  width: 66px; height: 66px;
+  margin: -33px 0 0 -33px;             /* 中心定位：scratch 半径 32 */
+  display: flex; flex-direction: column; align-items: center; gap: 5px;
+  will-change: left, top;
+  cursor: pointer;
+  transition: opacity .38s var(--ease-emphasized-decel);
+}
+.d-icon .ic {
+  width: 54px; height: 54px;
+  border-radius: var(--radius-icon);
+  display: grid; place-items: center;
+  box-shadow: 0 4px 14px rgba(0,0,0,.28);
+  transition: transform 120ms var(--ease-emphasized);
+}
+.d-icon:active .ic { transform: scale(.9); }
+.d-icon .lbl {
+  font-size: 11px;
+  color: #fff;
+  text-shadow: 0 1px 4px rgba(0,0,0,.6);
+  white-space: nowrap;
+}
+
+/* 时钟大件（scratch (-80,170) 尺寸 200） */
+.d-clock {
+  position: absolute;
+  width: 140px; height: 140px;
+  margin: -70px 0 0 -70px;
+  will-change: left, top;
+  cursor: pointer;
+  transition: opacity .55s;
+}
+.d-clock .clock-face {
+  position: absolute;
+  inset: 12px;                      /* 视觉面盘小于占位盒，避免与首行图标视觉冲突 */
+  border-radius: 32%;
+  background: color-mix(in srgb, var(--md-surface-container-lowest) 82%, transparent);
+  backdrop-filter: blur(8px);
+  box-shadow: 0 8px 26px rgba(0,0,0,.3);
+}
+.d-clock .hand { position: absolute; left: 50%; bottom: 50%; transform-origin: 50% 100%; border-radius: 4px; }
+.d-clock .h { width: 5px; height: 26%; margin-left: -2.5px; background: var(--md-on-surface); }
+.d-clock .m { width: 4px; height: 36%; margin-left: -2px; background: var(--md-on-surface); }
+.d-clock .s { width: 2px; height: 40%; margin-left: -1px; background: var(--md-primary); }
+.d-clock .pin {
+  position: absolute; left: 50%; top: 50%; width: 8px; height: 8px; margin: -4px;
+  border-radius: 999px; background: var(--md-primary);
+}
+.d-clock .digital {
+  position: absolute; left: 12px; right: 12px; bottom: 16px;
+  text-align: center;
+  font-size: 13px; font-weight: 600; color: var(--md-on-surface);
+  font-variant-numeric: tabular-nums;
+}
+
+.d-dots {
+  position: absolute; left: 0; right: 0; top: 664px;   /* scratch y≈-304 */
+  display: flex; justify-content: center; gap: 7px;
+  pointer-events: none;
+}
+.d-dots i { width: 7px; height: 7px; border-radius: 999px; background: rgba(255,255,255,.4); transition: background .25s; }
+.d-dots i.on { background: #fff; }
+
+/* 抽屉起手区视觉（scratch y ∈ -280..-200 → css 440..560 之上即为热区） */
+.d-dock-hint {
+  position: absolute; left: 50%; top: 700px;
+  transform: translateX(-50%);
+  width: 96px; height: 5px; border-radius: 999px;
+  background: rgba(255,255,255,.75);
+  box-shadow: 0 0 0 1px rgba(0,0,0,.15);
+  pointer-events: none;
+}
