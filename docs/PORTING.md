@@ -82,3 +82,42 @@
 ```bash
 python3 scripts/extract_port.py   # 从原始 HTML 全量重建（需先放回 work/Pixel.XL.0827.html）
 ```
+
+## 七、v1.03 加载性能版（2026-11-08）
+
+背景：真机弱网首载约 15 分钟（56MB 素材下载主导，详见 docs/MOBILE.md §二）。
+本轮在"忠实移植"红线内做加载层优化：运行时 core/app 逐字节不动，素材视觉语义
+（除位图压缩编码外）零改动，工程数据仅 md5 键等长同步。
+
+### 7.1 素材瘦身（scripts/slim_assets.py）
+
+- 原理：10 张大 SVG（含 5 张壁纸，最大 8.95MB）= 矢量薄壳 + 内嵌 base64 位图照片，
+  PNG 编码的照片是体积爆炸根源；只替换壳内位图载荷为 WebP q90（method=6），
+  分辨率不降（最长边上限 2436 = 原素材原生分辨率），SVG 壳逐字节保留，
+  `.svg` 扩展名与 dataFormat 语义不变；
+- 内容变 → md5 变 → 文件随 md5 改名，project.json 的 assetId/md5ext 同步（10 处，等长替换）；
+  改名前已核实：md5 仅被 project.json 引用（core/app/extensions 零引用），改名安全；
+- 结果：assets 总量 52.8MB → 22.34MB（-58%）；10 张 SVG 合计 34.1MB → 3.4MB；
+- 保真度（scripts/slim-verify.py，git 历史旧图 vs 新图，240px 宽 canvas 逐像素比对）：
+  mean diff ≤ 0.63/255，差值 >24 的像素占比 0.000%，max ≤ 9/255 —— 肉眼不可分辨；
+- 完整性（loader 真实取数口径 `assetId.dataFormat`）：missing=0、orphan=0
+  （时钟-时/分/秒 3 条目本就无 md5ext 字段，v1.00 起即如此，非本轮引入）。
+
+### 7.2 Service Worker 缓存层（sw.js + index.html 尾部注册脚本）
+
+- 本轮唯一壳层改动：index.html 仅追加注册脚本（原骨架逐字节保留）；
+- 策略：assets/*（md5 内容寻址=不可变）cache-first 永久缓存；lib/*、project.json
+  stale-while-revalidate；index.html network-first；发版递增 sw.js VERSION 清旧缓存；
+- 弥补 GitHub Pages 不可自定义 Cache-Control（默认 max-age=600，328 素材二次访问
+  仍要 304 往返）的平台限制；
+- 实测（本地 chromium，scripts/slim-verify.py）：首访 0 素材 404 / 0 页面错误；
+  二次访问 246/246 素材 transferSize=0（零网络命中缓存）。
+
+### 7.3 保留项与待裁决
+
+- PNG 长尾 12.7MB（61 个 >100KB）未动：core 存储层位图 MIME 映射实测仅
+  `ImageBitmap:{contentType:"image/png"}`（`image/webp` 零命中），转 WebP 需改
+  dataFormat 语义，待立项裁决后再动；
+- MP3 共 6.0MB 未动（音质口径待裁决；可 128kbps 重编码约 -60%）；
+- 启动空窗期进度反馈（MOBILE.md 修复路线 #4）未动：门控计数器在 app bundle
+  闭包内无全局出口，动它需要触碰"app 层逐字节一致"红线，单独立项。

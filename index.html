@@ -195,5 +195,14 @@
     };
     run().catch(handleError);
   </script>
+  <script>
+    // v1.03: Service Worker 缓存层注册（素材 md5 命名=内容不可变 → cache-first；
+    // 壳层 stale-while-revalidate；详见 sw.js 与 docs/PORTING.md）
+    if ('serviceWorker' in navigator && location.protocol !== 'file:') {
+      addEventListener('load', function () {
+        navigator.serviceWorker.register('sw.js').catch(function () {});
+      });
+    }
+  </script>
 </body>
 </html>

@@ -30,12 +30,21 @@ python3 -m http.server 8080
 
 键盘：`A` 锁屏 / `D` 解锁 / `←→` 翻页 / `Esc` 返回 / `space` 回桌面；全部手势支持鼠标/触屏。
 
+## v1.03 加载性能版（2026-11-08）
+
+- 素材瘦身：10 张大 SVG（含 5 张壁纸）壳内 base64 照片 → WebP q90 原分辨率重嵌入，
+  assets 52.8MB → 22.34MB（-58%）；新旧渲染像素差 mean ≤0.63/255、高阈值差 0.000%；
+- Service Worker（`sw.js`）：素材 cache-first（md5 内容寻址=不可变）、壳层 SWR，
+  二次访问素材零网络；发版递增 VERSION。
+- 详见 `docs/PORTING.md` §7、`docs/MOBILE.md` §三。
+
 ## 目录结构
 
 ```
-├── index.html              # 入口（骨架与原版逐字节一致）
-├── project.json            # Scratch 工程 1:1（1,054,272B）
-├── assets/                 # 328 个素材 1:1（175 PNG + 151 SVG + 2 MP3，md5 命名）
+├── index.html              # 入口（骨架与原版逐字节一致；v1.03 尾部追加 SW 注册脚本）
+├── project.json            # Scratch 工程 1:1（1,054,272B；v1.03 同步 10 处 md5 键）
+├── assets/                 # 素材 1:1（md5 命名；v1.03 起 10 张 SVG 内嵌照片为 WebP 载荷）
+├── sw.js                   # v1.03 Service Worker 缓存层
 ├── lib/
 │   ├── turbowarp-core.js   # 运行时 core（与原版逐字节一致）
 │   ├── pixel-xxl-app.js    # 脚手架配置 + 11 扩展装载（与原版逐字节一致）
@@ -44,9 +53,12 @@ python3 -m http.server 8080
 ├── extensions-extra/       # qwq1018.js（GPU 液态玻璃 v4，原构建未集成，未启用）
 ├── _original/README.md     # 原始文件来源与全部 SHA-256 指纹
 ├── docs/
-│   ├── PORTING.md          # 移植映射表（原 HTML 哪一段 → 本仓哪个文件）+ 校验记录
-│   └── ANALYSIS.md         # 详细分析报告（移植完成后撰写）
-└── scripts/                # 本仓库自带的回归脚本
+│   ├── PORTING.md          # 移植映射表（原 HTML 哪一段 → 本仓哪个文件）+ 校验记录 + v1.03 记录
+│   ├── ANALYSIS.md         # 详细分析报告（含 §10 架构演进决策）
+│   ├── ANDROID-PORTING.md  # md3 借鉴清单与 AOSP 对照
+│   ├── MOBILE.md           # 移动端体检报告（15 分钟构成/触控链路/修复路线）
+│   └── slim-verify.json    # v1.03 瘦身保真度与 SW 实测证据
+└── scripts/                # 本仓库自带的回归与瘦身脚本
 ```
 
 ## 运行时配置（与原版一致，见 lib/pixel-xxl-app.js）
