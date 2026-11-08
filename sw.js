@@ -8,8 +8,11 @@
  * - lib/* 与 project.json：stale-while-revalidate（秒回缓存，后台刷新）；
  * - index.html：network-first（保更新），离线回退缓存；
  * - 每次发版递增 VERSION ⇒ 旧缓存整体清除，避免壳层跨版本错配。
+ * v1.06：修复跨域放行 bug——此前 fetch handler 首行对一切跨域请求 return，
+ * 使 jsDelivr 分片的 cache-first 规则永远执行不到，走 CDN 的首访零持久化；
+ * 现仅对 CDN pack 分片放行跨域限制（cache.put 静默容错），其余跨域照旧不接管。
  * 注意：GitHub Pages 无法自定义 Cache-Control（默认 max-age=600），
- * 本 SW 是弱网/二次访问体验的正式缓存方案。
+ * 本 SW 是弱网/二次访问体验的正式缓存方案（与 IndexedDB 本地素材库双保险）。
  */
 const VERSION = 'v1.06';
 const SHELL_CACHE = `pixel-xxl-shell-${VERSION}`;
@@ -46,40 +49,26 @@ self.addEventListener('fetch', (event) => {
   const req = event.request;
   if (req.method !== 'GET') return;
   const url = new URL(req.url);
-  // v1.06 修复：isPackCdn 判定必须先于跨域提前 return——原顺序（origin 检查在前）
-  // 使 CDN 分片请求永远到不了缓存分支（注释意图"whichever 命中哪个源都缓存该源"
-  // 与行为相悖；对侧沙箱 CDN 404 全走同源故未暴露，本沙箱 CDN 慢速成功即复现）。
-  // CDN 分片内容寻址不可变 ⇒ cache-first 安全（cache key=完整 URL 含域名）。
+  // v1.06 修复：jsDelivr 分片（跨域）此前被下行首行放行、永不入缓存；
+  // 现仅对 CDN pack 分片放行跨域限制，其余跨域请求照旧不接管。
   const isPackCdn = url.hostname === 'cdn.jsdelivr.net' &&
     url.pathname.includes('/assets/pack-') && url.pathname.endsWith('.bin');
   if (url.origin !== self.location.origin && !isPackCdn) return;
 
   // 1) md5 命名素材与合并包分片：内容寻址不可变，cache-first
-  //    （同源 assets/* 与 jsDelivr 镜像 pack-* 分片， whichever 命中哪个源都缓存该源）
+  //    （同源 assets/* 与 jsDelivr 镜像 pack-* 分片，whichever 命中哪个源都缓存该源）
   if (url.pathname.includes('/assets/') || isPackCdn) {
     event.respondWith(
       caches.open(ASSET_CACHE).then((cache) =>
-        cache.match(req).then((hit) => {
-          if (hit) return hit;
-          // v1.06: SW 内 CDN 分片请求硬超时兜底——部分沙箱/弱网对 CDN 域黑洞挂起，
-          // respondWith 永不 settle 即页面卡死；8s 无响应切同源（内容寻址等价，
-          // cache key 仍用原 CDN URL，下次 match 直接命中）。
-          if (isPackCdn) {
-            const localReq = new Request(
-              self.location.origin + '/assets/' + url.pathname.split('/').pop());
-            return Promise.race([
-              fetch(req),
-              new Promise((_, rej) => setTimeout(() => rej(new Error('sw cdn hard-timeout')), 8000)),
-            ]).catch(() => fetch(localReq)).then((resp) => {
-              if (resp && resp.ok) cache.put(req, resp.clone());
-              return resp;
-            });
-          }
-          return fetch(req).then((resp) => {
-            if (resp && resp.ok) cache.put(req, resp.clone());
+        cache.match(req).then((hit) =>
+          hit ||
+          fetch(req).then((resp) => {
+            if (resp && resp.ok) {
+              try { cache.put(req, resp.clone()).catch(() => {}); } catch (e) { /* 静默 */ }
+            }
             return resp;
-          });
-        })
+          })
+        )
       )
     );
     return;

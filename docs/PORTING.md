@@ -225,7 +225,7 @@ python3 scripts/extract_port.py   # 从原始 HTML 全量重建（需先放回 w
 
 待裁决项不变（§7.3）：PNG 长尾 12.7MB、MP3 6.0MB。
 
-## 十、v1.06 启动屏进度反馈完整版（撞号合流重滚 · 2026-11-08）
+## 十一、v1.07 启动屏进度反馈完整版（撞号合流重滚 · 2026-11-08）
 
 背景：修复路线 #4（docs/MOBILE.md §三）——点击绿旗后进入运行时编译/软渲染空窗
 （低端设备实测约 144 秒），屏幕全黑零反馈，用户体感「黑屏点不动」。
@@ -233,7 +233,7 @@ python3 scripts/extract_port.py   # 从原始 HTML 全量重建（需先放回 w
 app 层红线」——本轮方案**绕开红线**：不改 app bundle 内部任何逻辑，改为
 **纯追加外部观察层**，用运行时可观察信号间接推断启动阶段。
 
-### 10.1 方案（index.html 尾部追加 script，v1.03 SW 注册先例同律，骨架逐字节零改动）
+### 11.1 方案（index.html 尾部追加 script，v1.03 SW 注册先例同律，骨架逐字节零改动）
 
 - **触发**：MutationObserver 监听 `#launch` 的 `hidden` 属性——点击绿旗瞬间
   （launchScreen.hidden = true）叠加 `#boot-feedback` 全屏反馈层（z-index 9999，
@@ -250,7 +250,7 @@ app 层红线」——本轮方案**绕开红线**：不改 app bundle 内部任
 - **回归兼容**：URL 带 `?nofb=1` 不安装（节点不创建、行为与 v1.03 逐字节一致）
   ——双版像素对比回归（scripts/regression-headless.py）走此通道。
 
-### 10.2 实测证据（scripts/boot-feedback-probe.py → docs/boot-feedback-evidence.json）
+### 11.2 实测证据（scripts/boot-feedback-probe.py → docs/boot-feedback-evidence.json）
 
 - A（nofb 豁免）：installed=false、fb 节点不存在、vm 正常启动 targets=24、零 pageerror；
 - B（桌面 720×900 全链路）：点击 1.5s 内层出现（阶段「渲染首帧…」threads=14）、
@@ -260,7 +260,7 @@ app 层红线」——本轮方案**绕开红线**：不改 app bundle 内部任
 - verdict=PASS。desktop_lit=false 系 headless swiftshader 黑屏伪影
   （docs/MOBILE.md §一），真机 GPU 下像素点亮通道待真机验收。
 
-### 10.3 已知边界
+### 11.3 已知边界
 
 - headless swiftshader 下画面恒黑（伪影），点亮通道不触发 → 300s 兜底收层是
   设计内正确行为；真机 GPU 下画面点亮即收（350ms 防抖）。
@@ -284,3 +284,72 @@ app 层红线」——本轮方案**绕开红线**：不改 app bundle 内部任
 > 收层五通道 = 像素点亮 / 进度满~4s（对侧口径）/ 保守放行 / 180s 硬封顶（对侧口径，
 > 替代本方 v1.05 的 300s）/ #error 立即收层。对侧 #boot-hint 提示条被本方层超集覆盖移除
 > （二度）。版本重滚 v1.05→v1.06 防倒挂（v10.57/v10.66 先例同律）。
+=======
+
+## 十、v1.06 IndexedDB 本地素材库 + 双源竞速（2026-11-08）
+
+> 对应用户反馈：「下载完成之后，初始化又要很长时间，并且貌似没有持久化，
+> 导致每次重建都需要重载」——两个独立根因，均已修复并验证。
+
+### 11.1 根因一：CDN 前置击穿了 SW 持久化（v1.05 引入的回归）
+
+- sw.js fetch handler 首行 `if (url.origin !== location.origin) return;` 对一切跨域
+  请求放行 → §9.2 所称「jsDelivr 分片纳入 ASSET_CACHE cache-first」**永远执行不到**；
+- 走 CDN 的首访在 SW 层零持久化；二访 loader 仍先打 CDN——快则重下 22MB，
+  慢则白等 6s 首字节超时再切同源。「每次重建都需要重载」的主因。
+
+### 11.2 根因二：CDN 慢速流防不住（首字节超时的盲区）
+
+- 无头诊断实测：jsDelivr 首字节 <6s 返回（不清超时），但 body 流速极低，
+  22MB 拖到 5 分钟仍未完成，素材加载全部 pending 在 ensurePack 上；
+- 首字节超时只防「完全无响应」，防不住「慢速流」——用户「初始化又要
+  很长时间」体验的另一半来源。
+
+### 11.3 修复（lib/project-loader.js / sw.js / index.html，运行时仍逐字节不动）
+
+1. **IndexedDB 本地素材库**（分片读序：内存 → IDB → 双源竞速 → 逐文件兜底）：
+   - 分片完整下载后写入 `pixel-xxl-assets/parts`（键=内容寻址分片名，按大小校验，
+     半写/换代旧档视为未命中）；
+   - 二访 IDB 命中 ⇒ 分片 0 网络请求，且**不依赖 SW**：iOS Safari 7 天不用即清
+     Cache API、微信/WebView 内核常禁 SW，IndexedDB 在上述环境均可用；
+   - 全量就绪后请求 `navigator.storage.persist()`（防配额逐出）；旧分片换代自动清理；
+2. **双源竞速**（替换 v1.05「CDN 优先→同源」串行链）：
+   - 同源/CDN 并行，任一完成即胜出并 AbortController 中止落败源，总时间=min(两源)；
+   - SW 缓存命中的同源请求秒回直接胜出；进度取双源较大值防回跳；
+   - 代价：首访流量最多 2x22MB（弱网流量换时间）；
+3. **sw.js 跨域放行修复**：仅对 CDN pack 分片放行（cache.put 静默容错），
+   其余跨域照旧不接管；VERSION v1.06；
+4. **加载屏四态文案**（index.html #loading-note，加法）：轮询 loader 暴露的
+   `__packState()`——「首次下载中 X% / 已从本地素材库载入 / 逐文件兜底 / 解码中」，
+   为 0.75→1.0 无细分进度事件的解码段给出诚实预期。
+
+### 10.4 验证（scripts/pack-verify.py，证据 docs/pack-verify.json）
+
+- A：正常链路 + **首访后 IDB 分片计数=2** + 提示条「正在准备桌面素材 53%」自动隐藏；
+- B：二访 reload → **分片网络请求=0**、`__packSource()==='idb'`、SW 受控；
+- C：拦截全部网络源 → 360 次逐文件兜底完整；
+- E：**清 IDB**（同源页删库）+ 拦 CDN → reload 走同源网络（SW 写入）→
+  再清 IDB reload → **同源分片 transferSize=0（SW cache-first 命中）** + IDB 重新写入；
+  即 IDB 失效（iOS 配额逐出等）时 SW 兜底层独立成立；
+- 权威回归（regression-headless.py 双版三检查点）一致、0 页面错误；
+- 无头双访体感：首访 28s（localhost 基准）/ 二访 0 下载直达解码段，
+  二访文案「已从本地素材库载入素材包」。
+
+### 10.5 用户体感账（v1.06）
+
+| 场景 | 首访 | 二访（v1.05） | 二访（v1.06） |
+| --- | --- | --- | --- |
+| 分片下载 | 竞速 22MB（min 双源） | 全量重下 22MB | **0（IndexedDB）** |
+| SW 兜底 | — | 仅同源路径生效 | 含 CDN 分片（跨域 bug 已修） |
+| 加载屏反馈 | 下载 X% 真实进度 | 无 | 四态真实状态 |
+
+红线下无法消除、仅能给诚实反馈的部分：vm.loadProject 素材解码（进度条
+0.75→1.0）与点击启动后的渲染空窗（#boot-hint 真实百分比）。中期治理见
+HANDOFF 任务池 #3（GPU 液态玻璃，单独立项）。
+
+> 撞号合流注记（三度）：对侧 v1.06（f904330 IndexedDB+双源竞速）与本方 v1.06（e28beee
+> 三缺陷修复）同号交叉——双方独立发现并修复同一 sw.js isPackCdn 死代码缺陷（互证）；
+> 分片下载面取对侧竞速+IDB 版（先完成者胜，优于本方硬超时切源，hardTimer 逻辑弃用）；
+> 本方存续价值 = ①#boot-feedback 渲染段全屏层（对侧 #loading-note 管下载段，两段正交）
+> ②pack-verify 的 #boot-feedback 断言迁移与环境无关双源命中口径 ③boot-feedback-probe
+> 三通道冒烟脚本。终树重滚 v1.07。
