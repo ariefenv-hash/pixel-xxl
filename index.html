@@ -239,10 +239,18 @@
         try { st = window.__packState ? window.__packState() : null; } catch (e) {}
         if (!st) return;
         if (st.ready) {
-          clearInterval(noteTimer);
-          setNote(st.source === 'idb'
-            ? '已从本地素材库载入素材包，正在解码素材…'
-            : '素材包就绪，正在解码素材并构建桌面…');
+          // v1.07: 包就绪后展示真实解码进度（assetLoaded/assetTotal），
+          // 解码完后进入构建桌面长尾段（vm.loadProject，无细分事件）
+          var a = st.assets || null;
+          if (a && a.total > 0 && a.loaded < a.total) {
+            setNote((st.source === 'idb' ? '已从本地素材库载入素材包，' : '素材包就绪，') +
+              '解码素材 ' + Math.min(100, Math.round(a.loaded / a.total * 100)) + '%…');
+          } else {
+            clearInterval(noteTimer);
+            setNote(st.source === 'idb'
+              ? '已从本地素材库载入素材包，正在构建桌面…'
+              : '素材包就绪，正在构建桌面…');
+          }
         } else if (st.failed) {
           clearInterval(noteTimer);
           setNote('正在加载素材（逐文件模式，稍慢）…');
@@ -335,7 +343,7 @@
         if (p !== null && total !== null && +total > 0) {
           var pct = Math.max(0, Math.min(100, Math.round((+p) / (+total) * 100)));
           if (barEl) barEl.style.width = pct + '%';
-          if (textEl) textEl.textContent = '正在准备桌面素材 ' + pct + '%…（首次启动需渲染，之后更快）';
+          if (textEl) textEl.textContent = '正在渲染桌面 ' + pct + '%…（非下载；首次启动需渲染，之后更快）';
           fullTicks = pct >= 100 ? fullTicks + 1 : 0;
           if (fullTicks >= 14) { hide(); return; } // 进度满后 ~4s 退场
         }
