@@ -54,6 +54,15 @@
    pack-verify 三场景 PASS，证据 docs/boot-feedback-evidence.json + docs/pack-verify.json；
    方案细节 docs/PORTING.md §10；对侧 #boot-hint 提示条被本层超集覆盖移除（二度撞号合流）。
 
+5. ✅ **动画连贯性升级（帧率自适应匹配刷新率）**（v1.08，PORTING §12）：
+   打包 app 原生 120 tick/s 而多数手机 60Hz——换肤不可插值，约一半皮肤状态
+   从未上屏，中段合并 4~6 张/帧 ⇒ 「打开/关闭动画中间不连贯」；v1.08 壳层
+   自适应实测刷新率吸附 [60/90/120]（120Hz 屏零变化）+ 覆写夺回守卫
+   （app 初始化 setFramerate(120) 晚于 window.vm 可见，实测捕获并夺回）+
+   弱机看门狗（tick 中位 > 1.6× 帧预算一次性降半档，低端机自动回 30/60 原始节奏）；
+   逃生门 `?fps=N` / `?fps=orig`（回归基线通道）；四通道探针 PASS 零 pageerror
+   （docs/fps-probe-evidence.json）。
+
 ## 四、复现入口
 
 ```bash

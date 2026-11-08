@@ -454,5 +454,149 @@
       obs.observe(errorScreen, { attributes: true, attributeFilter: ['hidden'] });
     })();
   </script>
+  <script>
+    /* v1.08 动画连贯性升级（R131 · 「打开/关闭动画中间不连贯」修复）
+       诊断（scripts/anim-probe.py 逐帧 trace + project.json 积木链路精读 + 打包 app 实测）：
+       打开/关闭动画 = cropURL 61 张预渲染裁切皮肤逐 tick 换肤（lmsSkins_setSkin）
+       + 逐 tick 指数逼近运动，全部由 VM tick 驱动；打包 app 原生 setFramerate(120)
+       （lib/pixel-xxl-app.js 实测，ANALYSIS §2 历史文档漏记），而大多数设备屏幕为 60Hz：
+       TurboWarp 插值只平滑运动，**换肤不可插值**——120 tick/s 下每显示帧跨 2 tick，
+       约一半皮肤状态从未上屏；中段裁切增量最快（每张 5~6px）且指数速度峰值处一 tick
+       跳多张皮肤，每显示帧合并 4~6 张 ⇒ 用户感知「中间不连贯」（首尾慢/快段不明显）。
+       素材 fetch（动画窗口 0 次）、#boot-feedback（收层后定时器已清）、
+       cropURL_crop（全部开机预渲染）均已实测排除。
+       机制：缺省自适应——vm 就绪后实测 rAF 刷新率，帧率吸附到最近档 [60/90/120]
+       （实测不可用时底线 60），使每 tick 换肤都能上屏；120Hz 屏保持原生 120 零变化。
+       覆写夺回守卫：打包 app 初始化晚于 window.vm 可见且会一次性 setFramerate(120)，
+       监听 FRAMERATE_CHANGED 立即夺回（上限 5 次）；看门狗内部变更打 internal 标志不自挬。
+       ?fps=N(10~120) 显式指定、?fps=orig 完全不动（双版对比回归通道）；
+       弱机看门狗（仅缺省路径）：滚动 240 tick 中位间隔 >1.6× 帧预算时一次性降半档
+       （120→60 / 60→30，下限 30），显式指定豁免。
+       红线：core/app 逐字节零触碰；本块为尾部追加（v1.03 SW 注册 / v1.06 反馈层先例同律）。 */
+    (function () {
+      'use strict';
+      function qsFps() {
+        try {
+          var m = new URLSearchParams(location.search).get('fps');
+          if (m === null || m === '') return null;            // 缺省 → 自适应刷新率 + 看门狗
+          if (m === 'orig') return 'orig';                    // 完全不动（回归基线通道）
+          var n = Math.floor(+m);
+          if (isFinite(n) && n >= 10 && n <= 120) return n;   // 显式指定 → 尊重 + 看门狗豁免
+          return null;
+        } catch (e) { return null; }
+      }
+      var wanted = qsFps();
+      if (wanted === 'orig') {
+        console.info('[pixel-xxl] fps=orig（保持打包原始 120fps 节奏，回归基线通道）');
+        return;
+      }
+      var applied = false, measuring = false, times = [], degraded = false;
+      var target = 0, reapplyCount = 0, internal = false;
+      // 覆写夺回守卫：打包 app 初始化期会一次性 setFramerate(120)（晚于 window.vm 可见），
+      // 监听 FRAMERATE_CHANGED，检测到非本方/非看门狗变更时立即恢复目标值（上限 5 次防死循环）
+      function installGuard(vm) {
+        try {
+          if (!vm.runtime || typeof vm.runtime.on !== 'function') return;
+          vm.runtime.on('FRAMERATE_CHANGED', function (fr) {
+            if (degraded || internal) return;
+            if (fr === target) return;
+            if (reapplyCount >= 5) return;
+            reapplyCount++;
+            applyFps(vm, target);
+            console.info('[pixel-xxl] 覆写夺回：检测到外部 setFramerate(' + fr + ')，恢复目标 ' + target + '（第 ' + reapplyCount + ' 次）');
+          });
+        } catch (e) {}
+      }
+      function applyFps(vm, t) {
+        internal = true;
+        try {
+          vm.setFramerate(t);
+          if (typeof vm.setInterpolation === 'function') vm.setInterpolation(true);
+        } finally { internal = false; }
+      }
+      function armWatchdog(vm, tgt) {
+        if (measuring) return;
+        measuring = true;
+        try {
+          var rt = vm.runtime;
+          if (!rt || typeof rt._step !== 'function') return;
+          var origStep = rt._step.bind(rt);
+          var budget = 1000 / tgt * 1.6; // 允许 60% 超载余量
+          rt._step = function () {
+            var t = performance.now();
+            var r = origStep();
+            if (!degraded) {
+              times.push(t);
+              if (times.length > 241) times.shift();
+              if (times.length >= 241) {
+                var gaps = [];
+                for (var i = 1; i < times.length; i++) gaps.push(times[i] - times[i - 1]);
+                gaps.sort(function (a, b) { return a - b; });
+                var med = gaps[Math.floor(gaps.length / 2)];
+                if (med > budget) {
+                  degraded = true;
+                  var half = Math.max(30, Math.floor(tgt / 2));
+                  try {
+                    vm.setFramerate(half);
+                    console.info('[pixel-xxl] 弱机降级：tick 中位 ' + Math.round(med) + 'ms > 预算 ' + Math.round(budget) + 'ms，帧率一次性降半档 ' + tgt + '→' + half);
+                  } catch (e) {}
+                } else {
+                  times = times.slice(-121); // 达标则收缩窗口继续观察，避免误降
+                }
+              }
+            }
+            return r;
+          };
+        } catch (e) { console.warn('[pixel-xxl] watchdog arm failed:', e); }
+      }
+      // 实测显示刷新率：采 40 个 rAF 间隔取中位数，吸附到最近档 [60/90/120]，下限 60
+      function measureDisplayHz(done) {
+        var deltas = [], last = null, n = 0;
+        function tick(t) {
+          if (last !== null) { deltas.push(t - last); n++; }
+          last = t;
+          if (n < 40) { requestAnimationFrame(tick); return; }
+          deltas.sort(function (a, b) { return a - b; });
+          var med = deltas[Math.floor(deltas.length / 2)];
+          var hz = med > 0 ? 1000 / med : 60;
+          var snap = [60, 90, 120];
+          var best = 60, bd = 1e9;
+          for (var i = 0; i < snap.length; i++) {
+            var d = Math.abs(snap[i] - hz);
+            if (d < bd) { bd = d; best = snap[i]; }
+          }
+          done(Math.max(60, best));
+        }
+        try { requestAnimationFrame(tick); } catch (e) { done(60); }
+      }
+      function applyWhenReady(tries) {
+        if (applied) return;
+        var vm = window.vm;
+        if (vm && typeof vm.setFramerate === 'function' && vm.runtime) {
+          applied = true; // 防重入（自适应测量异步，只应用一次）
+          var proceed = function (tgt) {
+            target = tgt;
+            try {
+              installGuard(vm); // 先装守卫再应用：app 覆写若落在窗口内也能夺回
+              applyFps(vm, tgt);
+              console.info('[pixel-xxl] framerate=' + tgt + '（动画连贯性升级 v1.08：帧率自适应匹配刷新率，换肤逐 tick 上屏；?fps=orig 可回原始 120fps 节奏）');
+              if (!wanted) armWatchdog(vm, tgt); // 仅缺省路径启用弱机降级
+            } catch (e) { console.warn('[pixel-xxl] framerate apply failed:', e); }
+          };
+          if (wanted) { proceed(wanted); }
+          else {
+            // 后台标签页 rAF 暂停会让刷新率测量卡死：3s 超时兜底 60（双 settled 防双应用）
+            var settledHz = false;
+            var fin = function (hz) { if (!settledHz) { settledHz = true; proceed(hz); } };
+            try { measureDisplayHz(fin); setTimeout(function () { fin(60); }, 3000); }
+            catch (e) { fin(60); }
+          }
+          return;
+        }
+        if (tries > 0) setTimeout(function () { applyWhenReady(tries - 1); }, 500);
+      }
+      applyWhenReady(600); // vm 可能晚于本脚本就绪：最长轮询 5 分钟
+    })();
+  </script>
 </body>
 </html>

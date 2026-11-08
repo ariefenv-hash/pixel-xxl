@@ -84,15 +84,52 @@ python3 -m http.server 8080
 - 对侧 `#boot-hint` 提示条被本层超集覆盖移除（二度撞号合流，实录见 PORTING §10）；
 - 详见 `docs/PORTING.md` §10、`docs/MOBILE.md` §三④。
 
+## v1.08 动画连贯性升级（帧率自适应匹配刷新率 · 2026-11-08）
+
+**针对「打开/关闭动画中间不连贯」的诊断与修复**（逐帧 step trace 探针 + 积木链路精读，
+`scripts/anim-probe.py` 实测）：
+
+- 动画机制：开/关应用 = cropURL 61 张预渲染裁切皮肤逐 tick 换肤（lmsSkins_setSkin）
+  + 逐 tick 指数逼近运动，全部由 VM tick 驱动；
+- **根因**：打包 app 原生 `setFramerate(120)`（lib/pixel-xxl-app.js 实测；ANALYSIS §2
+  历史文档漏记，已补正），而多数设备屏幕为 60Hz——TurboWarp 插值只平滑运动，
+  **换肤不可插值**：120 tick/s 下每显示帧跨 2 tick，约一半皮肤状态从未上屏；
+  中段裁切增量最快（每张 5~6px）且指数速度峰值处一 tick 跳多张，每显示帧合并
+  4~6 张 ⇒ 「中间不连贯」（首段太快无感、尾段慢速悬停，故感受集中在中段）；
+- 排除项（实测）：素材 fetch（动画窗口 0 次，328 素材开机全装载）、#boot-feedback
+  （收层后定时器已清零触碰）、cropURL_crop（全部在开机预渲染脚本，运行时零实时裁切）；
+- **修复**：壳层尾部追加 v1.08 块（index.html 骨架零改动先例同律）——缺省自适应实测
+  rAF 刷新率，帧率吸附最近档 [60/90/120]（不可用时底线 60），让每 tick 换肤都能上屏；
+  120Hz 屏保持原生 120 零变化；
+- **覆写夺回守卫**：打包 app 初始化晚于 window.vm 可见且会一次性 setFramerate(120)，
+  监听 `FRAMERATE_CHANGED` 立即夺回（上限 5 次）；看门狗内部变更打 internal 标志不自挬；
+- **弱机看门狗**（仅缺省路径）：滚动 240 tick 中位间隔 > 1.6× 帧预算时一次性降半档
+  （120→60 / 60→30，下限 30），软渲染无头环境实测触发（中位 40ms > 预算 27ms）；
+- **逃生门**：`?fps=N`(10~120) 显式指定（看门狗豁免）；`?fps=orig` 完全不动
+  （= 原始 120fps 节奏，双版像素对比回归基线通道不受影响）；
+- 验证：`scripts/fps-probe.py` 四通道 PASS（A 缺省 60→弱机降级 30 / B 显式 30 尊重 /
+  C orig 通道原生 120 零触碰 / D 显式 90 + 覆写夺回 + 看门狗豁免），零 pageerror
+  （docs/fps-probe-evidence.json）+ pack-verify 五场景回归；
+- 附带：sw.js VERSION v1.06→v1.08（v1.07 合流漏滚一并补上）。
+- 详见 `docs/PORTING.md` §12。
+
+## v1.07 五度撞号终融合（2026-11-08）
+
+- 对侧 v1.06 IDB+双源竞速（f904330）× 本方 v1.06 三缺陷修复（e28beee）合流：
+  loader/sw 取对侧竞速+IDB 版，index.html 正交融合（对侧 #loading-note 下载段 +
+  本方 #boot-feedback 渲染段），pack-verify 五场景为基底 + 本方两笔并账；
+- 版本重滚 v1.06→v1.07 防倒挂（实录见 PORTING §11 与 HANDOFF）。
+
 
 ## 目录结构
 
 ```
-├── index.html              # 入口（骨架与原版逐字节一致；v1.03 尾部 SW 注册、v1.05 尾部启动反馈层完整版）
+├── index.html              # 入口（骨架与原版逐字节一致；v1.03 SW 注册 / v1.06 反馈层 /
+│                           #   v1.08 动画连贯性块尾部追加）
 ├── project.json            # Scratch 工程 1:1（1,054,272B；v1.03 同步 10 处 md5 键）
 ├── assets/                 # 素材 1:1（md5 命名；v1.03 起 10 张 SVG 内嵌照片为 WebP 载荷；
 │                           #   v1.05 起为分片包 pack-<sha8>-pN.bin，由 scripts/build-pack.py 生成）
-├── sw.js                   # Service Worker 缓存层（v1.04）
+├── sw.js                   # Service Worker 缓存层（v1.04；v1.08 VERSION 补滚）
 ├── lib/
 │   ├── turbowarp-core.js   # 运行时 core（与原版逐字节一致）
 │   ├── pixel-xxl-app.js    # 脚手架配置 + 11 扩展装载（与原版逐字节一致）
@@ -109,17 +146,18 @@ python3 -m http.server 8080
 │   ├── HANDOFF.md          # 跨轮次交接快照（head/基线/候选池/续点）
 │   ├── slim-verify.json    # v1.03 瘦身保真度与 SW 实测证据
 │   ├── pack-verify.json    # 合并包三场景验证证据
-│   └── boot-feedback-evidence.json # 启动反馈层冒烟证据（三通道 A/B/C）
+│   ├── boot-feedback-evidence.json # 启动反馈层冒烟证据（三通道 A/B/C）
+│   └── fps-probe-evidence.json     # v1.08 帧率升级四通道验证证据
 └── scripts/                # 本仓库自带的回归/瘦身/合包/冒烟脚本（regression-headless、
                             #   mobile-probe*、slim_assets、slim-verify、build-pack、pack-verify、
-                            #   boot-feedback-probe）
+                            #   boot-feedback-probe、anim-probe、fps-probe）
 ```
 
 ## 运行时配置（与原版一致，见 lib/pixel-xxl-app.js）
 
 - 舞台 324×720（9:20 手机比例），`preserve-ratio` 缩放
 - 云变量：`wss://clouddata.turbowarp.org` / `wss://clouddata.turbowarp.xyz`（项目名 `p4-@Pixel XXL.sb3`）
-- Turbo 模式关、插值开启、`editableLists=false`
+- Turbo 模式关、插值开启、`editableLists=false`、**帧率 120**（app 原生；v1.08 起缺省自适应匹配刷新率，`?fps=orig` 回原始）
 - 用户名 `player####`（随机数字）、强调色 `#ff4c4c`
 
 ## 许可

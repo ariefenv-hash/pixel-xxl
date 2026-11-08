@@ -11,10 +11,13 @@
  * v1.06：修复跨域放行 bug——此前 fetch handler 首行对一切跨域请求 return，
  * 使 jsDelivr 分片的 cache-first 规则永远执行不到，走 CDN 的首访零持久化；
  * 现仅对 CDN pack 分片放行跨域限制（cache.put 静默容错），其余跨域照旧不接管。
+ * v1.08：VERSION v1.06→v1.08（v1.07 五度撞号合流时漏滚，此处一并补上）；
+ * 动画连贯性升级在 index.html 尾部追加块（帧率自适应匹配刷新率 + 弱机看门狗），
+ * 与 SW 缓存无交互，仅借 VERSION 递增让旧壳层缓存整体换新。
  * 注意：GitHub Pages 无法自定义 Cache-Control（默认 max-age=600），
  * 本 SW 是弱网/二次访问体验的正式缓存方案（与 IndexedDB 本地素材库双保险）。
  */
-const VERSION = 'v1.06';
+const VERSION = 'v1.08';
 const SHELL_CACHE = `pixel-xxl-shell-${VERSION}`;
 const ASSET_CACHE = 'pixel-xxl-assets-1'; // 素材内容寻址不随版本失效，跨版本复用
 const SHELL = [
