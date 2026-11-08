@@ -22,7 +22,9 @@ TurboWarp Packager（packager.turbowarp.org）单文件产物，实测 681 个�
 ## 2. 运行时配置（一手实测，lib/pixel-xxl-app.js 头部）
 
 - 舞台 **324×720**（9:20 手机比例），`resizeMode="preserve-ratio"`，`editableLists=false`，`usePackagedRuntime=false`
-- **Turbo 模式关闭**、`setInterpolation(true)`（若可用）
+- **Turbo 模式关闭**、`setInterpolation(true)`（若可用）、**`setFramerate(120)`**
+  （v1.10 补正：lib/pixel-xxl-app.js 实测存在此调用，初版分析漏记；
+  120 tick/s 与 60Hz 屏的组合即 v1.08 动画连贯性升级针对的根因，见 PORTING §13）
 - 云变量 provider：`wss://clouddata.turbowarp.org` 与 `wss://clouddata.turbowarp.xyz`，项目名 `p4-@Pixel XXL.sb3`
 - 用户名 `player####`（随机 4 位数字）、强调色 `#ff4c4c`
 - 进度条分段：解码 0.1→0.75，zip 素材装载 0.75→0.98，loadProject 完成 = 1

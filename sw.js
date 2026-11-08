@@ -13,10 +13,16 @@
  * 现仅对 CDN pack 分片放行跨域限制（cache.put 静默容错），其余跨域照旧不接管。
  * v1.08：壳层更新（project-loader.js/index.html 进度条单调化+解码文案，
  *   六度撞号合流终树）；素材与分片未变，ASSET_CACHE 不动，仅递增 VERSION 使旧壳层缓存失效。
+ * v1.10：VERSION v1.08→v1.10（七度撞号重滚：本方 v1.08 动画连贯性升级 × 对侧 v1.08
+ * 进度条单调化合流树，v1.09 已被对侧 docs 占用；动画连贯性块在 index.html 尾部，
+ * 与 SW 缓存无交互，仅借 VERSION 递增让旧壳层缓存整体换新）。
+ * v1.11：VERSION v1.10→v1.11（八度撞号合流：本方 v1.10 #23 语言迁移 shell-src/shell
+ * 并入对方 v1.10 动画连贯性终树；新增文件均不入 SHELL 预缓存清单，仅借 VERSION
+ * 递增让旧壳层缓存整体换新）。
  * 注意：GitHub Pages 无法自定义 Cache-Control（默认 max-age=600），
  * 本 SW 是弱网/二次访问体验的正式缓存方案（与 IndexedDB 本地素材库双保险）。
  */
-const VERSION = 'v1.08';
+const VERSION = 'v1.11';
 const SHELL_CACHE = `pixel-xxl-shell-${VERSION}`;
 const ASSET_CACHE = 'pixel-xxl-assets-1'; // 素材内容寻址不随版本失效，跨版本复用
 const SHELL = [

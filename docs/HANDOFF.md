@@ -4,16 +4,24 @@
 
 # Pixel XXL · HANDOFF 结构化快照
 
-- **generated**: 2026-11-08 16:5x+08:00（R131 窗收窗覆写 · Job 2933110；本窗 = #23 语言迁移/新壳立项落地轮）
+- **generated**: 2026-11-08 17:12+08:00（R131 八度撞号合流覆写 · Job 2933110(#23 语言迁移) × Job 2933040(动画连贯性) 两窗并档收窗）
 - **⚠️ 本窗五度撞号实录（Job 2933040 本系列）**：同窗并行实例与本实例连续同号交叉——
   对侧连发 v1.04 资产包（36ec911）/v1.05 分片+CDN（17dbbd0）/v1.06 IDB+竞速（f904330），
   本方 v1.04 反馈层（4a7343c，tag 已推）/v1.05 合流（f7ed235+a9a1db1）/v1.06 三缺陷修复
   （e28beee，**main 未推成，本地树保命于远端分支 `backup-v106-bfb` = e28beee**）。
   版本号双方同取（v1.04×2/v1.05×2/v1.06×2），终树重滚见下窗续点。
-  **六度撞号（本窗）**：本方 v1.07 单调化（5c2d183）× 对侧 v1.07 五度融合（18197ef）——
+  **六度撞号（对侧窗）**：本方 v1.07 单调化（5c2d183）× 对侧 v1.07 五度融合（18197ef）——
   已合流重滚 v1.08；loader 单调闸/解码文案与 #boot-feedback 全屏层正交并留，零语义冲突。
-- **head**: 本窗合流提交（**v1.10 = #23 语言迁移落地：shell-src/ Vite+TS 新壳 + shell/ 产物双入口 + vendored md3 动画内核 + VMBridge 写通道**；L0 忠实态零触碰，fidelity sha256 全 PASS）
-- **上一窗 head 归档**：v1.08 = 六度撞号合流（对侧 v1.07 五度融合 18197ef × 本方 v1.07 进度条单调化 5c2d183）；backup-v106-bfb 转归档
+  **七度撞号（R131 对方窗，4a181d3 已落远端 tag v1.10）**：本方 v1.08 动画连贯性升级
+  （本地 8c22e39，443 中断未及推）× 对侧 v1.08 进度条单调化合流树（46646d0b+81762208）
+  + 对侧 v1.09 docs（4e69b826）——功能面正交（本方 index 尾部块/ANALYSIS/新探针 ×
+  对侧 loader/index 中段/docs 索引），API base_tree 合流，重滚 v1.10 防倒挂（v1.09 已被占用）。
+  **八度撞号（本窗合流）**：本方 v1.10 #23 语言迁移（d32f5e9，shell-src Vite+TS 新壳）×
+  对方 v1.10 动画连贯性（4a181d3）——同号双树，功能面完全正交（本方 shell-src/、shell/ 产物、
+  docs/SHELL.md、shell 系探针 × 对方 index 尾部 fps 块、sw.js、PORTING/MOBILE/ANALYSIS §2、
+  anim/fps 探针），仅 docs/HANDOFF 覆写相撞（docs/ANALYSIS 自动合并成功），合流重滚 **v1.11** 防倒挂。
+- **head**: **v1.11 = 八度撞号合流终树**（对方 v1.10 动画连贯性 4a181d3 × 本方 v1.10 #23 语言迁移 d32f5e9 并档；L0 忠实态零触碰 + fps 修复双双保留，fidelity sha256 全 PASS + fps-probe 四通道 PASS）
+- **上一窗 head 归档**：对方 v1.10 = 动画连贯性升级（4a181d3，tag v1.10）× 本方 v1.10 = #23 语言迁移（d32f5e9，未 tag，撞号让号并入 v1.11）；v1.08 = 六度撞号合流（46646d0b+81762208）；backup-v106-bfb 转归档
 - **本窗事故记录（#30 规则六首条外新增）**：开窗时误判 shell-src/ 为空白目录，在未盘点未跟踪遗留半成品（上一截断窗 08:01~08:11 的 motion/catalog/shell 组件）前先行写入，覆盖 package.json/package-lock/vite.config/tsconfig/index.html/bridge/runtime.ts 共 6 个文件——发现后按"旧版为主干恢复 + 新增作补充"合流，重建 3 个被覆盖文件（runtime.ts/index.html/配置），损失部分不可逆（旧 index.html/main 原始版未找回，按 style.css+qs-panel 引用面重建）；教训已入 #30 返工表
 - **基线核验**: v1.07 终树 pack-verify 五场景 PASS（A 同源竞速命中+IDB 写入+feedback 真实百分比/auto_hidden/vm=80、B 二访零请求 pack_source=idb、C 360 逐文件兜底、E SW 零网络+IDB 重写）；boot-feedback-probe 移动通道证据留下窗补跑（原注：
   auto_hidden/vm=80，B SW 双分片 transferSize=0,0，C 360 逐文件兜底）；
@@ -44,16 +52,47 @@ TurboWarp 单文件打包产物（57.4MB）→ **忠实多文件 Web 移植**（
 | v1.06 | 启动屏进度反馈完整版（全屏层 + 双数据源：真实变量「渲染的进度/渲染数」优先 + 阶段推断兜底；收层五通道；超集覆盖对侧 #boot-hint，二度撞号合流） |
 | v1.07 | 五度撞号终融合（18197ef：loader/sw 取 IDB+竞速版、index.html 正交融合 #boot-feedback+#loading-note、pack-verify 环境无关口径） |
 | v1.08 | 进度条单调化（六度撞号合流：下载段/素材段撞段修复 0.75→0.98 衔接 + 单调闸 + 「解码素材 X%」+ 反馈层「正在渲染桌面（非下载）」措辞） |
-| v1.09 | docs: HANDOFF 议题索引补 #30（读完再动手闸门·两仓同规） |
-| v1.10 | **#23 语言迁移落地**：shell-src/（Vite+TS 源码）→ shell/（产物，Pages 双入口 /shell/）；iframe 原样嵌根入口零复制；QS 磁贴 L2 POC（vendored md3 连续打断内核 + 拉出条手势 + 6 磁贴）；VMBridge 写通道（catalog 94 变量对账 + 空壳保护 + 工程事件链复刻）；vitest 10 例契约测试；shell-verify/shell-probe 探针全绿；pack-verify 五场景 PASS |
+| v1.09 | docs: HANDOFF 议题索引补 #30（读完再动手闸门·两仓同规，4e69b826） |
+| v1.10 | **双树撞号**：对方动画连贯性升级（4a181d3：帧率自适应匹配刷新率 + 覆写夺回守卫 + 弱机看门狗；「打开/关闭动画中间不连贯」根因 = app 原生 120tick/s × 60Hz 屏换肤不可插值；tag v1.10）× 本方 #23 语言迁移落地（d32f5e9：shell-src/ Vite+TS 源码 → shell/ 产物 Pages 双入口 /shell/；iframe 原样嵌根入口零复制；QS 磁贴 L2 POC（vendored md3 连续打断内核 + 拉出条手势 + 6 磁贴）；VMBridge 写通道（catalog 94 变量对账 + 空壳保护 + 工程事件链复刻）；vitest 10 例契约测试；shell 探针全绿） |
+| v1.11 | **八度撞号合流终树**（动画连贯性 × #23 语言迁移并档；sw VERSION v1.10→v1.11 防倒挂） |
+
+## 本窗交付（v1.10 动画连贯性升级 · 对方窗并档）
+
+- **诊断**（scripts/anim-probe.py 逐帧 trace + 积木链路精读）：开/关应用 = cropURL 61 张
+  预渲染裁切皮肤逐 tick 换肤（lmsSkins_setSkin）+ 逐 tick 指数逼近运动；app 原生
+  `setFramerate(120)` 而 60Hz 屏插值只平滑运动、**换肤不可插值**——约一半皮肤从未上屏，
+  中段（裁切 Δ5~6px + 速度峰值）每显示帧合并 4~6 张 ⇒ 「中间不连贯」。
+  排除项：素材 fetch（动画窗口 0 次）/ #boot-feedback（收层定时器已清）/ cropURL（全在开机预渲染）。
+- **修复**（index.html 尾部追加 v1.10 块，骨架零改动）：缺省自适应实测 rAF 刷新率吸附
+  [60/90/120]（120Hz 屏零变化）+ 覆写夺回守卫（FRAMERATE_CHANGED 监听，app 初始化
+  120 覆写实测被夺回）+ 弱机看门狗（240 tick 中位 > 1.6× 帧预算一次性降半档 120→60/60→30）
+  + 逃生门 `?fps=N` / `?fps=orig`（回归基线通道）。
+- **验证**: scripts/fps-probe.py 四通道 PASS 零 pageerror（A 缺省 60→降级 30 /
+  B 显式 30 / C orig 原生 120 零触碰 / D 显式 90+夺回+豁免；docs/fps-probe-evidence.json）；
+  pack-verify 五场景见 docs/pack-verify.json（本窗复跑）。
+- **附带**: sw.js VERSION v1.06→v1.10（七度撞号重滚）；README v1.10+v1.07 章节、
+  PORTING §12、MOBILE §三5、ANALYSIS §2 补正；诊断探针 scripts/anim-probe.py 一并入库。
+
+## 本窗交付（v1.10 #23 语言迁移 · 本方窗并档）
+
+- **交付**：shell-src/（Vite+TS 源码：src/motion/ = vendored md3 连续打断内核 + spring +
+  presets；src/bridge/ = catalog 94 变量对账 + 写通道 + 空壳保护；src/shell/ = tiles/qs-panel）
+  → shell/（构建产物）；根入口 L0 忠实态零触碰（iframe 原样嵌入零复制），fidelity sha256 全 PASS。
+- **验证**：tsc + vitest 10/10 PASS；scripts/shell-verify.py（构建完整性 + 根入口保真）与
+  scripts/shell-probe.py（Playwright 启动链路）全绿；证据 docs/shell-evidence.{json,png}；
+  pack-verify 五场景 PASS（本窗复跑）。
+- **动画接入点**：app 开/关动画接 vendored 内核时，API 形状 = shell-src/src/motion/ 出口
+  （零翻译成本）；与对方 v1.10 帧率自适应共存——壳层动画走 DOM/合成器自绘、不占 VM tick，
+  两条修复路线互不干扰。
+- **详见**：docs/SHELL.md（#23 交付正文）。
 
 ## 红线（违反 = 返工）
 
 1. **core/app 逐字节**：`lib/turbowarp-core.js`、`lib/pixel-xxl-app.js` 不许改动；
 2. **index.html 骨架**：既有字节零改动，只允许尾部追加（v1.03 SW 注册 / v1.06 反馈层先例）；
 3. **素材 md5 寻址**：改素材内容必须同步 project.json 的 md5ext 键（v1.03 先例：等长替换）；
-4. **双版对比回归**：改壳层 UI 后跑回归须带 `?nofb=1`（v1.06 反馈层豁免通道），
-   否则截图对比会被新增层污染；
+4. **双版对比回归**：改壳层 UI 后跑回归须带 `?nofb=1&fps=orig`（v1.06 反馈层豁免 +
+   v1.10 帧率豁免，否则 tick 率/新增层差异污染对比）；
 5. **待裁决项不动**：PNG 长尾 12.7MB（dataFormat 语义需改）/ MP3 6.0MB（音质口径）——
    须用户裁决后再动（PORTING.md §7.3）。
 
@@ -74,6 +113,10 @@ TurboWarp 单文件打包产物（57.4MB）→ **忠实多文件 Web 移植**（
 
 ## 工具速查
 
+- 帧率四通道验证：`python3 scripts/fps-probe.py`（8088，A 缺省 60→降级 30 / B 显式 /
+  C orig / D 显式+夺回，证据 docs/fps-probe-evidence.json）；
+- 动画逐帧诊断：`python3 scripts/anim-probe.py`（8087，逐 tick trace，需过引导页）；
+- 进度条取证：`python3 scripts/bar-trace.py`（对侧 v1.08 交付）；
 - 冒烟取证：`python3 scripts/boot-feedback-probe.py`（自起 8089 服务，三通道 A/B/C，
   证据落 docs/boot-feedback-evidence.json，软渲染全链路约 6 分钟）；
 - 双版回归：`python3 scripts/regression-headless.py`（需 8081=本仓 + 8082=原版
@@ -85,6 +128,8 @@ TurboWarp 单文件打包产物（57.4MB）→ **忠实多文件 Web 移植**（
 
 ## 已知坑
 
+- **app 的 setFramerate(120) 晚于 window.vm 可见**——任何壳层帧率控制必须装
+  FRAMERATE_CHANGED 夺回守卫，否则被静默覆盖（v1.10 四通道探针实证）；
 - headless swiftshader 下画面恒黑（qiaoqiaoMica 软渲染降级缺陷，ANALYSIS §7 /
   MOBILE.md §一）——**不是移植缺陷**，像素点亮判定在 headless 不可达，冒烟判据勿依赖它；
 - `_tickCounter` 等内部属性在打包 runtime 上不存在（minified/未暴露），运行信号用
@@ -95,21 +140,34 @@ TurboWarp 单文件打包产物（57.4MB）→ **忠实多文件 Web 移植**（
 - 并行实例：本仓曾有同窗并行提交（2026-11-08 12:03 v1.03 系并行实例推送）——
   动手前先 `git fetch`，远端是唯一真相源；认领协调面 = 本仓库 issue #1 评论。
 
-## 下窗续点（R130 · 合流已完成，剩余项轻量）
+## 下窗续点（R132）
 
 **✅ 已完成（18197ef）**：五度撞号终融合 v1.07 已推 main（REST 回读一致）；pack-verify
 五场景 PASS；tag v1.04~v1.07 全部落远端。合流裁决实录见 PORTING §11 注记与本文件上方版本里程碑。
 
-1. 补跑 boot-feedback-probe.py 三通道冒烟（A nofb 豁免 / B 桌面全链路 / C 移动仿真）——
-   v1.07 终树的反馈层证据补全（桌面断言已被 pack-verify A 等效覆盖，移动通道是唯一缺口）；
-2. 常规续点：候选任务池按 ROI 认领（⏳ 仅余启动空窗治理③）；R > 30min 加餐、
-   R < 40min 不开新重型（md3 #18 §7.5 规则精神沿用）；
-3. **#23 新壳已可用**：/shell/ 双入口在线（本窗推送后）；下窗可续：① issue #23 回帖交付凭证
-   （待 PAT——本窗旧 PAT 已失效，推送未竟时改用 backup 分支保命）；② QS 磁贴 L2 化
-   （逐项 AOSP 考证 + 设计 token 消费，依赖 #6/#7）；③ app 开/关动画接 vendored 内核
-   （动画攻坚实例的工作面，API 形状 = shell-src/src/motion/ 出口，零翻译成本）；
-   ④ shell-probe.py/shell-verify.py 纳入 #4 CI 基线；⑤ gen-bridge-catalog.py 随
-   project.json 演进重生成（catalog 对账 fail loud 已兜底）。
+0. **开窗入口已切换**：置顶议题 #2（SOP·铁律）+ #30 读完再动手闸门 + 本文件 +
+   git log --oneline -5；认领登记按 #2 §一4（认领 + 预计版本号，后到者跳号 #3）；
+1. 用户真机验收 v1.10 动画（60Hz 设备开/关动画是否顺滑；120Hz 设备应零变化）；
+2. 补跑 boot-feedback-probe.py 移动通道（R130 遗留；桌面断言已被 pack-verify A 等效覆盖）；
+3. **#23 新壳已可用**：/shell/ 双入口在线（本窗推送后）；下窗可续：
+   ① issue #23 回帖交付凭证（本窗已回帖；若 PAT 失效改 backup 分支保命）；
+   ② QS 磁贴 L2 化（逐项 AOSP 考证 + 设计 token 消费，依赖 #6/#7）；
+   ③ app 开/关动画接 vendored 内核（动画攻坚工作面，API 形状 = shell-src/src/motion/ 出口，
+   零翻译成本；与对方 v1.10 帧率自适应共存——壳层动画走 DOM/合成器不占 VM tick，互不干扰）；
+   ④ shell-probe.py/shell-verify.py 纳入 #4 CI 基线；
+   ⑤ gen-bridge-catalog.py 随 project.json 演进重生成（catalog 对账 fail loud 已兜底）；
+4. 议题池按优先级认领（设计先行 #6 冻结令优先）；R > 30min 加餐、R < 40min 不开新重型。
+
+## 版本号登记表（#3 领号制 · 与 git tags 实测同步）
+
+| 版本 | 领用方 | 内容 | tag |
+| --- | --- | --- | --- |
+| v1.00~v1.07 | 各窗实例 | 见版本里程碑 | v1.00~v1.07 已落 |
+| v1.08 | 对侧合流实例（46646d0b） | 进度条单调化合流终树 | v1.08 已落 |
+| v1.09 | 对侧实例（4e69b826） | docs 议题索引 #30 | 未 tag |
+| v1.10 | Job 2933040（R131） | 动画连贯性升级（七度撞号重滚） | v1.10 已落远端 |
+| v1.10 | Job 2933110（R131 并行窗） | #23 语言迁移（shell-src，d32f5e9） | 未 tag（撞号让号，并入 v1.11） |
+| v1.11 | 本窗合流（Job 2933110 收窗） | 八度撞号合流终树（动画 × 语言迁移并档） | v1.11 本窗落 |
 
 ## 议题索引（2026-11-08 · 新立 29 个议题 #2~#30（含 #30 读完再动手闸门），已回读核对 + #2 已置顶）
 
