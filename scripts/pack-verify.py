@@ -1,10 +1,16 @@
 #!/usr/bin/env python3
-"""v1.05 分片包 + CDN 前置验证：
-A) 正常链路（本地：CDN 上还没有新分片名 → 观察到「CDN 尝试→404→回退同源」链路）：
-   分片恰 2 个、逐文件 fetch=0、装载完整、启动屏出现、提示条出现并显示真实百分比、自动隐藏；
-B) SW 二访（同浏览器 reload）：同源分片命中缓存（transferSize=0）；
+"""v1.06 IndexedDB 本地素材库 + SW 跨域修复验证：
+A) 正常链路（本地：CDN 已有 v1.05 分片 → CDN 优先成功）：
+   分片恰 2 个、逐文件 fetch=0、装载完整、启动屏出现、提示条显示真实百分比、
+   自动隐藏、首访后 IndexedDB 分片计数=2（本地素材库写入成功）；
+B) 二访快路径（同浏览器 reload）：分片网络请求=0（IndexedDB 命中），
+   __packSource()==='idb'，SW 受控；（v1.05 的「SW transferSize=0」由 E 场景接管）
 C) 兜底：拦截两个主机的分片请求 → 回退逐文件 fetch，装载链仍完整
-   （route.abort 的 net::ERR_FAILED 属预期网络噪声；未推送前 CDN 404 属预期回退）。
+   （route.abort 的 net::ERR_FAILED 属预期网络噪声；未推送前 CDN 404 属预期回退）；
+E) SW 兜底层（IDB 失效场景，如 iOS Safari 配额逐出）：about:blank 删除 IndexedDB →
+   拦 CDN 分片 → reload#1 走同源网络（SW cache-first 写入）→ reload#2 预热 →
+   reload#3 断言同源分片 transferSize=0（SW 命中）且 IndexedDB 重新写入（计数=2）。
+   （SW 内部发起的 fetch 不经 page.route，故只在首访前拦 CDN：此时 SW 尚未控制页面）
 """
 import json
 import re
@@ -18,6 +24,33 @@ PORT = 8086
 BASE = f'http://127.0.0.1:{PORT}'
 
 LAUNCH_JS = "!document.getElementById('launch').hidden"
+
+JS_IDB_COUNT = """
+() => new Promise((resolve) => {
+  try {
+    const req = indexedDB.open('pixel-xxl-assets', 1);
+    req.onupgradeneeded = () => { try { req.result.createObjectStore('parts'); } catch (e) {} };
+    req.onsuccess = () => {
+      const db = req.result;
+      const cnt = db.transaction('parts', 'readonly').objectStore('parts').count();
+      cnt.onsuccess = () => { db.close(); resolve(cnt.result); };
+      cnt.onerror = () => { db.close(); resolve(-1); };
+    };
+    req.onerror = () => resolve(-1);
+  } catch (e) { resolve(-1); }
+})
+"""
+
+JS_IDB_DELETE = """
+() => new Promise((resolve) => {
+  const req = indexedDB.deleteDatabase('pixel-xxl-assets');
+  req.onsuccess = () => resolve(true);
+  req.onerror = () => resolve(false);
+  req.onblocked = () => resolve('blocked');
+})
+"""
+
+JS_PACK_SOURCE = "() => (typeof window.__packSource === 'function' ? window.__packSource() : null)"
 
 
 def new_page(pw):
@@ -53,6 +86,18 @@ def cdn_expected(errors):
                     or 'responded with a status of 403' in e)]
 
 
+def wait_idb_count(page, want, timeout_s=60):
+    """轮询等待 IndexedDB 分片计数达到 want（idbPutPart 为 fire-and-forget）。"""
+    deadline = time.time() + timeout_s
+    last = -1
+    while time.time() < deadline:
+        last = page.evaluate(JS_IDB_COUNT)
+        if last == want:
+            return True
+        time.sleep(0.5)
+    return False
+
+
 def main():
     server = subprocess.Popen(
         ['python3', '-m', 'http.server', str(PORT), '--bind', '127.0.0.1', '--directory', DL],
@@ -61,7 +106,7 @@ def main():
     out = {}
     try:
         with sync_playwright() as pw:
-            # ---------- A) 正常链路 + B) SW 二访（同一浏览器实例） ----------
+            # ---------- A) 正常链路 + B) 二访快路径（同一浏览器实例） ----------
             browser, page, reqs, errors, cerr, warns, resps = new_page(pw)
             page.goto(BASE + '/pixel-xxl/', wait_until='load', timeout=60000)
             page.wait_for_function(LAUNCH_JS, timeout=300000)
@@ -76,6 +121,7 @@ def main():
                 'http_ge400_non_cdn': cdn_expected(errors),
                 'errors': cdn_expected(cerr)[:6],
             }
+            out['A']['idb_written'] = wait_idb_count(page, 2, timeout_s=60)
             page.click('#launch')
             try:
                 page.wait_for_function(
@@ -97,22 +143,17 @@ def main():
             out['A']['vm_targets'] = page.evaluate(
                 "() => (window.vm && vm.runtime) ? vm.runtime.targets.length : 0")
 
-            # B) SW 二访：同页 reload，同源分片应命中缓存（transferSize=0）
+            # B) 二访快路径：同页 reload，IndexedDB 命中 ⇒ 分片网络请求=0
             reqs.clear()
             errors.clear()
             page.reload(wait_until='load', timeout=60000)
             page.wait_for_function(LAUNCH_JS, timeout=300000)
             part, cdn_part, local_part, perfile = classify(reqs)
-            entries = page.evaluate(
-                "() => performance.getEntriesByType('resource')"
-                ".filter(e => /assets\\/pack-.*-p\\d+\\.bin$/.test(e.name) && e.name.indexOf('cdn.jsdelivr.net') === -1)"
-                ".map(e => ({name: e.name.split('/').pop(), t: e.transferSize}))")
             out['B'] = {
                 'part_fetches': len(part),
-                'local_parts': len(local_part),
                 'perfile_fetches': len(perfile),
                 'sw_controlled': page.evaluate("!!navigator.serviceWorker.controller"),
-                'local_part_transfer_sizes': entries,
+                'pack_source': page.evaluate(JS_PACK_SOURCE),
                 'errors': cdn_expected(errors)[:6],
             }
             browser.close()
@@ -124,27 +165,74 @@ def main():
             page.goto(BASE + '/pixel-xxl/', wait_until='load', timeout=60000)
             page.wait_for_function(LAUNCH_JS, timeout=300000)
             part, cdn_part, local_part, perfile = classify(reqs)
+            cerr_filtered = [m for m in cerr if 'net::ERR_FAILED' not in m]
             out['C'] = {
                 'part_fetches': len(part),
                 'perfile_fetches': len(perfile),
                 'fallback_warned': any('falling back' in m for m in warns),
-                'errors': [m for m in cerr if 'net::ERR_FAILED' not in m][:6],
-                'noise_dropped': sum(1 for m in cerr if 'net::ERR_FAILED' in m),
+                'errors': cerr_filtered[:6],
+                'noise_dropped': len(cerr) - len(cerr_filtered),
             }
+            browser.close()
+
+            # ---------- E) SW 兜底层：清 IDB + 拦 CDN → 同源 SW cache-first ----------
+            browser, page, reqs, errors, cerr, warns, resps = new_page(pw)
+            page.goto(BASE + '/pixel-xxl/assets/', wait_until='load')  # 同源页：about:blank 禁 IDB
+            out['E_pre_idb_deleted'] = page.evaluate(JS_IDB_DELETE)
+            page.route(re.compile(r'cdn\.jsdelivr\.net/.*/assets/pack-[0-9a-f]{8}-p\d+\.bin$'),
+                       lambda route: route.abort())
+            page.goto(BASE + '/pixel-xxl/', wait_until='load', timeout=60000)
+            page.wait_for_function(LAUNCH_JS, timeout=300000)
+            part, cdn_part, local_part, perfile = classify(reqs)
+            out['E'] = {
+                'reload1_local_parts': len(local_part),
+                'reload1_pack_source': page.evaluate(JS_PACK_SOURCE),
+            }
+            # reload#2/#3 前均清 IDB（goto about:blank 释放连接再删库），否则 IDB 命中会
+            # 抢在 SW 之前、分片 0 请求，测不到 SW 兜底层。reload#3 断言：
+            # 同源分片 transferSize=0（SW cache-first 命中）+ IDB 重新写入（计数=2）
+            for n in (2, 3):
+                page.goto(BASE + '/pixel-xxl/assets/', wait_until='load')
+                page.evaluate(JS_IDB_DELETE)
+                reqs.clear()
+                errors.clear()
+                page.goto(BASE + '/pixel-xxl/', wait_until='load', timeout=60000)
+                page.wait_for_function(LAUNCH_JS, timeout=300000)
+                if n == 3:
+                    part, cdn_part, local_part, perfile = classify(reqs)
+                    entries = page.evaluate(
+                        "() => performance.getEntriesByType('resource')"
+                        ".filter(e => /assets\\/pack-.*-p\\d+\\.bin$/.test(e.name) && e.name.indexOf('cdn.jsdelivr.net') === -1)"
+                        ".map(e => ({name: e.name.split('/').pop(), t: e.transferSize}))")
+                    err_filtered = cdn_expected(errors)
+                    out['E'].update({
+                        'reload3_part_fetches': len(part),
+                        'local_part_transfer_sizes': entries,
+                        'idb_rewritten': page.evaluate(JS_IDB_COUNT),
+                        'errors': err_filtered[:6],
+                    })
             browser.close()
     finally:
         server.terminate()
     print(json.dumps(out, ensure_ascii=False, indent=1))
-    ok = (out['A']['part_fetches'] >= 2 and out['A']['cdn_attempts'] >= 2
-          and out['A']['local_parts'] >= 2 and out['A']['perfile_fetches'] == 0
+    ok = (out['A']['part_fetches'] >= 2
+          and out['A']['perfile_fetches'] == 0
           and not out['A']['http_ge400_non_cdn'] and not out['A']['errors']
-          and out['A']['hint_shown'] and out['A']['hint_pct_shown']
-          and out['A']['hint_auto_hidden'] and out['A']['vm_targets'] > 0
-          and out['B']['perfile_fetches'] == 0 and out['B']['sw_controlled']
-          and out['B']['local_part_transfer_sizes']
-          and all(e['t'] == 0 for e in out['B']['local_part_transfer_sizes'])
+          and out['A']['idb_written'] and out['A']['hint_shown']
+          and out['A']['hint_pct_shown'] and out['A']['hint_auto_hidden']
+          and out['A']['vm_targets'] > 0
+          and out['B']['part_fetches'] == 0 and out['B']['perfile_fetches'] == 0
+          and out['B']['sw_controlled'] and out['B']['pack_source'] == 'idb'
+          and not out['B']['errors']
           and out['C']['part_fetches'] == 0 and out['C']['perfile_fetches'] > 100
-          and out['C']['fallback_warned'] and not out['C']['errors'])
+          and out['C']['fallback_warned'] and not out['C']['errors']
+          and out['E_pre_idb_deleted'] is True
+          and out['E']['reload1_local_parts'] >= 2
+          and out['E']['reload3_part_fetches'] >= 2
+          and out['E']['local_part_transfer_sizes']
+          and all(e['t'] == 0 for e in out['E']['local_part_transfer_sizes'])
+          and out['E']['idb_rewritten'] == 2
+          and not out['E']['errors'])
     print('VERDICT:', 'PASS' if ok else 'FAIL')
 
 

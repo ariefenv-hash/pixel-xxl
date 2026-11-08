@@ -8,10 +8,13 @@
  * - lib/* 与 project.json：stale-while-revalidate（秒回缓存，后台刷新）；
  * - index.html：network-first（保更新），离线回退缓存；
  * - 每次发版递增 VERSION ⇒ 旧缓存整体清除，避免壳层跨版本错配。
+ * v1.06：修复跨域放行 bug——此前 fetch handler 首行对一切跨域请求 return，
+ * 使 jsDelivr 分片的 cache-first 规则永远执行不到，走 CDN 的首访零持久化；
+ * 现仅对 CDN pack 分片放行跨域限制（cache.put 静默容错），其余跨域照旧不接管。
  * 注意：GitHub Pages 无法自定义 Cache-Control（默认 max-age=600），
- * 本 SW 是弱网/二次访问体验的正式缓存方案。
+ * 本 SW 是弱网/二次访问体验的正式缓存方案（与 IndexedDB 本地素材库双保险）。
  */
-const VERSION = 'v1.05';
+const VERSION = 'v1.06';
 const SHELL_CACHE = `pixel-xxl-shell-${VERSION}`;
 const ASSET_CACHE = 'pixel-xxl-assets-1'; // 素材内容寻址不随版本失效，跨版本复用
 const SHELL = [
@@ -46,19 +49,23 @@ self.addEventListener('fetch', (event) => {
   const req = event.request;
   if (req.method !== 'GET') return;
   const url = new URL(req.url);
-  if (url.origin !== self.location.origin) return;
-
-  // 1) md5 命名素材与合并包分片：内容寻址不可变，cache-first
-  //    （同源 assets/* 与 jsDelivr 镜像 pack-* 分片， whichever 命中哪个源都缓存该源）
+  // v1.06 修复：jsDelivr 分片（跨域）此前被下行首行放行、永不入缓存；
+  // 现仅对 CDN pack 分片放行跨域限制，其余跨域请求照旧不接管。
   const isPackCdn = url.hostname === 'cdn.jsdelivr.net' &&
     url.pathname.includes('/assets/pack-') && url.pathname.endsWith('.bin');
+  if (url.origin !== self.location.origin && !isPackCdn) return;
+
+  // 1) md5 命名素材与合并包分片：内容寻址不可变，cache-first
+  //    （同源 assets/* 与 jsDelivr 镜像 pack-* 分片，whichever 命中哪个源都缓存该源）
   if (url.pathname.includes('/assets/') || isPackCdn) {
     event.respondWith(
       caches.open(ASSET_CACHE).then((cache) =>
         cache.match(req).then((hit) =>
           hit ||
           fetch(req).then((resp) => {
-            if (resp && resp.ok) cache.put(req, resp.clone());
+            if (resp && resp.ok) {
+              try { cache.put(req, resp.clone()).catch(() => {}); } catch (e) { /* 静默 */ }
+            }
             return resp;
           })
         )

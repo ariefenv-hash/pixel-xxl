@@ -34,8 +34,13 @@
    壳层 SWR；实测二次访问 246/246 素材零网络（transferSize=0）；
    弱网"第二次打开"从 ~10 分钟级 → 秒开。
    ➕ v1.04 合并包 / **v1.05 分片+CDN**（PORTING §8/§9）：首访素材请求 328 → 2 分片，
-   jsDelivr CDN 优先（弱网/大陆链路实测远快于 GitHub Pages 单路）+ 首字节 6s 超时
-   自动切源 + 失败逐文件兜底；SW 把 CDN 分片也纳入 cache-first。
+   jsDelivr CDN 优先 + 首字节 6s 超时自动切源 + 失败逐文件兜底。
+   ➕ **v1.06 持久化双保险 + 双源竞速**（PORTING §10）：修复 v1.05 两处——
+   SW fetch handler 跨域放行使「CDN 分片入缓存」永不生效（二访重下 22MB）；
+   CDN 慢速流（首字节快、body 极慢）6s 超时防不住。现为：分片完整后写入
+   **IndexedDB**（不依赖 SW，iOS Safari 配额逐出/微信内核禁 SW 均可靠）+
+   `navigator.storage.persist()`；二访 IDB 命中 ⇒ 分片 0 网络请求（pack-verify B/E
+   场景断言）；下载改**双源竞速**（同源/CDN 并行，先完成者胜）；加载屏四态真实文案。
 3. ⏳ **启动空窗治理**：取色/模糊降采样上限、blur 级别压缩、或 GPU 液态玻璃方案
    （extensions-extra/qwq1018 v4）替代 CPU 整张糊；进阶为 Worker 化。
 4. ✅ **启动屏进度反馈**（v1.05 落地完整壳层版）：进度数据源 = 运行时 Scratch 变量

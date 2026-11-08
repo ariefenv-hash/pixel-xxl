@@ -38,6 +38,19 @@ python3 -m http.server 8080
   二次访问素材零网络；发版递增 VERSION。
 - 详见 `docs/PORTING.md` §7、`docs/MOBILE.md` §三。
 
+## v1.06 IndexedDB 本地素材库 + 双源竞速版（2026-11-08）
+
+- **修复"每次进入都重下"**：分片完整下载后写入 IndexedDB 本地素材库
+  （不依赖 Service Worker——iOS Safari 会清 Cache API、微信内核禁 SW，均可靠），
+  并请求 `navigator.storage.persist()` 防配额逐出；二次访问分片 0 网络请求；
+- **修复 CDN 慢速流**：v1.05 的"CDN 优先+6s 首字节超时"防不住"首字节快、body 极慢"
+  的 CDN 劣化链路；改为同源/CDN **双源竞速**（先完成者胜，落败源中止），
+  SW 缓存命中的同源请求秒回胜出；
+- **sw.js 跨域修复**：v1.05 的 jsDelivr 分片缓存规则被跨域放行短路、从未生效（bug）；
+- **加载屏四态真实文案**：首次下载 X% / 已从本地素材库载入 / 逐文件兜底 / 解码中；
+- 验证：pack-verify 五场景 PASS（含清 IDB 后 SW 兜底命中）+ 双版权威回归一致。
+- 详见 `docs/PORTING.md` §10。
+
 ## v1.05 分片包 + CDN 前置版（2026-11-08）
 
 - 分片：合并包拆为 2 片（≤16MB，适配 jsDelivr 20MB 上限），**首访素材请求 328 → 2**；
