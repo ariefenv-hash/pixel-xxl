@@ -33,15 +33,18 @@
 2. ✅ **Service Worker**（v1.03 已落地，sw.js）：素材 md5 内容寻址 → cache-first；
    壳层 SWR；实测二次访问 246/246 素材零网络（transferSize=0）；
    弱网"第二次打开"从 ~10 分钟级 → 秒开。
+   ➕ v1.04 追加**资产合并包**（assets/pack-<sha8>.bin，PORTING §8）：首访素材请求
+   328 → 1（22.34MB 单请求流式下载，进度直驱进度条；包失败自动回退逐文件），
+   弱网"第一次打开"的每请求排队/握手延迟大头消除。
 3. ⏳ **启动空窗治理**：取色/模糊降采样上限、blur 级别压缩、或 GPU 液态玻璃方案
    （extensions-extra/qwq1018 v4）替代 CPU 整张糊；进阶为 Worker 化。
-4. ✅ **启动屏进度反馈**（v1.04 已落地，index.html 尾部追加观察层，
+4. ✅ **启动屏进度反馈**（v1.05 已落地，完整版超集；对侧 v1.04 #boot-hint 轻量提示条已被本层覆盖合并），index.html 尾部追加观察层，
    scripts/boot-feedback-probe.py）：不改 app bundle 内部（门控计数器红线不触碰），
    纯追加外部观察层——点击绿旗瞬间叠加反馈层（标题/阶段文案/已启动秒数/进度条/
    动画点），watchdog 轮询外部信号推断阶段（vm → targets → runtime.threads），
    画面点亮（canvas 像素采样）自动收层 + 300s 兜底；>45s 显示低性能设备提示。
    实测三通道 PASS（nofb 豁免/桌面全链路/移动仿真），证据 docs/boot-feedback-evidence.json；
-   方案细节 docs/PORTING.md §8。真机 GPU 下像素点亮通道待真机验收。
+   方案细节 docs/PORTING.md §9。真机 GPU 下像素点亮通道待真机验收。
 
 ## 四、复现入口
 

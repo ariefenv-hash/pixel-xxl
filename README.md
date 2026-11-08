@@ -38,29 +38,43 @@ python3 -m http.server 8080
   二次访问素材零网络；发版递增 VERSION。
 - 详见 `docs/PORTING.md` §7、`docs/MOBILE.md` §三。
 
-## v1.04 启动屏进度反馈版（2026-11-08）
+## v1.04 资产合并包版（2026-11-08）
+
+- 合并包：328 个素材拼接为单个内容寻址包 `assets/pack-2a59a28a.bin`（22.34MB），
+  **首访素材请求 328 → 1**，弱网下每请求排队/握手的延迟大头消除；
+- 加载层：模块初始化即并行下载包，流式读取、进度直驱进度条；
+  包清单命中切片交付（零拷贝），包不可用/失败自动回退逐文件 fetch（v1.00 语义）；
+- 壳层：新增 `#boot-hint` 启动空窗提示条（不拦截点击，画布亮帧或 20s 封顶隐藏）；
+- 验证：pack-verify 三场景全绿（docs/pack-verify.json）+ 权威回归双版三检查点一致。
+- 详见 `docs/PORTING.md` §8。素材变更后重跑 `python3 scripts/build-pack.py` 再生包。
+
+## v1.05 启动屏进度反馈版（撞号合流重滚 · 2026-11-08）
 
 - 消除"黑屏点不动"：点击绿旗后的编译/软渲染空窗（低端设备实测约 144s）叠加
   启动反馈层（阶段文案 + 已启动秒数 + 进度条 + 低性能设备提示），画面点亮自动收层；
 - 纯追加观察层：core/app 逐字节红线不动、app bundle 内部门控计数器不触碰；
 - 回归兼容：`?nofb=1` 不安装（双版像素对比回归通道，行为与 v1.03 一致）；
-- 详见 `docs/PORTING.md` §8、`docs/MOBILE.md` §三④。
+- 详见 `docs/PORTING.md` §9、`docs/MOBILE.md` §三④。
 
 ## 交接入口
 
 跨轮次/跨会话交接快照见 **`docs/HANDOFF.md`**（head/基线/候选任务池/续点）。
+- 对侧 v1.04 #boot-hint 轻量提示条已被本层超集覆盖合并（对账实录见 PORTING §9 注记）。
+
 
 ## 目录结构
 
 ```
-├── index.html              # 入口（骨架与原版逐字节一致；v1.03 尾部 SW 注册 / v1.04 尾部启动反馈层）
+├── index.html              # 入口（骨架与原版逐字节一致；v1.03 尾部 SW 注册、v1.05 尾部启动反馈层完整版）
 ├── project.json            # Scratch 工程 1:1（1,054,272B；v1.03 同步 10 处 md5 键）
-├── assets/                 # 素材 1:1（md5 命名；v1.03 起 10 张 SVG 内嵌照片为 WebP 载荷）
-├── sw.js                   # v1.03 Service Worker 缓存层（VERSION 随发版递增）
+├── assets/                 # 素材 1:1（md5 命名；v1.03 起 10 张 SVG 内嵌照片为 WebP 载荷；
+│                           #   v1.04 起含合并包 pack-<sha8>.bin，由 scripts/build-pack.py 生成）
+├── sw.js                   # Service Worker 缓存层（v1.04）
 ├── lib/
 │   ├── turbowarp-core.js   # 运行时 core（与原版逐字节一致）
 │   ├── pixel-xxl-app.js    # 脚手架配置 + 11 扩展装载（与原版逐字节一致）
-│   └── project-loader.js   # 真实文件加载层（唯一语义重写层，替换 base85+zip）
+│   └── project-loader.js   # 真实文件加载层（唯一语义重写层：v1.00 fetch 真实文件 →
+│                           #   v1.04 追加合并包切片+逐文件兜底，进度直驱进度条）
 ├── extensions/             # 11 个扩展解码后的真实源码副本（5 自写 + 6 官方）+ manifest.json
 ├── extensions-extra/       # qwq1018.js（GPU 液态玻璃 v4，原构建未集成，未启用）
 ├── _original/README.md     # 原始文件来源与全部 SHA-256 指纹
@@ -70,9 +84,12 @@ python3 -m http.server 8080
 │   ├── ANDROID-PORTING.md  # md3 借鉴清单与 AOSP 对照
 │   ├── MOBILE.md           # 移动端体检报告（15 分钟构成/触控链路/修复路线）
 │   ├── HANDOFF.md          # 跨轮次交接快照（head/基线/候选池/续点）
-│   ├── boot-feedback-evidence.json # v1.04 启动反馈层冒烟证据
-│   └── slim-verify.json    # v1.03 瘦身保真度与 SW 实测证据
-└── scripts/                # 本仓库自带的回归与瘦身脚本
+│   ├── slim-verify.json    # v1.03 瘦身保真度与 SW 实测证据
+│   ├── pack-verify.json    # 合并包三场景验证证据
+│   └── boot-feedback-evidence.json # 启动反馈层冒烟证据（三通道 A/B/C）
+└── scripts/                # 本仓库自带的回归/瘦身/合包/冒烟脚本（regression-headless、
+                            #   mobile-probe*、slim_assets、slim-verify、build-pack、pack-verify、
+                            #   boot-feedback-probe）
 ```
 
 ## 运行时配置（与原版一致，见 lib/pixel-xxl-app.js）

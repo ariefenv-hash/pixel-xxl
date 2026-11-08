@@ -122,7 +122,58 @@ python3 scripts/extract_port.py   # 从原始 HTML 全量重建（需先放回 w
 - 启动空窗期进度反馈（MOBILE.md 修复路线 #4）未动：门控计数器在 app bundle
   闭包内无全局出口，动它需要触碰"app 层逐字节一致"红线，单独立项。
 
-## 八、v1.04 启动屏进度反馈版（2026-11-08）
+## 八、v1.04 资产合并包层（2026-11-08）
+
+背景：v1.03 后首访字节数减半，但 328 个素材仍逐个 fetch——弱网/高延迟链路下
+每请求的排队与握手是「好设备差设备都慢」的另一半元凶。本轮把请求维度也打掉：
+**首访素材请求 328 → 1**。运行时 core/app 仍逐字节不动。
+
+### 8.1 合并包（scripts/build-pack.py → assets/pack-2a59a28a.bin）
+
+- 328 个素材按文件名排序拼接为单个 22,339,222B 内容寻址包，
+  包名 `pack-<sha256[:8]>.bin`（内容变 ⇒ 名变 ⇒ SW 视为不可变，cache-first 不串档）；
+- 清单（文件名 → [offset,size]）内嵌于 `lib/project-loader.js` 的
+  BEGIN/END PACK 自动生成区（≈14KB，省一次索引请求）；
+- 素材内容变更后重跑 `python3 scripts/build-pack.py` 即可再生包并同步标记区
+  （旧包自动删除）。
+
+### 8.2 加载层（lib/project-loader.js，唯一语义重写层的追加演进）
+
+- 模块初始化即启动包下载（与 project.json fetch 并行，吃满带宽）；
+- 流式读取，下载进度直驱 HTML 进度条 0.1→0.75 段（v1.03 前素材逐个计数驱动的
+  同段语义保持，长包下载期间进度条不再停滞）；
+- `storage.addHelper.load`：包清单命中 → `Uint8Array(buffer, offset, size)` 切片交付
+  （与逐文件版同为视图、零拷贝）；包不可用/下载失败/未登记文件名 →
+  回退逐文件 fetch（v1.00 语义原样保留，且逐文件路径仍经 SW 缓存）。
+
+### 8.3 壳层启动空窗提示（index.html，加法式修改）
+
+- 点击启动后画布存在壁纸取色/云母/预渲染主线程空窗（黑屏、输入被吞，
+  见 MOBILE.md §二）；壳层新增 `#boot-hint` 提示条（pointer-events:none 不拦截点击），
+  画布出现亮帧即隐藏；WebGL 无 preserveDrawingBuffer（twgl 创建，antialias:false），
+  采样不可靠时 20s 封顶隐藏。
+
+### 8.4 验证（scripts/pack-verify.py，证据 docs/pack-verify.json）
+
+- A 正常链路：pack 恰 1 次请求、逐文件 fetch=0、0 HTTP≥400、0 报错、启动屏出现、
+  提示条出现且自动隐藏、vm targets=35；
+- B SW 二访（同浏览器 reload）：pack transferSize=0（零网络）；
+- C 兜底：拦截 pack 请求 → 回退 360 次逐文件 fetch，装载链完整（仅预期网络噪声）；
+- 权威回归（scripts/regression-headless.py，双版三检查点）：移植版与原版单文件
+  运行时状态演化一致（targets 35→86、渲染的进度→671、开机引导页 0→1、
+  0 页面错误；swiftshader 伪影告警两版同在，非移植引入）。
+
+### 8.5 首访请求账（对「好设备差设备都一样慢」的量化回答）
+
+| 阶段 | 素材字节数 | 素材请求数 | 说明 |
+| --- | --- | --- | --- |
+| v1.02 及以前 | 52.8MB | 328 | 字节+请求双高 |
+| v1.03 | 22.34MB | 328 | 字节减半，请求仍高 |
+| v1.04 | 22.34MB | **1**（包） | 弱网延迟大头（每请求排队/握手）消除 |
+
+剩余待裁决项不变（§7.3）：PNG 长尾 12.7MB、MP3 6.0MB。
+
+## 九、v1.05 启动屏进度反馈版（撞号合流重滚 · 2026-11-08）（2026-11-08）
 
 背景：修复路线 #4（docs/MOBILE.md §三）——点击绿旗后进入运行时编译/软渲染空窗
 （低端设备实测约 144 秒），屏幕全黑零反馈，用户体感「黑屏点不动」。
@@ -130,7 +181,7 @@ python3 scripts/extract_port.py   # 从原始 HTML 全量重建（需先放回 w
 app 层红线」——本轮方案**绕开红线**：不改 app bundle 内部任何逻辑，改为
 **纯追加外部观察层**，用运行时可观察信号间接推断启动阶段。
 
-### 8.1 方案（index.html 尾部追加 script，v1.03 SW 注册先例同律，骨架逐字节零改动）
+### 9.1 方案（index.html 尾部追加 script，v1.03 SW 注册先例同律，骨架逐字节零改动）
 
 - **触发**：MutationObserver 监听 `#launch` 的 `hidden` 属性——点击绿旗瞬间
   （launchScreen.hidden = true）叠加 `#boot-feedback` 全屏反馈层（z-index 9999，
@@ -147,7 +198,7 @@ app 层红线」——本轮方案**绕开红线**：不改 app bundle 内部任
 - **回归兼容**：URL 带 `?nofb=1` 不安装（节点不创建、行为与 v1.03 逐字节一致）
   ——双版像素对比回归（scripts/regression-headless.py）走此通道。
 
-### 8.2 实测证据（scripts/boot-feedback-probe.py → docs/boot-feedback-evidence.json）
+### 9.2 实测证据（scripts/boot-feedback-probe.py → docs/boot-feedback-evidence.json）
 
 - A（nofb 豁免）：installed=false、fb 节点不存在、vm 正常启动 targets=24、零 pageerror；
 - B（桌面 720×900 全链路）：点击 1.5s 内层出现（阶段「渲染首帧…」threads=14）、
@@ -157,9 +208,17 @@ app 层红线」——本轮方案**绕开红线**：不改 app bundle 内部任
 - verdict=PASS。desktop_lit=false 系 headless swiftshader 黑屏伪影
   （docs/MOBILE.md §一），真机 GPU 下像素点亮通道待真机验收。
 
-### 8.3 已知边界
+### 9.3 已知边界
 
 - headless swiftshader 下画面恒黑（伪影），点亮通道不触发 → 300s 兜底收层是
   设计内正确行为；真机 GPU 下画面点亮即收（350ms 防抖）。
 - `_tickCounter` 属性在打包 runtime 上不存在（实测恒 undefined），运行信号采用
   `runtime.threads.length`（scratch-vm 稳定 API）。
+
+> 撞号合流注记：本段原随本实例 v1.04（4a7343c）提交，与对侧 Job（同窗并行实例）同取
+> v1.04 号（其 §8 资产合并包层在先已推送 36ec911）；双方实现面零语义交集（对侧动
+> assets/pack/loader/build-pack/pack-verify 面五件，本方动 index.html 反馈层/冒烟脚本/证据/HANDOFF），
+> 唯一语义重叠 = MOBILE 修复路线④：对侧 #boot-hint 轻量提示条（20s 封顶）已被本方
+> #boot-feedback 完整层（阶段文案+秒数+进度条+像素点亮收层+四通道收层）超集覆盖，
+> 合并终树保留本方层、移除对侧 hint 段，版本重滚 v1.04→v1.05 防倒挂（v10.57/v10.66 先例同律）。
+
