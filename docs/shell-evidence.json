@@ -1,0 +1,41 @@
+{
+  "time": "2026-11-08T08:44:23+0000",
+  "port": 8791,
+  "checks": {
+    "fidelity": {
+      "verdict": "PASS",
+      "files": {
+        "index.html": {
+          "worktree": "d2187bbb95579c1b",
+          "head": "d2187bbb95579c1b",
+          "match": true
+        },
+        "sw.js": {
+          "worktree": "6beea2c3f438f785",
+          "head": "6beea2c3f438f785",
+          "match": true
+        },
+        "project.json": {
+          "worktree": "ce5d8400cb42b1c8",
+          "head": "ce5d8400cb42b1c8",
+          "match": true
+        },
+        "lib/turbowarp-core.js": {
+          "worktree": "b5aed7bcb364843c",
+          "head": "b5aed7bcb364843c",
+          "match": true
+        },
+        "lib/pixel-xxl-app.js": {
+          "worktree": "d581cdb4673ec42a",
+          "head": "d581cdb4673ec42a",
+          "match": true
+        },
+        "lib/project-loader.js": {
+          "worktree": "ef9b0ba7815d1af3",
+          "head": "ef9b0ba7815d1af3",
+          "match": true
+        }
+      }
+    }
+  }
+}

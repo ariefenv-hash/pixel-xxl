@@ -4,7 +4,7 @@
 
 # Pixel XXL · HANDOFF 结构化快照
 
-- **generated**: 2026-11-08 14:2x+08:00（R129 窗收窗覆写 · Job 2933040 第 2 定时消息系列）
+- **generated**: 2026-11-08 16:5x+08:00（R131 窗收窗覆写 · Job 2933110；本窗 = #23 语言迁移/新壳立项落地轮）
 - **⚠️ 本窗五度撞号实录（Job 2933040 本系列）**：同窗并行实例与本实例连续同号交叉——
   对侧连发 v1.04 资产包（36ec911）/v1.05 分片+CDN（17dbbd0）/v1.06 IDB+竞速（f904330），
   本方 v1.04 反馈层（4a7343c，tag 已推）/v1.05 合流（f7ed235+a9a1db1）/v1.06 三缺陷修复
@@ -12,7 +12,9 @@
   版本号双方同取（v1.04×2/v1.05×2/v1.06×2），终树重滚见下窗续点。
   **六度撞号（本窗）**：本方 v1.07 单调化（5c2d183）× 对侧 v1.07 五度融合（18197ef）——
   已合流重滚 v1.08；loader 单调闸/解码文案与 #boot-feedback 全屏层正交并留，零语义冲突。
-- **head**: 本窗合流提交（**v1.08 = 六度撞号合流：对侧 v1.07 五度融合树 18197ef × 本方 v1.07 进度条单调化 5c2d183**，版本重滚 v1.08 防倒挂；backup-v106-bfb 转归档）
+- **head**: 本窗合流提交（**v1.10 = #23 语言迁移落地：shell-src/ Vite+TS 新壳 + shell/ 产物双入口 + vendored md3 动画内核 + VMBridge 写通道**；L0 忠实态零触碰，fidelity sha256 全 PASS）
+- **上一窗 head 归档**：v1.08 = 六度撞号合流（对侧 v1.07 五度融合 18197ef × 本方 v1.07 进度条单调化 5c2d183）；backup-v106-bfb 转归档
+- **本窗事故记录（#30 规则六首条外新增）**：开窗时误判 shell-src/ 为空白目录，在未盘点未跟踪遗留半成品（上一截断窗 08:01~08:11 的 motion/catalog/shell 组件）前先行写入，覆盖 package.json/package-lock/vite.config/tsconfig/index.html/bridge/runtime.ts 共 6 个文件——发现后按"旧版为主干恢复 + 新增作补充"合流，重建 3 个被覆盖文件（runtime.ts/index.html/配置），损失部分不可逆（旧 index.html/main 原始版未找回，按 style.css+qs-panel 引用面重建）；教训已入 #30 返工表
 - **基线核验**: v1.07 终树 pack-verify 五场景 PASS（A 同源竞速命中+IDB 写入+feedback 真实百分比/auto_hidden/vm=80、B 二访零请求 pack_source=idb、C 360 逐文件兜底、E SW 零网络+IDB 重写）；boot-feedback-probe 移动通道证据留下窗补跑（原注：
   auto_hidden/vm=80，B SW 双分片 transferSize=0,0，C 360 逐文件兜底）；
   boot-feedback-probe 因 CDN 波动窗口超时未补跑，桌面全链路断言已被 pack-verify A 等效覆盖）
@@ -42,6 +44,8 @@ TurboWarp 单文件打包产物（57.4MB）→ **忠实多文件 Web 移植**（
 | v1.06 | 启动屏进度反馈完整版（全屏层 + 双数据源：真实变量「渲染的进度/渲染数」优先 + 阶段推断兜底；收层五通道；超集覆盖对侧 #boot-hint，二度撞号合流） |
 | v1.07 | 五度撞号终融合（18197ef：loader/sw 取 IDB+竞速版、index.html 正交融合 #boot-feedback+#loading-note、pack-verify 环境无关口径） |
 | v1.08 | 进度条单调化（六度撞号合流：下载段/素材段撞段修复 0.75→0.98 衔接 + 单调闸 + 「解码素材 X%」+ 反馈层「正在渲染桌面（非下载）」措辞） |
+| v1.09 | docs: HANDOFF 议题索引补 #30（读完再动手闸门·两仓同规） |
+| v1.10 | **#23 语言迁移落地**：shell-src/（Vite+TS 源码）→ shell/（产物，Pages 双入口 /shell/）；iframe 原样嵌根入口零复制；QS 磁贴 L2 POC（vendored md3 连续打断内核 + 拉出条手势 + 6 磁贴）；VMBridge 写通道（catalog 94 变量对账 + 空壳保护 + 工程事件链复刻）；vitest 10 例契约测试；shell-verify/shell-probe 探针全绿；pack-verify 五场景 PASS |
 
 ## 红线（违反 = 返工）
 
@@ -99,9 +103,15 @@ TurboWarp 单文件打包产物（57.4MB）→ **忠实多文件 Web 移植**（
 1. 补跑 boot-feedback-probe.py 三通道冒烟（A nofb 豁免 / B 桌面全链路 / C 移动仿真）——
    v1.07 终树的反馈层证据补全（桌面断言已被 pack-verify A 等效覆盖，移动通道是唯一缺口）；
 2. 常规续点：候选任务池按 ROI 认领（⏳ 仅余启动空窗治理③）；R > 30min 加餐、
-   R < 40min 不开新重型（md3 #18 §7.5 规则精神沿用）。
+   R < 40min 不开新重型（md3 #18 §7.5 规则精神沿用）；
+3. **#23 新壳已可用**：/shell/ 双入口在线（本窗推送后）；下窗可续：① issue #23 回帖交付凭证
+   （待 PAT——本窗旧 PAT 已失效，推送未竟时改用 backup 分支保命）；② QS 磁贴 L2 化
+   （逐项 AOSP 考证 + 设计 token 消费，依赖 #6/#7）；③ app 开/关动画接 vendored 内核
+   （动画攻坚实例的工作面，API 形状 = shell-src/src/motion/ 出口，零翻译成本）；
+   ④ shell-probe.py/shell-verify.py 纳入 #4 CI 基线；⑤ gen-bridge-catalog.py 随
+   project.json 演进重生成（catalog 对账 fail loud 已兜底）。
 
-## 议题索引（2026-11-08 · 新立 28 个议题 #2~#29，已回读核对 + #2 已置顶）
+## 议题索引（2026-11-08 · 新立 29 个议题 #2~#30（含 #30 读完再动手闸门），已回读核对 + #2 已置顶）
 
 > 用户方针：**先一锤定音把设计弄好（设计先行），再贯彻全方位代码移植**；
 > md3 内容只借"已考证的值 + 纪律 + 语料索引"，不搬繁重与方向性决策。
@@ -109,7 +119,7 @@ TurboWarp 单文件打包产物（57.4MB）→ **忠实多文件 Web 移植**（
 
 | 区段 | 议题 |
 | --- | --- |
-| 交接/治理 | #2 上下文交接专项（SOP·铁律·置顶）· #3 撞号治理（领号制）· #4 CI 基线 · #5 Pages 一致性 |
+| 交接/治理 | #2 上下文交接专项（SOP·铁律·置顶）· #3 撞号治理（领号制）· #4 CI 基线 · #5 Pages 一致性 · #30 读完再动手闸门 |
 | 设计先行 | #6 设计冻结令（DESIGN-SPEC v1.0）· #7 token 清单与出处 · #8 设计对照稿评审 · #9 亮暗/tone 口径 |
 | 语料 | #10 md3 AOSP 语料按需引入（防膨胀） |
 | 真移植 | #11 总纲 L0~L3 · #12 Monet · #13 桌面栅格 · #14 All Apps · #15 Recents · #16 返回手势 · #17 锁屏 · #18 QS 磁贴 · #19 时钟 · #20 开机动画 · #21 云母模糊 |

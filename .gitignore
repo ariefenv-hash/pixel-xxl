@@ -1,3 +1,4 @@
 __pycache__/
 *.pyc
 .DS_Store
+shell-src/node_modules/

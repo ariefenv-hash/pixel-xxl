@@ -1,0 +1,203 @@
+/*
+ * style.css — 新壳样式（#23 立项 v0.1）
+ *
+ * Token 纪律：全部颜色/圆角/时长经 CSS 自定义属性出——设计冻结令（#6/#7）落地后
+ * 直接把 md3 考证 token 表映射到这些变量上，组件层零改写。
+ * 当前值 = 深色基线占位（rgba 白系 + Material 深色 surface 语义），非最终设计稿。
+ */
+:root {
+  /* 表面/内容（占位：待 #7 token 表映射） */
+  --px-surface: #101014;
+  --px-surface-container: rgba(28, 28, 34, 0.92);
+  --px-on-surface: rgba(255, 255, 255, 0.92);
+  --px-on-surface-variant: rgba(255, 255, 255, 0.62);
+  --px-primary: #a8c8ff;
+  --px-on-primary: #062e5c;
+  --px-outline: rgba(255, 255, 255, 0.14);
+
+  /* 形状/动效（时长与 vendored IIO 内核参数对应：in 320 / out 260） */
+  --px-radius-lg: 28px;
+  --px-radius-md: 18px;
+  --px-ease-emphasized: cubic-bezier(0.2, 0, 0, 1);
+}
+
+* {
+  box-sizing: border-box;
+}
+
+html,
+body {
+  margin: 0;
+  padding: 0;
+  width: 100%;
+  height: 100%;
+  background: #000;
+  overflow: hidden;
+  font-family: 'Noto Sans SC', system-ui, sans-serif;
+  color: var(--px-on-surface);
+}
+
+/* ---------- 运行时层（根入口 iframe 原样铺满） ---------- */
+#runtime {
+  position: fixed;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  border: 0;
+  background: #000;
+}
+
+/* ---------- 壳层根：不拦截事件（事件面只在可交互子元素上） ---------- */
+#qs-root {
+  position: fixed;
+  inset: 0;
+  pointer-events: none;
+  z-index: 40;
+}
+
+/* ---------- 拉出条（常驻顶部 28px） ---------- */
+.qs-grab-strip {
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  height: 28px;
+  pointer-events: auto;
+  cursor: grab;
+  touch-action: none;
+  display: flex;
+  align-items: flex-start;
+  justify-content: center;
+}
+.qs-handle {
+  margin-top: 8px;
+  width: 44px;
+  height: 4px;
+  border-radius: 2px;
+  background: rgba(255, 255, 255, 0.4);
+  transition: opacity 0.2s linear;
+}
+
+/* ---------- 控制中心面板 ---------- */
+.qs-panel {
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  margin: 0 auto;
+  max-width: 480px;
+  padding: 18px 18px 20px;
+  border-radius: 0 0 var(--px-radius-lg) var(--px-radius-lg);
+  background: var(--px-surface-container);
+  backdrop-filter: blur(18px);
+  -webkit-backdrop-filter: blur(18px);
+  border: 1px solid var(--px-outline);
+  border-top: 0;
+  box-shadow: 0 12px 40px rgba(0, 0, 0, 0.5);
+  pointer-events: auto;
+  will-change: transform;
+}
+.qs-header {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  margin: 2px 4px 14px;
+}
+.qs-header > span:first-child {
+  font-size: 15px;
+  font-weight: 500;
+  letter-spacing: 0.5px;
+}
+.qs-source {
+  font-size: 10px;
+  color: var(--px-on-surface-variant);
+}
+
+.qs-grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 10px;
+}
+
+/* ---------- 磁贴 ---------- */
+.qs-tile {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 14px;
+  min-height: 52px;
+  border-radius: var(--px-radius-md);
+  border: 1px solid var(--px-outline);
+  background: rgba(255, 255, 255, 0.05);
+  color: var(--px-on-surface);
+  font: inherit;
+  font-size: 13px;
+  text-align: left;
+  cursor: pointer;
+  transition: background 0.15s var(--px-ease-emphasized), transform 0.15s var(--px-ease-emphasized);
+}
+.qs-tile:active {
+  transform: scale(0.97);
+  background: rgba(255, 255, 255, 0.1);
+}
+.qs-tile:disabled {
+  cursor: default;
+  opacity: 0.85;
+}
+.qs-tile-dot {
+  flex: none;
+  width: 10px;
+  height: 10px;
+  border-radius: 50%;
+  background: var(--px-primary);
+  opacity: 0.9;
+}
+.qs-tile[data-tile-id='clock'] .qs-tile-dot {
+  background: transparent;
+  border: 2px solid var(--px-primary);
+}
+.qs-tile-text {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.qs-tile-flash {
+  background: rgba(168, 200, 255, 0.22);
+}
+
+/* ---------- 桥接状态胶囊 ---------- */
+#bridge-status {
+  position: fixed;
+  top: 34px;
+  right: 10px;
+  z-index: 41;
+  max-width: 70vw;
+  padding: 4px 10px;
+  border-radius: 999px;
+  font-size: 10px;
+  line-height: 1.5;
+  color: var(--px-on-surface-variant);
+  background: rgba(0, 0, 0, 0.55);
+  border: 1px solid var(--px-outline);
+  pointer-events: none;
+  user-select: none;
+  -webkit-user-select: none;
+}
+#bridge-status[data-level='ok'] {
+  color: rgba(168, 214, 138, 0.9);
+}
+#bridge-status[data-level='err'] {
+  color: rgba(255, 180, 171, 0.95);
+}
+
+/* ---------- 动作反馈行（r20261108：独立于磁贴文本，4s 淡出） ---------- */
+.qs-feedback {
+  margin-top: 10px;
+  font-size: 11px;
+  line-height: 1.5;
+  color: var(--px-primary);
+  background: rgba(168, 200, 255, 0.12);
+  border-radius: 8px;
+  padding: 6px 10px;
+}
+.qs-feedback[hidden] { display: none !important; }

@@ -105,7 +105,7 @@ TurboWarp Packager（packager.turbowarp.org）单文件产物，实测 681 个�
 - 无头回归：`python3 scripts/regression-headless.py`（需 8081/8082 双静态服务）
 - 指纹与映射：`docs/PORTING.md`、`_original/README.md`
 
-## 10. 架构演进决策（2026-11-08，v1.03 时点）
+## 10. 架构演进决策（2026-11-08，v1.03 时点；**2026-11-08 晚注记：中期路线已由用户裁决立项，见 §10.1**）
 
 **结论：不做 Vite+React+TS 整体重写；工程化收益用"加载层"路线兑现（v1.03 已落地一半）。**
 
@@ -131,3 +131,17 @@ TurboWarp Packager（packager.turbowarp.org）单文件产物，实测 681 个�
 
 Vite 的剩余价值何时兑现：dev server / 压缩 / 打包 / PWA 插件。其中 PWA 与"内容指纹"
 已被 sw.js + md5 文件名覆盖，只剩开发体验收益——优先级低，不值得为此打破基线。
+
+### 10.1 后续裁决注记（2026-11-08 晚 · 用户方向变更）
+
+用户指示「先做项目迁移，md3 的连续打断与并行动画逻辑直接复用」——中期路线正式立项
+（议题 #23），本节「不做 Vite+TS」结论**就新壳路线而言已被取代**；但 §10 的红线依据
+（core/app 逐字节、像素差 0% 回归基线）依然全部有效，并被新壳架构继承：
+
+- **不做整体重写**的判断未变——变的是形态：新壳以 **iframe 原样嵌根入口** 实现
+  （运行时启动序列零复制，根入口 100% 保真），而非把运行时搬进框架重写；
+- Vite+TS 落地为 `shell-src/`（源码）→ `shell/`（产物，Pages 双入口 `/shell/`），
+  根目录保持零构建忠实态；
+- 首个 L2 载体 = 控制中心/QS 磁贴 POC（vendored md3 连续打断内核 +
+  VMBridge 写通道复刻工程事件链），架构与边界见 `docs/SHELL.md`；
+- 验证：`scripts/shell-verify.py`（新壳三场景）+ pack-verify 五场景（L0 零破坏）。
