@@ -132,18 +132,35 @@ def main():
                 out['A']['feedback_shown'] = True
             except Exception:
                 out['A']['feedback_shown'] = False
-            # ~30s 后检查百分比（渲染的进度/渲染数 变量驱动）
-            time.sleep(30)
-            out['A']['feedback_text'] = page.evaluate(
-                "(function(){var fb=document.getElementById('boot-feedback');"
-                "return fb&&fb.children[1]?fb.children[1].textContent:null})()")
-            out['A']['feedback_pct_shown'] = bool(re.search(r'\d+%', out['A']['feedback_text'] or ''))
-            try:
-                page.wait_for_function(
-                    "document.getElementById('boot-feedback').hidden", timeout=240000)
-                out['A']['feedback_auto_hidden'] = True
-            except Exception:
-                out['A']['feedback_auto_hidden'] = False
+            # 百分比轮询采样（R135 修复：CI runner 快启动 <30s，单次 sleep(30) 采样
+            # 会错过百分比阶段——run 42510593772 实证 feedback_text="画面已就绪"、
+            # pct_shown=false，本地慢机无此竞态。自条子可见起每 0.5s 采样一次，
+            # 直到收层或 240s 截止；任一可见样本命中 \d+% 即 PASS——保留
+            # 「反假百分比」断言本意（#4 口径：提示条显示真实百分比）。
+            pct_text = None
+            last_text = None
+            auto_hidden = False
+            samples = 0
+            deadline = time.time() + 240
+            while time.time() < deadline:
+                txt = page.evaluate(
+                    "(function(){var fb=document.getElementById('boot-feedback');"
+                    "return fb&&!fb.hidden&&fb.children[1]?fb.children[1].textContent:null})()")
+                if txt is not None:
+                    samples += 1
+                    last_text = txt
+                    if pct_text is None and re.search(r'\d+%', txt):
+                        pct_text = txt
+                if page.evaluate(
+                        "() => {var fb=document.getElementById('boot-feedback');"
+                        "return !!fb && fb.hidden;}"):
+                    auto_hidden = True
+                    break
+                time.sleep(0.5)
+            out['A']['feedback_text'] = pct_text if pct_text is not None else last_text
+            out['A']['feedback_pct_shown'] = pct_text is not None
+            out['A']['feedback_auto_hidden'] = auto_hidden
+            out['A']['feedback_samples'] = samples
             out['A']['vm_targets'] = page.evaluate(
                 "() => (window.vm && vm.runtime) ? vm.runtime.targets.length : 0")
 

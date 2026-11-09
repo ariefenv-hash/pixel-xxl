@@ -4,7 +4,7 @@
 
 # Pixel XXL · HANDOFF 结构化快照
 
-- **generated**: 2026-11-09 02:00+08:00（R134 窗收窗覆写 · Job 2933110 · 本窗 = 设计冻结复核审计 + 锚点定谳；R133 = SPEC v1.0-draft + CI 双闸）
+- **generated**: 2026-11-09 14:00+08:00（R135 窗收窗覆写 · Job 2933110 · 本窗 = #4 CI 双红修复（快环境竞态：pack-verify 百分比轮询 + boot-probe hint 条件断言）；R134 = 设计冻结复核审计 + 锚点定谳）
 - **⚠️ 本窗五度撞号实录（Job 2933040 本系列）**：同窗并行实例与本实例连续同号交叉——
   对侧连发 v1.04 资产包（36ec911）/v1.05 分片+CDN（17dbbd0）/v1.06 IDB+竞速（f904330），
   本方 v1.04 反馈层（4a7343c，tag 已推）/v1.05 合流（f7ed235+a9a1db1）/v1.06 三缺陷修复
@@ -20,7 +20,7 @@
   对方 v1.10 动画连贯性（4a181d3）——同号双树，功能面完全正交（本方 shell-src/、shell/ 产物、
   docs/SHELL.md、shell 系探针 × 对方 index 尾部 fps 块、sw.js、PORTING/MOBILE/ANALYSIS §2、
   anim/fps 探针），仅 docs/HANDOFF 覆写相撞（docs/ANALYSIS 自动合并成功），合流重滚 **v1.11** 防倒挂。
-- **head**: **v1.14 = DESIGN-SPEC 复核冻结 v1.0（76/76 审计 PASS）+ 锚点定谳 + 锚点治理议题**（docs/DESIGN-SPEC-AUDIT.md + docs/design-spec-audit.json；SPEC 标题/状态行固化 v1.0，附注一按审计结论更新；#2 设计冻结登记）——上一版 v1.13 = 设计规范 v1.0-draft + CI 双闸；再上 v1.12 = #4 CI 基线；再上 v1.11 = 八度撞号合流终树（对方动画 4a181d3 × 本方语言迁移 d32f5e9 并档；L0 忠实态零触碰 + fps 修复双双保留）
+- **head**: **v1.15 = #4 CI 双红修复（快环境竞态：pack-verify 百分比轮询采样 + boot-probe hint 条件断言）+ CI 触发面观测入坑（workflow_dispatch = 全量四 job 手动验证通道）**——上一版 v1.14 = DESIGN-SPEC 复核冻结 v1.0（76/76 审计 PASS）+ 锚点定谳 + 锚点治理议题（docs/DESIGN-SPEC-AUDIT.md + docs/design-spec-audit.json；#2 设计冻结登记）；再上 v1.13 = 设计规范 v1.0-draft + CI 双闸；再上 v1.12 = #4 CI 基线；再上 v1.11 = 八度撞号合流终树（对方动画 4a181d3 × 本方语言迁移 d32f5e9 并档；L0 忠实态零触碰 + fps 修复双双保留）
 - **上一窗 head 归档**：对方 v1.10 = 动画连贯性升级（4a181d3，tag v1.10）× 本方 v1.10 = #23 语言迁移（d32f5e9，未 tag，撞号让号并入 v1.11）；v1.08 = 六度撞号合流（46646d0b+81762208）；backup-v106-bfb 转归档
 - **本窗事故记录（#30 规则六首条外新增）**：开窗时误判 shell-src/ 为空白目录，在未盘点未跟踪遗留半成品（上一截断窗 08:01~08:11 的 motion/catalog/shell 组件）前先行写入，覆盖 package.json/package-lock/vite.config/tsconfig/index.html/bridge/runtime.ts 共 6 个文件——发现后按"旧版为主干恢复 + 新增作补充"合流，重建 3 个被覆盖文件（runtime.ts/index.html/配置），损失部分不可逆（旧 index.html/main 原始版未找回，按 style.css+qs-panel 引用面重建）；教训已入 #30 返工表
 - **基线核验**: v1.07 终树 pack-verify 五场景 PASS（A 同源竞速命中+IDB 写入+feedback 真实百分比/auto_hidden/vm=80、B 二访零请求 pack_source=idb、C 360 逐文件兜底、E SW 零网络+IDB 重写）；boot-feedback-probe 移动通道证据留下窗补跑（原注：
@@ -135,6 +135,37 @@ TurboWarp 单文件打包产物（57.4MB）→ **忠实多文件 Web 移植**（
   口径：评审通过后在交接议题登记「设计冻结」）。
   → **R134 已复核冻结，见下节。**
 
+## 本窗交付（v1.15 #4 CI 双红修复 · R135）
+
+- **诊断（CI 日志 + artifact 实证，非推测）**：v1.14 起双红——① push 面 pack-verify
+  （run 42510593772）：五场景仅 `A.feedback_pct_shown=false`（sleep(30) 单次采样时
+  feedback_text 已变「画面已就绪」；runner 快启动 <30s 收层，本地慢机无此竞态；其余
+  A/B/C/E 全 PASS：vm_targets=80、CDN 分片 2/2、C 360 兕底、E transferSize 0,0+IDB 重写 2）；
+  ② schedule 面 boot-probe（run 42543903303，09:08+08 延迟触发）：仅 B 通道 `any(hint)`
+  断言失败——应用侧 hint 阈值 = sec>45（index.html showHint），32.0s 收层的快启动无
+  触发窗口。**同族根因：慢环境时序写死进断言，快环境必红；本地绿 = 本地慢。**
+- **修复（全 scripts 面，零运行时字节）**：pack-verify.py 百分比单次采样 → 轮询采样
+  （每 0.5s 至收层/240s 截止，任一可见样本命中 \d+% 即 PASS，保留「反假百分比」本意，
+  新增 feedback_samples 证据字段）；boot-feedback-probe.py hint 改条件断言
+  （收层 ≤45s 快启动豁免 hint_expected=False；>45s 慢启动 hint 必须出现——不编造
+  不恒真，新增 hint_expected/hint_seen 字段）。
+- **CI 触发面观测（新已知坑素材）**：regression push 触发在 v1.12/v1.13 两次推送未触发
+  （run 列表实测 0），v1.14 起恢复；schedule 21:30Z 到期点漏跑、于 01:08Z 延迟补跑
+  （GitHub 高负载丢弃/延迟为文档化行为）——**操作规：每窗推送后核验 run 已触发；
+  未触发或需全量验证（含 boot-probe）一律 workflow_dispatch**（四 job 门 =
+  `!='schedule'` ∪ schedule/dispatch，dispatch 即全量验证通道）。
+- **推送前测试（铁律三）**：py_compile 双脚本过；check-inline-js 4/4；本地 pack-verify
+  五场景复跑 **VERDICT: PASS**（轮询版 pct_shown=true / 87 采样 / B idb 零请求 /
+  C 360 兜底 / E transferSize 0,0+IDB 重写 2）；本地 boot-feedback-probe **verdict PASS**
+  （52.1s 慢启动 >45s → hint_expected=True 且 hint_seen=True@47.1s——hint 功能在位路径
+  实测；快启动豁免分支由 runner 32s 实测覆盖，两分支均有实证）；docs/boot-feedback-evidence.json
+  随窗更新；CI 绿灯确证走 workflow_dispatch 全量复跑，结果回帖 #3/#2 打点。
+- **零运行时声明**：本窗 diff = scripts/pack-verify.py + scripts/boot-feedback-probe.py
+  + docs/boot-feedback-evidence.json（探针证据更新）+ 本文件；sw VERSION 保持 v1.11；
+  L0 红线零触碰（core/app/index.html/project.json/素材零 diff）。
+- **撞号协调**：v1.15 已于 #3 领号（14:06+08，id 6733486416）+ #1 开窗同步；领号前
+  4 小时空窗增量实查零新提交零新领号；沙箱故障 22:00+08 起七窗，本窗恢复补跑积压。
+
 ## 本窗交付（v1.14 设计冻结复核 · 本方 R134）
 
 - **审计主交付**：DESIGN-SPEC v1.0-draft 复核审计——**76/76 程序化断言全 PASS**
@@ -189,8 +220,10 @@ TurboWarp 单文件打包产物（57.4MB）→ **忠实多文件 Web 移植**（
 
 ## 工具速查
 
-- CI 基线（#4，v1.12）：push 自动跑 static-gates + pack-verify，每日 05:30+08 自动跑
-  boot-probe 三通道（Actions → regression workflow，证据在 run artifact）；红灯自动回帖 #2；
+- CI 基线（#4，v1.12 初建 · R135 修复双红）：push 自动跑 static-gates + pack-verify +
+  shell-gates，schedule/dispatch 跑 boot-probe；**workflow_dispatch = 全量四 job 手动验证
+  通道**（push/schedule 触发不稳时用它，R135 观测：v1.12/v1.13 push 未触发、schedule
+  漏跑后延迟补跑）；证据在 run artifact；红灯自动回帖 #2；
 - 帧率四通道验证：`python3 scripts/fps-probe.py`（8088，A 缺省 60→降级 30 / B 显式 /
   C orig / D 显式+夺回，证据 docs/fps-probe-evidence.json）；
 - 动画逐帧诊断：`python3 scripts/anim-probe.py`（8087，逐 tick trace，需过引导页）；
@@ -226,26 +259,39 @@ TurboWarp 单文件打包产物（57.4MB）→ **忠实多文件 Web 移植**（
   实证 + Read 工具括号保真）。核对括号内容用 Read 工具或 base64 传输；字节级断言
   用 python count（R133 实测：误判 CI branches 为缺陷，白耗 ~15 分钟后经字节偏移
   1152 处 `main]` 证实为 `[main]` 完好）。
+- **探针/闸脚本断言禁止写死慢环境时序**（R135 双红实证）：CI runner 快启动（CDN 分片
+  数秒 + 渲染 32s 收层）使 sleep(30) 单次采样错过百分比阶段、hint（应用侧 >45s 阈值）
+  无触发窗口——时序相关断言一律轮询采样或按触发条件豁免（环境自适应）；
+  本地绿 ≠ runner 绿，CI 结论以 runner 日志/artifact 为准；
+- **免认证 WebFetch 摘要有漏报风险**（R135 实测）：issues 列表摘要漏报 #2 新评论与
+  schedule run——事实性断言（增量核查/状态判定）用认证 API + python 解析。
 
-## 下窗续点（R135）
+## 下窗续点（R136）
 
 0. **开窗入口已切换**：置顶议题 #2（SOP·铁律）+ #30 读完再动手闸门 + 本文件 +
    git log --oneline -5；认领登记按 #2 §一4（认领 + 预计版本号，后到者跳号 #3）；
-1. **② QS 磁贴 L2 化（设计冻结已解锁，R135 首选）**：#18 对照稿三栏表 →
-   首批磁贴清单，消费 SPEC v1.0 token（引用制生效）；语料：motion.shade.* +
+1. **② QS 磁贴 L2 化（设计冻结已解锁，R136 首选；R135 已完成引用面备料）**：#18 对照稿
+   三栏表 → 首批磁贴清单（Wi-Fi/蓝牙/手电筒/自动旋转/亮暗切换/飞行模式，开关态可切换 +
+   按压反馈），消费 SPEC v1.0 token（引用制生效）：面板 alpha 用 motion.shade.*
+  （scrim [0→0.5] / content [0.3→1.0] / f′=f×1.2−0.2+cos 曲线）、Header 过渡用
+   motion.qs.fade-*（帧 14/58、displacement 0.1066）、tile-bounce 走 spring
+   MIN_VISIBLE_CHANGE 族（1 / 1÷10 / 1÷256 / 1÷500）；语料：motion.shade.* +
    motion.qs.fade-* + systemui-docs/quickaffordance.md；落点 = shell-src 新壳
-   （qs-panel/tiles POC 升级），写通道只复用工程既有事件链（VMBridge catalog 对账）；
+   （qs-panel.ts 现有 320/260ms/28px/420ms 等 8 处魔数 token 化或登记 self:/measured: +
+   tiles.ts 六磁贴 POC 升级），写通道只复用工程既有事件链（VMBridge catalog 对账）；
+   **新磁贴不新增 project.json 变量（L0），引擎联动仅限既有变量**；QS 网格 px 属
+   附注二留空项随动工实拉；
 2. **③ app 开/关动画接 vendored 内核**：**对侧 2933040 动画工作面，继续避开**——
    除非对侧 #1 明示转交；API 形状 = shell-src/src/motion/ 出口；
 3. **锚点治理议题跟踪**：android-17.0.0_r1 可达性恢复时（镜像补全/用户侧 sources
    jar），按 SPEC 附注一纪律逐项回核 aosp: 值，有差异即修订 SPEC 并披露；
 4. **SPEC 附注二留空项补考**：SpringForce 劲度/阻尼（sources jar）· Launcher3
    栅格 px（#13 对照稿）· QS 磁贴网格尺寸（#18 对照稿）——各自随议题动工实拉；
-5. 用户真机验收 v1.10 动画（60Hz 设备开/关动画是否顺滑；120Hz 设备应零变化）+
-   补跑 boot-feedback-probe.py 移动通道（R130 遗留，桌面断言已被 pack-verify A 等效覆盖）；
-6. **#4 CI 收尾**：regression-headless 入 CI（actions/cache 预热 57MB 原版 + 8081/8082
-   双服务）；首周观察 schedule boot-probe 与 shell-gates job 在 runner 上的时长
-   漂移是否稳定绿灯；
+5. 用户真机验收 v1.10 动画（60Hz 设备开/关动画是否顺滑；120Hz 设备应零变化）；
+   boot-feedback-probe 移动通道已入 CI 并修复（R135），真机复核仍以用户侧为准；
+6. **#4 CI 收尾**：R135 dispatch 全量绿灯确证后，持续观察 schedule boot-probe 与
+   shell-gates 时长漂移；regression-headless 入 CI 仍缓行（actions/cache 预热 57MB 原版
+   + 8081/8082 双服务，外部大文件依赖脆）；
 7. **#31 方针持续执行**：测试发现的问题即修即录；无议题时自行批量立议题
    （填充内容类优先级最低）。
 
@@ -262,6 +308,7 @@ TurboWarp 单文件打包产物（57.4MB）→ **忠实多文件 Web 移植**（
 | v1.12 | Job 2933110（R132） | #4 CI 基线（regression.yml 三 job + check-inline-js 物化 + 已知坑补记） | 未 tag（docs/CI 面，零运行时；v1.09 先例同律） |
 | v1.13 | Job 2933110（R133） | 设计规范 v1.0-draft（DESIGN-SPEC.md 69 token）+ CI 双闸（shell-gates job + catalog 对账闸） | 未 tag（docs/CI 面，零运行时；v1.09/v1.12 先例同律） |
 | v1.14 | Job 2933110（R134） | 设计冻结复核（76/76 审计 PASS + SPEC 固化 v1.0 + #2 冻结登记）+ 锚点定谳（android-17.0.0_r1 不可达）+ 锚点治理议题 | 未 tag（docs 面，零运行时；v1.09/v1.12/v1.13 先例同律） |
+| v1.15 | Job 2933110（R135） | #4 CI 双红修复（pack-verify 百分比轮询采样 + boot-probe hint 条件断言，快环境竞态同族根因）+ CI 触发面观测入坑（dispatch 全量通道） | 未 tag（scripts/CI 面，零运行时；v1.09/v1.12/v1.13/v1.14 先例同律） |
 
 ## 议题索引（2026-11-08 · 新立 29 个议题 #2~#30（含 #30 读完再动手闸门），已回读核对 + #2 已置顶）
 
@@ -271,7 +318,7 @@ TurboWarp 单文件打包产物（57.4MB）→ **忠实多文件 Web 移植**（
 
 | 区段 | 议题 |
 | --- | --- |
-| 交接/治理 | #2 上下文交接专项（SOP·铁律·置顶）· #3 撞号治理（领号制）· #4 CI 基线 · #5 Pages 一致性 · #30 读完再动手闸门 |
+| 交接/治理 | #2 上下文交接专项（SOP·铁律·置顶）· #3 撞号治理（领号制）· #4 CI 基线 · #5 Pages 一致性 · #30 读完再动手闸门 · #31 自主迭代方针 · #32 AOSP 源锚点治理 |
 | 设计先行 | #6 设计冻结令（DESIGN-SPEC v1.0）· #7 token 清单与出处 · #8 设计对照稿评审 · #9 亮暗/tone 口径 |
 | 语料 | #10 md3 AOSP 语料按需引入（防膨胀） |
 | 真移植 | #11 总纲 L0~L3 · #12 Monet · #13 桌面栅格 · #14 All Apps · #15 Recents · #16 返回手势 · #17 锁屏 · #18 QS 磁贴 · #19 时钟 · #20 开机动画 · #21 云母模糊 |

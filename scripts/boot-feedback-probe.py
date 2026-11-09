@@ -170,11 +170,22 @@ def main():
     finally:
         server.terminate()
 
+    # hint 条件断言（R135 修复：应用侧 hint 阈值 = sec>45（index.html showHint），
+    # run 42543903303 实证 runner 快启动 32.0s 收层，hint 无触发窗口——单次启动
+    # ≤45s 时 hint 断言豁免（hint_expected=False）；>45s 慢启动则 hint 必须出现
+    # （功能在位验证，不编造 PASS 也不恒真放宽）。hint 一旦点亮持续至收层，
+    # 5s 轮询 timeline 必能采到；收层采样不清 style，边界安全。
+    _b = evidence.get('B_desktop', {})
+    _hint_expected = (_b.get('fb_hidden_at_s') or 0) > 45
+    _hint_seen = any(r.get('hint') for r in _b.get('timeline') or [])
+    _b['hint_expected'] = _hint_expected
+    _b['hint_seen'] = _hint_seen
+
     ok = (evidence['A_nofb'].get('installed') is False
           and evidence['A_nofb'].get('fb_present') is False
           and evidence['B_desktop'].get('fb_appeared') is True
           and evidence['B_desktop'].get('fb_hidden_at_s') is not None
-          and any(r.get('hint') for r in evidence['B_desktop'].get('timeline') or [])
+          and (not _hint_expected or _hint_seen)
           and not evidence['B_desktop'].get('pageerrors')
           and evidence['C_mobile'].get('fb_appeared') is True
           and not evidence['C_mobile'].get('pageerrors'))

@@ -7,18 +7,24 @@
     "pageerrors": []
   },
   "B_desktop": {
-    "launch_ready_s": 58.8,
+    "launch_ready_s": 28.5,
     "fb_appeared": true,
-    "fb_hidden_at_s": 302.7,
+    "fb_hidden_at_s": 52.1,
     "desktop_lit": false,
     "desktop_lit_note": "headless swiftshader 黑屏伪影下恒 False（docs/MOBILE.md §一），真机 GPU 依赖像素点亮通道",
     "phases_seen": [
-      "渲染首帧…"
+      "正在渲染桌面 100%…（非下载；首次启动需渲染，之后更快）",
+      "正在渲染桌面 15%…（非下载；首次启动需渲染，之后更快）",
+      "正在渲染桌面 41%…（非下载；首次启动需渲染，之后更快）",
+      "正在渲染桌面 60%…（非下载；首次启动需渲染，之后更快）",
+      "正在渲染桌面 84%…（非下载；首次启动需渲染，之后更快）",
+      "渲染首帧…",
+      "画面已就绪"
     ],
-    "total_s": 318.7,
+    "total_s": 67.2,
     "timeline": [
       {
-        "t": 6.8,
+        "t": 6.7,
         "phase": "渲染首帧…",
         "elapsed": "已启动 6 秒",
         "fbHidden": false,
@@ -28,7 +34,7 @@
         "hint": false
       },
       {
-        "t": 11.8,
+        "t": 11.7,
         "phase": "渲染首帧…",
         "elapsed": "已启动 11 秒",
         "fbHidden": false,
@@ -38,7 +44,7 @@
         "hint": false
       },
       {
-        "t": 16.9,
+        "t": 16.7,
         "phase": "渲染首帧…",
         "elapsed": "已启动 16 秒",
         "fbHidden": false,
@@ -48,19 +54,19 @@
         "hint": false
       },
       {
-        "t": 22.0,
+        "t": 21.7,
         "phase": "渲染首帧…",
         "elapsed": "已启动 21 秒",
         "fbHidden": false,
         "vm": true,
-        "targets": 35,
-        "threads": 34,
+        "targets": 24,
+        "threads": 14,
         "hint": false
       },
       {
-        "t": 27.3,
-        "phase": "渲染首帧…",
-        "elapsed": "已启动 27 秒",
+        "t": 26.8,
+        "phase": "正在渲染桌面 15%…（非下载；首次启动需渲染，之后更快）",
+        "elapsed": "已启动 26 秒",
         "fbHidden": false,
         "vm": true,
         "targets": 35,
@@ -68,9 +74,9 @@
         "hint": false
       },
       {
-        "t": 32.4,
-        "phase": "渲染首帧…",
-        "elapsed": "已启动 32 秒",
+        "t": 31.9,
+        "phase": "正在渲染桌面 41%…（非下载；首次启动需渲染，之后更快）",
+        "elapsed": "已启动 31 秒",
         "fbHidden": false,
         "vm": true,
         "targets": 35,
@@ -78,9 +84,9 @@
         "hint": false
       },
       {
-        "t": 37.5,
-        "phase": "渲染首帧…",
-        "elapsed": "已启动 37 秒",
+        "t": 37.0,
+        "phase": "正在渲染桌面 60%…（非下载；首次启动需渲染，之后更快）",
+        "elapsed": "已启动 36 秒",
         "fbHidden": false,
         "vm": true,
         "targets": 35,
@@ -88,8 +94,8 @@
         "hint": false
       },
       {
-        "t": 42.6,
-        "phase": "渲染首帧…",
+        "t": 42.0,
+        "phase": "正在渲染桌面 84%…（非下载；首次启动需渲染，之后更快）",
         "elapsed": "已启动 42 秒",
         "fbHidden": false,
         "vm": true,
@@ -98,509 +104,39 @@
         "hint": false
       },
       {
-        "t": 48.0,
-        "phase": "渲染首帧…",
+        "t": 47.1,
+        "phase": "正在渲染桌面 100%…（非下载；首次启动需渲染，之后更快）",
         "elapsed": "已启动 47 秒",
         "fbHidden": false,
         "vm": true,
         "targets": 35,
-        "threads": 34,
+        "threads": 23,
         "hint": true
       },
       {
-        "t": 53.3,
-        "phase": "渲染首帧…",
-        "elapsed": "已启动 53 秒",
-        "fbHidden": false,
-        "vm": true,
-        "targets": 35,
-        "threads": 34,
-        "hint": true
-      },
-      {
-        "t": 58.6,
-        "phase": "渲染首帧…",
-        "elapsed": "已启动 58 秒",
-        "fbHidden": false,
-        "vm": true,
-        "targets": 35,
-        "threads": 34,
-        "hint": true
-      },
-      {
-        "t": 64.0,
-        "phase": "渲染首帧…",
-        "elapsed": "已启动 1 分 3 秒",
-        "fbHidden": false,
-        "vm": true,
-        "targets": 35,
-        "threads": 34,
-        "hint": true
-      },
-      {
-        "t": 69.2,
-        "phase": "渲染首帧…",
-        "elapsed": "已启动 1 分 9 秒",
-        "fbHidden": false,
-        "vm": true,
-        "targets": 35,
-        "threads": 34,
-        "hint": true
-      },
-      {
-        "t": 74.5,
-        "phase": "渲染首帧…",
-        "elapsed": "已启动 1 分 14 秒",
-        "fbHidden": false,
-        "vm": true,
-        "targets": 35,
-        "threads": 34,
-        "hint": true
-      },
-      {
-        "t": 79.7,
-        "phase": "渲染首帧…",
-        "elapsed": "已启动 1 分 19 秒",
-        "fbHidden": false,
-        "vm": true,
-        "targets": 35,
-        "threads": 34,
-        "hint": true
-      },
-      {
-        "t": 84.8,
-        "phase": "渲染首帧…",
-        "elapsed": "已启动 1 分 24 秒",
-        "fbHidden": false,
-        "vm": true,
-        "targets": 35,
-        "threads": 25,
-        "hint": true
-      },
-      {
-        "t": 90.3,
-        "phase": "渲染首帧…",
-        "elapsed": "已启动 1 分 29 秒",
-        "fbHidden": false,
-        "vm": true,
-        "targets": 80,
-        "threads": 102,
-        "hint": true
-      },
-      {
-        "t": 95.4,
-        "phase": "渲染首帧…",
-        "elapsed": "已启动 1 分 35 秒",
-        "fbHidden": false,
-        "vm": true,
-        "targets": 80,
-        "threads": 68,
-        "hint": true
-      },
-      {
-        "t": 100.4,
-        "phase": "渲染首帧…",
-        "elapsed": "已启动 1 分 40 秒",
-        "fbHidden": false,
+        "t": 52.1,
+        "phase": "画面已就绪",
+        "elapsed": "已启动 50 秒",
+        "fbHidden": true,
         "vm": true,
         "targets": 80,
         "threads": 67,
         "hint": true
       },
       {
-        "t": 105.5,
-        "phase": "渲染首帧…",
-        "elapsed": "已启动 1 分 45 秒",
-        "fbHidden": false,
+        "t": 57.1,
+        "phase": "画面已就绪",
+        "elapsed": "已启动 50 秒",
+        "fbHidden": true,
         "vm": true,
-        "targets": 80,
-        "threads": 67,
+        "targets": 83,
+        "threads": 70,
         "hint": true
       },
       {
-        "t": 110.6,
-        "phase": "渲染首帧…",
-        "elapsed": "已启动 1 分 50 秒",
-        "fbHidden": false,
-        "vm": true,
-        "targets": 80,
-        "threads": 67,
-        "hint": true
-      },
-      {
-        "t": 115.6,
-        "phase": "渲染首帧…",
-        "elapsed": "已启动 1 分 55 秒",
-        "fbHidden": false,
-        "vm": true,
-        "targets": 80,
-        "threads": 67,
-        "hint": true
-      },
-      {
-        "t": 120.7,
-        "phase": "渲染首帧…",
-        "elapsed": "已启动 2 分 0 秒",
-        "fbHidden": false,
-        "vm": true,
-        "targets": 82,
-        "threads": 69,
-        "hint": true
-      },
-      {
-        "t": 125.7,
-        "phase": "渲染首帧…",
-        "elapsed": "已启动 2 分 5 秒",
-        "fbHidden": false,
-        "vm": true,
-        "targets": 86,
-        "threads": 71,
-        "hint": true
-      },
-      {
-        "t": 130.8,
-        "phase": "渲染首帧…",
-        "elapsed": "已启动 2 分 10 秒",
-        "fbHidden": false,
-        "vm": true,
-        "targets": 86,
-        "threads": 71,
-        "hint": true
-      },
-      {
-        "t": 135.8,
-        "phase": "渲染首帧…",
-        "elapsed": "已启动 2 分 15 秒",
-        "fbHidden": false,
-        "vm": true,
-        "targets": 86,
-        "threads": 71,
-        "hint": true
-      },
-      {
-        "t": 140.9,
-        "phase": "渲染首帧…",
-        "elapsed": "已启动 2 分 20 秒",
-        "fbHidden": false,
-        "vm": true,
-        "targets": 86,
-        "threads": 71,
-        "hint": true
-      },
-      {
-        "t": 145.9,
-        "phase": "渲染首帧…",
-        "elapsed": "已启动 2 分 25 秒",
-        "fbHidden": false,
-        "vm": true,
-        "targets": 86,
-        "threads": 71,
-        "hint": true
-      },
-      {
-        "t": 150.9,
-        "phase": "渲染首帧…",
-        "elapsed": "已启动 2 分 30 秒",
-        "fbHidden": false,
-        "vm": true,
-        "targets": 86,
-        "threads": 71,
-        "hint": true
-      },
-      {
-        "t": 156.0,
-        "phase": "渲染首帧…",
-        "elapsed": "已启动 2 分 35 秒",
-        "fbHidden": false,
-        "vm": true,
-        "targets": 86,
-        "threads": 71,
-        "hint": true
-      },
-      {
-        "t": 161.0,
-        "phase": "渲染首帧…",
-        "elapsed": "已启动 2 分 41 秒",
-        "fbHidden": false,
-        "vm": true,
-        "targets": 86,
-        "threads": 71,
-        "hint": true
-      },
-      {
-        "t": 166.1,
-        "phase": "渲染首帧…",
-        "elapsed": "已启动 2 分 46 秒",
-        "fbHidden": false,
-        "vm": true,
-        "targets": 86,
-        "threads": 71,
-        "hint": true
-      },
-      {
-        "t": 171.1,
-        "phase": "渲染首帧…",
-        "elapsed": "已启动 2 分 51 秒",
-        "fbHidden": false,
-        "vm": true,
-        "targets": 86,
-        "threads": 71,
-        "hint": true
-      },
-      {
-        "t": 176.2,
-        "phase": "渲染首帧…",
-        "elapsed": "已启动 2 分 56 秒",
-        "fbHidden": false,
-        "vm": true,
-        "targets": 86,
-        "threads": 71,
-        "hint": true
-      },
-      {
-        "t": 181.2,
-        "phase": "渲染首帧…",
-        "elapsed": "已启动 3 分 1 秒",
-        "fbHidden": false,
-        "vm": true,
-        "targets": 86,
-        "threads": 71,
-        "hint": true
-      },
-      {
-        "t": 186.3,
-        "phase": "渲染首帧…",
-        "elapsed": "已启动 3 分 6 秒",
-        "fbHidden": false,
-        "vm": true,
-        "targets": 86,
-        "threads": 71,
-        "hint": true
-      },
-      {
-        "t": 191.4,
-        "phase": "渲染首帧…",
-        "elapsed": "已启动 3 分 11 秒",
-        "fbHidden": false,
-        "vm": true,
-        "targets": 86,
-        "threads": 71,
-        "hint": true
-      },
-      {
-        "t": 196.5,
-        "phase": "渲染首帧…",
-        "elapsed": "已启动 3 分 16 秒",
-        "fbHidden": false,
-        "vm": true,
-        "targets": 86,
-        "threads": 71,
-        "hint": true
-      },
-      {
-        "t": 201.5,
-        "phase": "渲染首帧…",
-        "elapsed": "已启动 3 分 21 秒",
-        "fbHidden": false,
-        "vm": true,
-        "targets": 86,
-        "threads": 71,
-        "hint": true
-      },
-      {
-        "t": 206.6,
-        "phase": "渲染首帧…",
-        "elapsed": "已启动 3 分 26 秒",
-        "fbHidden": false,
-        "vm": true,
-        "targets": 86,
-        "threads": 71,
-        "hint": true
-      },
-      {
-        "t": 211.6,
-        "phase": "渲染首帧…",
-        "elapsed": "已启动 3 分 31 秒",
-        "fbHidden": false,
-        "vm": true,
-        "targets": 86,
-        "threads": 71,
-        "hint": true
-      },
-      {
-        "t": 216.7,
-        "phase": "渲染首帧…",
-        "elapsed": "已启动 3 分 36 秒",
-        "fbHidden": false,
-        "vm": true,
-        "targets": 86,
-        "threads": 71,
-        "hint": true
-      },
-      {
-        "t": 221.7,
-        "phase": "渲染首帧…",
-        "elapsed": "已启动 3 分 41 秒",
-        "fbHidden": false,
-        "vm": true,
-        "targets": 86,
-        "threads": 71,
-        "hint": true
-      },
-      {
-        "t": 226.8,
-        "phase": "渲染首帧…",
-        "elapsed": "已启动 3 分 46 秒",
-        "fbHidden": false,
-        "vm": true,
-        "targets": 86,
-        "threads": 71,
-        "hint": true
-      },
-      {
-        "t": 231.8,
-        "phase": "渲染首帧…",
-        "elapsed": "已启动 3 分 51 秒",
-        "fbHidden": false,
-        "vm": true,
-        "targets": 86,
-        "threads": 71,
-        "hint": true
-      },
-      {
-        "t": 236.9,
-        "phase": "渲染首帧…",
-        "elapsed": "已启动 3 分 56 秒",
-        "fbHidden": false,
-        "vm": true,
-        "targets": 86,
-        "threads": 71,
-        "hint": true
-      },
-      {
-        "t": 242.0,
-        "phase": "渲染首帧…",
-        "elapsed": "已启动 4 分 2 秒",
-        "fbHidden": false,
-        "vm": true,
-        "targets": 86,
-        "threads": 71,
-        "hint": true
-      },
-      {
-        "t": 247.1,
-        "phase": "渲染首帧…",
-        "elapsed": "已启动 4 分 7 秒",
-        "fbHidden": false,
-        "vm": true,
-        "targets": 86,
-        "threads": 71,
-        "hint": true
-      },
-      {
-        "t": 252.1,
-        "phase": "渲染首帧…",
-        "elapsed": "已启动 4 分 12 秒",
-        "fbHidden": false,
-        "vm": true,
-        "targets": 86,
-        "threads": 71,
-        "hint": true
-      },
-      {
-        "t": 257.2,
-        "phase": "渲染首帧…",
-        "elapsed": "已启动 4 分 17 秒",
-        "fbHidden": false,
-        "vm": true,
-        "targets": 86,
-        "threads": 71,
-        "hint": true
-      },
-      {
-        "t": 262.3,
-        "phase": "渲染首帧…",
-        "elapsed": "已启动 4 分 22 秒",
-        "fbHidden": false,
-        "vm": true,
-        "targets": 86,
-        "threads": 71,
-        "hint": true
-      },
-      {
-        "t": 267.3,
-        "phase": "渲染首帧…",
-        "elapsed": "已启动 4 分 27 秒",
-        "fbHidden": false,
-        "vm": true,
-        "targets": 86,
-        "threads": 71,
-        "hint": true
-      },
-      {
-        "t": 272.4,
-        "phase": "渲染首帧…",
-        "elapsed": "已启动 4 分 32 秒",
-        "fbHidden": false,
-        "vm": true,
-        "targets": 86,
-        "threads": 71,
-        "hint": true
-      },
-      {
-        "t": 277.4,
-        "phase": "渲染首帧…",
-        "elapsed": "已启动 4 分 37 秒",
-        "fbHidden": false,
-        "vm": true,
-        "targets": 86,
-        "threads": 71,
-        "hint": true
-      },
-      {
-        "t": 282.5,
-        "phase": "渲染首帧…",
-        "elapsed": "已启动 4 分 42 秒",
-        "fbHidden": false,
-        "vm": true,
-        "targets": 86,
-        "threads": 71,
-        "hint": true
-      },
-      {
-        "t": 287.6,
-        "phase": "渲染首帧…",
-        "elapsed": "已启动 4 分 47 秒",
-        "fbHidden": false,
-        "vm": true,
-        "targets": 86,
-        "threads": 71,
-        "hint": true
-      },
-      {
-        "t": 292.6,
-        "phase": "渲染首帧…",
-        "elapsed": "已启动 4 分 52 秒",
-        "fbHidden": false,
-        "vm": true,
-        "targets": 86,
-        "threads": 71,
-        "hint": true
-      },
-      {
-        "t": 297.7,
-        "phase": "渲染首帧…",
-        "elapsed": "已启动 4 分 57 秒",
-        "fbHidden": false,
-        "vm": true,
-        "targets": 86,
-        "threads": 71,
-        "hint": true
-      },
-      {
-        "t": 302.7,
-        "phase": "渲染首帧…",
-        "elapsed": "已启动 5 分 1 秒",
+        "t": 62.1,
+        "phase": "画面已就绪",
+        "elapsed": "已启动 50 秒",
         "fbHidden": true,
         "vm": true,
         "targets": 86,
@@ -608,29 +144,9 @@
         "hint": true
       },
       {
-        "t": 307.8,
-        "phase": "渲染首帧…",
-        "elapsed": "已启动 5 分 1 秒",
-        "fbHidden": true,
-        "vm": true,
-        "targets": 86,
-        "threads": 71,
-        "hint": true
-      },
-      {
-        "t": 312.8,
-        "phase": "渲染首帧…",
-        "elapsed": "已启动 5 分 1 秒",
-        "fbHidden": true,
-        "vm": true,
-        "targets": 86,
-        "threads": 71,
-        "hint": true
-      },
-      {
-        "t": 317.8,
-        "phase": "渲染首帧…",
-        "elapsed": "已启动 5 分 1 秒",
+        "t": 67.1,
+        "phase": "画面已就绪",
+        "elapsed": "已启动 50 秒",
         "fbHidden": true,
         "vm": true,
         "targets": 86,
@@ -641,8 +157,8 @@
     "final": {
       "fbInstalled": true,
       "fbHidden": true,
-      "fbPhase": "渲染首帧…",
-      "fbElapsed": "已启动 5 分 1 秒",
+      "fbPhase": "画面已就绪",
+      "fbElapsed": "已启动 50 秒",
       "fbHintShown": true,
       "launchHidden": true,
       "loadingHidden": true,
@@ -657,7 +173,9 @@
     "shots": [
       "/tmp/render/bfb-1-visible.png",
       "/tmp/render/bfb-2-desktop.png"
-    ]
+    ],
+    "hint_expected": true,
+    "hint_seen": true
   },
   "C_mobile": {
     "fb_appeared": true,
