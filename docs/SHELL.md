@@ -169,8 +169,37 @@ refs=0 的变量 = 「声明但未使用」（用户「空壳」观察的第一�
 | 长按阈值 400ms / 取消位移 8px | qs-panel.ts LONG_PRESS_MS | self:（framework 惯例值，语料未入库） |
 | QS 段滚动窗 max-height min(56vh, 460px) | style.css .shade-qs | self:（附注二留空项：语料无 QS 段高度 token） |
 | 滑入段位移 105% 余量（p≤0.5 线性×2） | qs-panel.ts syncDom | self:（R137 修正披露） |
+| 编辑页起拖阈值 6px / FLIP 补位 180ms | qs-panel.ts EDIT_DRAG_START_PX / EDIT_FLIP_MS | self:（R138，语料无对应 token） |
+| 编辑页卡尺寸 min(86vw,340px) / max-height 76vh | style.css .qs-edit-card | self:（R138） |
+| 磁贴序会话级不落盘 | qs-panel.ts this.order | self:（与 tile-states states Map 同律：工程 reload 不残留；AOSP 经 Settings 持久化，本壳无设置页不落盘） |
 | 亮色主题变量组 | style.css | self: |
 | scrim/content/公式/0.1066/1÷500/14/58 | shade-tokens.ts | **SPEC token 引用**（aosp: 出处行内标注） |
+
+### 6.4 QS 展开编辑页（tile-order.ts + qs-panel 编辑覆层，#18 对照稿余项 · R138）
+
+- **入口**：QS 段网格下方「编辑磁贴」钮（AOSP 编辑页 footer pencil 同构位，self:）
+  → 覆层卡（scrim + role=dialog：标题/拖动提示/完成钮 + 磁贴列表）；
+- **整卡拖动重排**（AOSP 编辑页同构语义）：pointerdown 记锚 → 位移超 6px
+  （self:）起拖 → 随指跟随（拖动项布局位 offsetLeft/Top 锚 + translate 补差，
+  reflow 后重钉）→ 目标格 live reflow（gridIndexForPoint 纯几何：格宽高+gap
+  步进，悬停格位 = 最终格位，FLIP 180ms self: 补位动画）→ drop 提交工作序
+  （normalizeOrder 兜底：剔未知/去重/补缺失）；pointer capture 保移出跟手
+  （合成事件捕获失败不阻断——探针惯例）；
+- **提交后跟随**：网格 + 折叠行 + 编辑列表全 rebuild；**折叠行 = 当前磁贴序
+  前 4 个 toggle 族**（QuickQSPanel 同构语义：显示用户自定序前 N 个；本壳限定
+  toggle 族——mini 变体三态展示位，action/status 不入折叠行，self: 裁剪披露）；
+  **三态状态机跨 rebuild 保留**（tile-states 的 states Map 会话自持，rebuild
+  只重建 DOM 不动状态，探针 D10 实断言）；
+- **编辑态不翻转**：编辑列表项为 div 无点击语义（AOSP 编辑页磁贴不响应开关）；
+- **裁剪披露（self:）**：无「可添加磁贴」池（全部 12 磁贴常驻 active，只重排
+  不增删）；磁贴序会话级不落盘（AOSP 经 Settings 持久化，本壳工程内无设置页）；
+- **#31 即修即录（D10 探针暴露的 v1.16 潜伏缺陷）**：`.qs-tile-detail` 自带
+  display:flex（author origin 压过 UA 级 `[hidden]{display:none}`），hidden
+  属性卡片照常渲染并可拦截点击——v1.16/v1.17 未触发只因后续无点击落在卡域；
+  修复 = 补作者级 `[hidden] { display: none !important; }` 规则组
+  （detail/edit 卡与双 scrim 四件）；
+- 纯函数模块 tile-order.ts（defaultTileOrder/normalizeOrder/moveTile/
+  gridIndexForPoint/getQuickRowTiles/orderToDefs）vitest 直测 20 例。
 
 ## 7. 动画基建（vendored md3 内核，用户方针「连续打断与并行动画直接复用」）
 

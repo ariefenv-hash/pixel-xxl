@@ -192,6 +192,9 @@ export const TILES: readonly TileDef[] = [
   },
 ];
 
+/** 全量磁贴 id 序（tile-order.ts 基线/规范化锚） */
+export const TILE_IDS: readonly string[] = TILES.map((d) => d.id);
+
 /** 三态磁贴标签文案（toggle 磁贴 render 通道） */
 export function renderToggleState(label: string, state: TileState): string {
   if (state === 'unavailable') return `${label} · 不可用`;
@@ -203,11 +206,12 @@ export function renderToggleState(label: string, state: TileState): string {
  * 二段展开显示全量网格。行内数量 N：SPEC 附注二留空项（SystemUI 原生资源
  * 语料未入库——md3 语料树 1588 blob 实查无 QS 原生 dimens，R137 实查披露），
  * 取 4 为壳层 self: 值（登记 docs/SHELL.md §6.3，防编造不标 aosp:）。
+ * R138：行成员从「定义序前 N 个」改为「当前磁贴序前 N 个 toggle 族」动态派生
+ * （tile-order.ts getQuickRowTiles——编辑页重排后折叠行跟随，QuickQSPanel
+ * 同构语义）；QUICK_ROW_TILES 静态表随之移除。
  */
 /** 折叠态顶部磁贴行数量（self: 值） */
 export const QUICK_ROW_COUNT = 4;
-/** 折叠行磁贴 = 首批 toggle 磁贴前 N 个（与网格共享同一状态机实例） */
-export const QUICK_ROW_TILES: readonly TileDef[] = TOGGLE_TILES.slice(0, QUICK_ROW_COUNT);
 
 /* ------- 长按磁贴详情（#18 对照稿深化项 · R137） -------
  * AOSP 语义：长按 QS 磁贴 → 磁贴详情对话框（标题 + 开关钮，Android 12+ 同构）。

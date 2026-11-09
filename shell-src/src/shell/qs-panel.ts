@@ -30,13 +30,20 @@ import { EMPHASIZED } from '../motion/md3/aosp/interpolators.js';
 import type { VMBridge } from '../bridge/runtime';
 import {
   TILES,
+  TILE_IDS,
   validateTilesAgainstCatalog,
   renderToggleState,
-  QUICK_ROW_TILES,
   describeTile,
 } from './tiles';
 import type { TileDef } from './tiles';
 import { resetTileStates, getTileState, toggleTileState } from './tile-states';
+import {
+  normalizeOrder,
+  moveTile,
+  gridIndexForPoint,
+  getQuickRowTiles,
+  orderToDefs,
+} from './tile-order';
 import {
   getNotificationScrimAlpha,
   getShadeContentAlpha,
@@ -61,6 +68,20 @@ const LONG_PRESS_CANCEL_PX = 8; // self:
 const BOUNCE_RESPONSE_S = 0.28;
 const BOUNCE_DAMPING_RATIO = 0.55;
 const BOUNCE_RELEASE_V = 1.6;
+/** 编辑页起拖位移（px，self:——语料无固定阈值，不标 aosp:） */
+const EDIT_DRAG_START_PX = 6; // self:
+/** 编辑页重排 FLIP 补位动画时长（ms，self:） */
+const EDIT_FLIP_MS = 180; // self:
+
+/** 编辑网格几何快照（起拖瞬间定格，拖动中不重测——cellW/H 含 gap 步进） */
+interface EditGeom {
+  left: number;
+  top: number;
+  cellW: number;
+  cellH: number;
+  cols: number;
+  count: number;
+}
 
 export class QsPanel {
   private readonly bridge: VMBridge;
@@ -81,8 +102,30 @@ export class QsPanel {
   private readonly detailStatus: HTMLElement;
   private readonly detailBody: HTMLElement;
   private readonly detailAction: HTMLButtonElement;
+  private readonly quickRow: HTMLElement;
+  private readonly grid: HTMLElement;
+  private readonly editScrim: HTMLElement;
+  private readonly editCard: HTMLElement;
+  private readonly editGrid: HTMLElement;
   /** 详情卡当前来源磁贴（null = 关闭；长按后同磁贴 click 吞用） */
   private detailOpenFor: HTMLElement | null = null;
+  /** 当前磁贴序（编辑页拖动提交；会话级自持与 tile-states 同律，self: §6.4） */
+  private order: string[] = [...TILE_IDS];
+  /** 编辑页拖动态（null = 未拖动） */
+  private editDragEl: HTMLElement | null = null;
+  private editDragId: string | null = null;
+  private editDragStarted = false;
+  private editDragStartX = 0;
+  private editDragStartY = 0;
+  /** 拖动中的工作序（drop 才提交 this.order——AOSP drop 才落盘语义） */
+  private editDragOrder: string[] | null = null;
+  /** 指针相对拖动项视觉左上角的抓取偏移（起拖瞬间定格） */
+  private editDragOffX = 0;
+  private editDragOffY = 0;
+  /** 最近指针位（reflow 后重钉拖动项消费） */
+  private editLastX = 0;
+  private editLastY = 0;
+  private editGeom: EditGeom | null = null;
   private readonly animator: InterruptibleInOutAnimator;
   private readonly driver = createFrameDriver();
   private lease: { stop(): void } | null = null;
@@ -151,25 +194,33 @@ export class QsPanel {
     this.headerSource.textContent = 'DOM 壳层 · 桥接 TurboWarp 运行时';
     header.append(this.headerTitle, this.headerSource);
 
-    // 通知段（一段：progress 0→0.5 可见；顶部含折叠态磁贴行 = #18 任务 1）
+    // 通知段（一段：progress 0→0.5 可见；顶部含折叠态磁贴行 = #18 任务 1；
+    //         R138 起行成员 = 当前磁贴序前 4 toggle 族，tile-order 动态派生）
     this.notifSection = document.createElement('div');
     this.notifSection.className = 'shade-notif';
-    const quickRow = document.createElement('div');
-    quickRow.className = 'shade-quick-row';
-    for (const def of QUICK_ROW_TILES) quickRow.appendChild(this.buildTile(def, 'mini'));
+    this.quickRow = document.createElement('div');
+    this.quickRow.className = 'shade-quick-row';
+    this.rebuildQuickRow();
     this.clockText = document.createElement('div');
     this.clockText.className = 'shade-clock';
     this.dateText = document.createElement('div');
     this.dateText.className = 'shade-date';
-    this.notifSection.append(quickRow, this.clockText, this.dateText, this.buildNotifCards());
+    this.notifSection.append(this.quickRow, this.clockText, this.dateText, this.buildNotifCards());
 
-    // QS 段（二段：progress 0.5→1.0 渐显，alpha = content-alpha.map 曲线）
+    // QS 段（二段：progress 0.5→1.0 渐显，alpha = content-alpha.map 曲线）+
+    // 编辑页入口钮（AOSP footer pencil 同构位，self: · #18 对照稿余项 R138）
     this.qsSection = document.createElement('div');
     this.qsSection.className = 'shade-qs';
-    const grid = document.createElement('div');
-    grid.className = 'qs-grid';
-    for (const tile of TILES) grid.appendChild(this.buildTile(tile));
-    this.qsSection.appendChild(grid);
+    this.grid = document.createElement('div');
+    this.grid.className = 'qs-grid';
+    this.rebuildGrid();
+    const editEntry = document.createElement('button');
+    editEntry.type = 'button';
+    editEntry.className = 'qs-edit-entry';
+    editEntry.textContent = '编辑磁贴';
+    editEntry.setAttribute('aria-label', '编辑磁贴');
+    editEntry.addEventListener('click', () => this.openEditPage());
+    this.qsSection.append(this.grid, editEntry);
 
     // 动作反馈行（r20261108：apply 返回文案改独立显示，4s 淡出）
     this.feedback = document.createElement('div');
@@ -203,6 +254,37 @@ export class QsPanel {
     });
     this.detailCard.append(this.detailTitle, this.detailStatus, this.detailBody, this.detailAction);
 
+    // QS 展开编辑页覆层（#18 对照稿余项 · R138，AOSP 编辑页同构位）：
+    // scrim + 卡（标题/拖动提示/完成钮 + 磁贴列表整卡拖动重排）。
+    // 无「可添加磁贴」池（全部 12 磁贴常驻，只重排不增删，self: 裁剪披露）。
+    this.editScrim = document.createElement('div');
+    this.editScrim.className = 'qs-edit-scrim';
+    this.editScrim.hidden = true;
+    this.editScrim.addEventListener('click', () => this.closeEditPage());
+    this.editCard = document.createElement('div');
+    this.editCard.className = 'qs-edit-card';
+    this.editCard.setAttribute('role', 'dialog');
+    this.editCard.setAttribute('aria-label', '编辑磁贴');
+    this.editCard.hidden = true;
+    const editHead = document.createElement('div');
+    editHead.className = 'qs-edit-head';
+    const editTitle = document.createElement('span');
+    editTitle.className = 'qs-edit-title';
+    editTitle.textContent = '编辑磁贴';
+    const editHint = document.createElement('span');
+    editHint.className = 'qs-edit-hint';
+    editHint.textContent = '拖动调整顺序';
+    const editDone = document.createElement('button');
+    editDone.type = 'button';
+    editDone.className = 'qs-edit-done';
+    editDone.textContent = '完成';
+    editDone.setAttribute('aria-label', '完成编辑');
+    editDone.addEventListener('click', () => this.closeEditPage());
+    editHead.append(editTitle, editHint, editDone);
+    this.editGrid = document.createElement('div');
+    this.editGrid.className = 'qs-edit-grid';
+    this.editCard.append(editHead, this.editGrid);
+
     this.panel.append(header, this.notifSection, this.qsSection, this.feedback);
 
     this.strip = document.createElement('div');
@@ -213,7 +295,15 @@ export class QsPanel {
     handle.className = 'qs-handle';
     this.strip.appendChild(handle);
 
-    this.root.append(this.scrim, this.panel, this.strip, this.detailScrim, this.detailCard);
+    this.root.append(
+      this.scrim,
+      this.panel,
+      this.strip,
+      this.detailScrim,
+      this.detailCard,
+      this.editScrim,
+      this.editCard,
+    );
 
     // ---- 动画：连续打断内核（vendored md3） ----
     this.animator = new InterruptibleInOutAnimator({
@@ -233,6 +323,7 @@ export class QsPanel {
     this.driver.add(this.animator);
 
     this.bindGestures();
+    this.refreshTiles(); // 初始态前置（R138：rebuild 通道收口后状态读数直挂 DOM）
     this.syncDom(0);
     this.syncPolling(false);
   }
@@ -421,6 +512,216 @@ export class QsPanel {
     this.detailActionDef = null;
     this.detailScrim.hidden = true;
     this.detailCard.hidden = true;
+  }
+
+  /* ---------------- QS 展开编辑页（#18 对照稿余项 · R138） ----------------
+   * AOSP 编辑页同构位：入口（footer pencil）→ 编辑覆层 → 整卡拖动重排 →
+   * drop 提交磁贴序 → 网格/折叠行 rebuild 跟随（QuickQSPanel 语义）。
+   * 三态状态机跨 rebuild 保留（tile-states 的 states Map 会话自持，rebuild
+   * 只重建 DOM 不动状态）；编辑序会话级不落盘（self: 披露 §6.4）。
+   */
+
+  /** 网格 rebuild（当前序；dataset.order = 探针断言锚） */
+  private rebuildGrid(): void {
+    this.grid.textContent = '';
+    this.grid.dataset.order = this.order.join(',');
+    for (const def of orderToDefs(this.order, TILES)) this.grid.appendChild(this.buildTile(def));
+  }
+
+  /** 折叠行 rebuild（当前序前 4 个 toggle 族；QuickQSPanel 同构语义） */
+  private rebuildQuickRow(): void {
+    this.quickRow.textContent = '';
+    for (const def of getQuickRowTiles(this.order, TILES)) {
+      this.quickRow.appendChild(this.buildTile(def, 'mini'));
+    }
+  }
+
+  /** 编辑列表 rebuild（当前序；整卡拖动重排项，div 无点击语义 = 编辑态不翻转） */
+  private rebuildEditList(): void {
+    this.editGrid.textContent = '';
+    this.editGrid.dataset.order = this.order.join(',');
+    for (const def of orderToDefs(this.order, TILES)) {
+      const item = document.createElement('div');
+      item.className = 'qs-edit-item';
+      item.dataset.tileId = def.id;
+      item.setAttribute('aria-label', def.label);
+      const dot = document.createElement('span');
+      dot.className = 'qs-tile-dot';
+      const text = document.createElement('span');
+      text.className = 'qs-edit-item-text';
+      text.textContent = def.label;
+      item.append(dot, text);
+      this.bindEditDrag(item);
+      this.editGrid.appendChild(item);
+    }
+  }
+
+  /** 重排提交：网格 + 折叠行 + 编辑列表全 rebuild，状态机跨 rebuild 保留 */
+  private applyOrder(): void {
+    this.rebuildGrid();
+    this.rebuildQuickRow();
+    this.rebuildEditList();
+    this.refreshTiles();
+  }
+
+  private openEditPage(): void {
+    this.rebuildEditList(); // 与当前序同步（拖动中断的工作序不落地）
+    this.editScrim.hidden = false;
+    this.editCard.hidden = false;
+  }
+
+  private closeEditPage(): void {
+    this.editScrim.hidden = true;
+    this.editCard.hidden = true;
+  }
+
+  /**
+   * 编辑列表拖动绑定：pointerdown 记锚 → 位移超 6px（self:）起拖 → 随指跟随 +
+   * 目标格 live reflow（FLIP self: 180ms）→ drop 提交工作序（normalizeOrder 兜底）。
+   * pointer capture 保证移出项体仍跟手（合成事件捕获失败不阻断——探针惯例）。
+   */
+  private bindEditDrag(item: HTMLElement): void {
+    item.addEventListener('pointerdown', (e) => {
+      if (e.pointerType === 'mouse' && e.button !== 0) return;
+      this.editDragEl = item;
+      this.editDragId = item.dataset.tileId ?? null;
+      this.editDragStarted = false;
+      this.editDragOrder = null;
+      this.editDragStartX = e.clientX;
+      this.editDragStartY = e.clientY;
+      this.editLastX = e.clientX;
+      this.editLastY = e.clientY;
+      const rect = item.getBoundingClientRect(); // 此时无 transform：视觉位 = 布局位
+      this.editDragOffX = e.clientX - rect.left;
+      this.editDragOffY = e.clientY - rect.top;
+      try {
+        item.setPointerCapture(e.pointerId);
+      } catch {
+        /* 合成事件无活动指针：捕获失败不阻断 */
+      }
+      e.preventDefault();
+    });
+    item.addEventListener('pointermove', (e) => this.onEditDragMove(e));
+    item.addEventListener('pointerup', (e) => this.onEditDragEnd(e));
+    item.addEventListener('pointercancel', (e) => this.onEditDragEnd(e));
+  }
+
+  private onEditDragMove(e: PointerEvent): void {
+    const el = this.editDragEl;
+    const id = this.editDragId;
+    if (!el || id === null) return;
+    this.editLastX = e.clientX;
+    this.editLastY = e.clientY;
+    if (!this.editDragStarted) {
+      if (Math.hypot(e.clientX - this.editDragStartX, e.clientY - this.editDragStartY) < EDIT_DRAG_START_PX) {
+        return;
+      }
+      this.editDragStarted = true;
+      this.editDragOrder = [...this.order]; // 工作序：drop 才提交
+      el.classList.add('qs-edit-dragging');
+      this.snapshotEditGeom();
+    }
+    this.syncDragTransform();
+    const g = this.editGeom;
+    if (!g || !this.editDragOrder) return;
+    const target = gridIndexForPoint(e.clientX - g.left, e.clientY - g.top, g.cellW, g.cellH, g.cols, g.count);
+    const cur = this.editDragOrder.indexOf(id);
+    if (target !== cur) {
+      this.editDragOrder = moveTile(this.editDragOrder, id, target);
+      this.reflowEditGrid();
+    }
+  }
+
+  private onEditDragEnd(e: PointerEvent): void {
+    const el = this.editDragEl;
+    if (!el) return;
+    try {
+      el.releasePointerCapture(e.pointerId);
+    } catch {
+      /* 指针已释放：忽略 */
+    }
+    if (this.editDragStarted && this.editDragOrder && this.editDragId) {
+      this.order = normalizeOrder(this.editDragOrder, TILE_IDS); // 兜底规范化
+      this.applyOrder(); // rebuild 后拖动项已被重建，拖动态随之清空
+    }
+    el.classList.remove('qs-edit-dragging');
+    el.style.transform = '';
+    this.editDragEl = null;
+    this.editDragId = null;
+    this.editDragStarted = false;
+    this.editDragOrder = null;
+    this.editGeom = null;
+  }
+
+  /** 起拖瞬间几何快照（cellW/H = 格宽高 + gap 步进；列数读 computed grid 轨道） */
+  private snapshotEditGeom(): void {
+    const g = this.editGrid.getBoundingClientRect();
+    const style = getComputedStyle(this.editGrid);
+    const gapX = parseFloat(style.columnGap) || 0;
+    const gapY = parseFloat(style.rowGap) || 0;
+    const first = this.editGrid.querySelector<HTMLElement>('.qs-edit-item');
+    const rect = first?.getBoundingClientRect();
+    this.editGeom = {
+      left: g.left,
+      top: g.top,
+      cellW: (rect ? rect.width : 0) + gapX,
+      cellH: (rect ? rect.height : 0) + gapY,
+      cols: style.gridTemplateColumns.split(' ').filter(Boolean).length,
+      count: this.editDragOrder?.length ?? 0,
+    };
+  }
+
+  /**
+   * 拖动项视觉位钉到指针：布局位（offsetLeft/Top 不含 transform）+ translate 补差。
+   * reflow 重排后布局位变化，必须重钉——否则拖动项视觉跳回原格。
+   */
+  private syncDragTransform(): void {
+    const el = this.editDragEl;
+    if (!el) return;
+    const g = this.editGrid.getBoundingClientRect();
+    const lx = g.left + el.offsetLeft;
+    const ly = g.top + el.offsetTop;
+    const tx = this.editLastX - this.editDragOffX - lx;
+    const ty = this.editLastY - this.editDragOffY - ly;
+    el.style.transform = `translate(${tx.toFixed(1)}px, ${ty.toFixed(1)}px)`;
+  }
+
+  /** 编辑列表 live reflow：按工作序重排 DOM（拖动项 listeners/捕获随元素保留）+ 非拖动项 FLIP 补位 */
+  private reflowEditGrid(): void {
+    const order = this.editDragOrder ?? this.order;
+    const items = new Map<string, HTMLElement>();
+    for (const el of Array.from(this.editGrid.children) as HTMLElement[]) {
+      const tid = el.dataset.tileId;
+      if (tid) items.set(tid, el);
+    }
+    const firstRects = new Map<string, DOMRect>();
+    for (const [tid, el] of items) firstRects.set(tid, el.getBoundingClientRect());
+    for (const tid of order) {
+      const el = items.get(tid);
+      if (el) this.editGrid.appendChild(el);
+    }
+    this.editGrid.dataset.order = order.join(',');
+    for (const [tid, el] of items) {
+      if (el === this.editDragEl) continue;
+      const a = firstRects.get(tid);
+      if (!a) continue;
+      const b = el.getBoundingClientRect();
+      const ddx = a.left - b.left;
+      const ddy = a.top - b.top;
+      if (Math.abs(ddx) < 1 && Math.abs(ddy) < 1) continue;
+      el.style.transition = 'none';
+      el.style.transform = `translate(${ddx.toFixed(1)}px, ${ddy.toFixed(1)}px)`;
+      void el.offsetWidth; // 强制 reflow：invert 态生效后再 play
+      el.style.transition = `transform ${EDIT_FLIP_MS}ms var(--px-ease-emphasized)`;
+      el.style.transform = '';
+      const cleanup = (): void => {
+        el.style.transition = '';
+        el.removeEventListener('transitionend', cleanup);
+      };
+      el.addEventListener('transitionend', cleanup);
+      window.setTimeout(cleanup, EDIT_FLIP_MS + 60);
+    }
+    if (this.editDragEl) this.syncDragTransform(); // 布局位变化：重钉到指针
   }
 
   /** tile-bounce（按压反馈）：vendored Spring 解析闭式解，收敛阈值 = min-visible.scale */

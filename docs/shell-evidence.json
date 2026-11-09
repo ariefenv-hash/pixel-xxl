@@ -1,5 +1,5 @@
 {
-  "time": "2026-11-09T10:29:24+0000",
+  "time": "2026-11-09T16:33:32+0000",
   "port": 8791,
   "checks": {
     "fidelity": {
@@ -53,6 +53,16 @@
       "brightness_after": "600",
       "shell_errors": []
     },
+    "d10_edit_page": {
+      "verdict": "PASS",
+      "default_order_first": "wifi",
+      "reordered_first": "airplane",
+      "grid_order_first_after_commit": "airplane",
+      "quick_row_first_after_commit": "airplane",
+      "quick_row_count": 4,
+      "order_restored": true,
+      "quick_row_restored_first": "wifi"
+    },
     "d_shade_tiles": {
       "verdict": "PASS",
       "wifi_initial": "inactive",
@@ -60,7 +70,7 @@
       "theme_after_dark_toggle": "light",
       "scrim_opacity_at_full": 1,
       "qs_opacity_at_full": 1,
-      "clock": "10:29",
+      "clock": "16:34",
       "wifi_locked": "unavailable",
       "flashlight_locked": "inactive",
       "wifi_unlocked": "inactive",

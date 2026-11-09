@@ -303,6 +303,112 @@ def main():
             d_ok &= page.evaluate(
                 "getComputedStyle(document.querySelector('.shade-qs')).overflowY === 'auto'"
             )
+            # D10: QS 展开编辑页（#18 对照稿余项 · R138）：入口钮 → 覆层卡 →
+            #      真指针拖动重排（airplane 尾位→首位）→ drop 提交 → 网格/折叠行
+            #      跟随新序 → 状态机跨 rebuild 保留 → 反向拖回还原默认序
+            e_ok = True
+            page.evaluate("window.__PIXEL_SHELL.panel.setProgressForProbe(1)")
+            page.wait_for_timeout(150)
+            e_ok &= page.evaluate("document.querySelector('.qs-edit-entry') !== null")
+            # 状态机跨 rebuild 预置：airplane 切 active（重排/rebuild 后必须保留）
+            page.click(".qs-grid .qs-tile[data-tile-id='airplane']")
+            page.wait_for_timeout(150)
+            e_ok &= page.evaluate(
+                "document.querySelector(\".qs-grid .qs-tile[data-tile-id='airplane']\").dataset.state"
+            ) == "active"
+            page.click(".qs-edit-entry")
+            page.wait_for_timeout(200)
+            e_ok &= page.evaluate("!document.querySelector('.qs-edit-card').hidden")
+            ids0 = page.evaluate(
+                "Array.from(document.querySelectorAll('.qs-edit-grid .qs-edit-item')).map(el => el.dataset.tileId)"
+            )
+            e_ok &= ids0[0] == "wifi" and ids0[5] == "airplane" and ids0[-1] == "clock"  # 默认序签名（airplane 位 5、clock 收尾）
+            pos = page.evaluate(
+                "(() => { const g = document.querySelector('.qs-edit-grid');"
+                " const a = g.querySelector(\".qs-edit-item[data-tile-id='airplane']\").getBoundingClientRect();"
+                " const b = g.querySelector('.qs-edit-item').getBoundingClientRect();"
+                " return {x1: a.x + a.width/2, y1: a.y + a.height/2,"
+                " x2: b.x + b.width/2, y2: b.y + b.height/2}; })()"
+            )
+            # airplane（默认位 5）→ 首格：真指针 8 步拖动（mousedown/mousemove/mouseup）
+            page.mouse.move(pos["x1"], pos["y1"])
+            page.mouse.down()
+            for _i in range(1, 9):
+                page.mouse.move(
+                    pos["x1"] + (pos["x2"] - pos["x1"]) * _i / 8,
+                    pos["y1"] + (pos["y2"] - pos["y1"]) * _i / 8,
+                )
+                page.wait_for_timeout(25)
+            page.mouse.up()
+            page.wait_for_timeout(300)
+            order1 = page.evaluate(
+                "Array.from(document.querySelectorAll('.qs-edit-grid .qs-edit-item')).map(el => el.dataset.tileId)"
+            )
+            e_ok &= order1[0] == "airplane"  # drop 提交（工作序落地编辑列表）
+            page.click(".qs-edit-done")
+            page.wait_for_timeout(250)
+            e_ok &= page.evaluate("document.querySelector('.qs-edit-card').hidden")
+            grid_order = page.evaluate("document.querySelector('.qs-grid').dataset.order.split(',')")
+            e_ok &= grid_order[0] == "airplane"  # 网格 rebuild 跟随新序
+            e_ok &= page.evaluate(
+                "document.querySelector(\".qs-grid .qs-tile[data-tile-id='airplane']\").dataset.state"
+            ) == "active"  # 状态机跨 rebuild 保留（states Map 会话自持）
+            quick_first = page.evaluate(
+                "document.querySelector('.shade-quick-row .qs-tile').dataset.tileId"
+            )
+            e_ok &= quick_first == "airplane"  # 折叠行跟随（当前序前 4 toggle 族）
+            e_ok &= page.evaluate(
+                "document.querySelectorAll('.shade-quick-row .qs-tile').length"
+            ) == 4
+            # 反向拖回（airplane 首位→默认位 5）→ 默认序还原（第二轮重排路径验证）
+            page.click(".qs-edit-entry")
+            page.wait_for_timeout(200)
+            e_ok &= page.evaluate(
+                "document.querySelector('.qs-edit-grid .qs-edit-item').dataset.tileId"
+            ) == "airplane"  # 编辑列表与当前序同步（重开即 rebuild）
+            pos2 = page.evaluate(
+                "(() => { const g = document.querySelector('.qs-edit-grid');"
+                " const a = g.querySelector(\".qs-edit-item[data-tile-id='airplane']\").getBoundingClientRect();"
+                " const b = g.children[5].getBoundingClientRect();"
+                " return {x1: a.x + a.width/2, y1: a.y + a.height/2,"
+                " x2: b.x + b.width/2, y2: b.y + b.height/2}; })()"
+            )
+            page.mouse.move(pos2["x1"], pos2["y1"])
+            page.mouse.down()
+            for _i in range(1, 9):
+                page.mouse.move(
+                    pos2["x1"] + (pos2["x2"] - pos2["x1"]) * _i / 8,
+                    pos2["y1"] + (pos2["y2"] - pos2["y1"]) * _i / 8,
+                )
+                page.wait_for_timeout(25)
+            page.mouse.up()
+            page.wait_for_timeout(300)
+            page.click(".qs-edit-done")
+            page.wait_for_timeout(250)
+            restored = page.evaluate("document.querySelector('.qs-grid').dataset.order.split(',')")
+            e_ok &= restored == ids0  # 默认序还原
+            quick_restored = page.evaluate(
+                "document.querySelector('.shade-quick-row .qs-tile').dataset.tileId"
+            )
+            e_ok &= quick_restored == "wifi"  # 折叠行还原
+            # 收尾：airplane 切回 inactive（状态机基线还原）
+            page.click(".qs-grid .qs-tile[data-tile-id='airplane']")
+            page.wait_for_timeout(150)
+            e_ok &= page.evaluate(
+                "document.querySelector(\".qs-grid .qs-tile[data-tile-id='airplane']\").dataset.state"
+            ) == "inactive"
+            evidence["checks"]["d10_edit_page"] = {
+                "verdict": "PASS" if e_ok else "FAIL",
+                "default_order_first": ids0[0],
+                "reordered_first": order1[0],
+                "grid_order_first_after_commit": grid_order[0],
+                "quick_row_first_after_commit": quick_first,
+                "quick_row_count": 4,
+                "order_restored": restored == ids0,
+                "quick_row_restored_first": quick_restored,
+            }
+            print("[D10 edit]", "PASS" if e_ok else "FAIL",
+                  "reorder %s→%s restored=%s" % (ids0[0], order1[0], restored == ids0))
             evidence["checks"]["d_shade_tiles"] = {
                 "verdict": "PASS" if d_ok else "FAIL",
                 "wifi_initial": wifi_state,
