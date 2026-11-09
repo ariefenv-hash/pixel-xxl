@@ -86,7 +86,7 @@ refs=0 的变量 = 「声明但未使用」（用户「空壳」观察的第一�
    曲线风格 → 仅写变量（「应用」target 逐帧直读，工程内原样无广播）；
 4. `validateTilesAgainstCatalog()` 启动期校验，漂移即抛（fail loud）。
 
-## 6. 手势模型边界（qs-panel v1）
+## 6. 手势模型与 shade 两段（qs-panel）
 
 - v1 = 顶部拉出条 pointerdown → 面板 1:1 跟手（setProgress 瞬置锚）→
   松手按「位置过半 + 最近方向」投票进/出；
@@ -96,6 +96,55 @@ refs=0 的变量 = 「声明但未使用」（用户「空壳」观察的第一�
 - 连续打断语义由 vendored 内核保证：反向触发从当前 progress 接续，
   快速连拉/连推不丢动画（tests/interruptible.spec.ts 契约锁定）。
 
+### 6.1 shade 两段模型（v1.16 · #18 L2 首批）
+
+- progress 0→1 = shade 展开全程（drag 跟手与 IIO 程序动画共用 syncDom 单源）：
+  一段（0→0.5）= 通知段（时钟大字 + 日期 + 前台/锁屏只读卡 + 通知 0 条占位卡），
+  二段（0.5→1.0）= QS 磁贴网格；
+- **token 曲线（引用制，DESIGN-SPEC v1.0）**：scrim alpha =
+  `motion.shade.scrim-alpha.map`（输入 [0→0.5] → ease-in-out）；QS 段 alpha =
+  `motion.shade.content-alpha.map`（输入 [0.3→1.0]，<0.3 全透明 = 两段互斥由语料
+  曲线本身保证）；公式出口 = `shell-src/src/shell/shade-tokens.ts`
+  （f′≤0→0 短路分支逐字转录 md3 语料 ShadeInterpolation.kt，R136 重核零漂移）；
+- **header 淡出门槛** = `motion.qs.percent-displacement-at-fade-out`（0.1066）：
+  副标题行在展开分数越过 10.66% 后线性淡出（drag 跟手消费）；
+  `motion.qs.fade-out-complete-frame`（14）/`fade-in-start-frame`（58）为 60fps
+  时间轴锚点，与本面板 IIO 320/260ms 时间轴不匹配，token 常量已暴露
+  （shade-tokens.ts）留 L3 Header 过渡轮消费，不硬套（防编造时序）；
+- 通知段淡出曲线 [0.5→0.72] 线性 = self:（SPEC 无对应 token）；
+- 通知段内容为壳层演示语义（self:）：工程内无通知子系统（#18 现状口径），
+  占位卡不声称 AOSP 通知面。
+
+### 6.2 三态磁贴（tile-states.ts，#18 首批六磁贴）
+
+- #18 对照稿首批清单：WLAN/蓝牙/手电筒/自动旋转/深色主题/飞行模式
+  （kind=toggle，AOSP QSTile 同族三态 active/inactive/unavailable）；
+- 状态由壳层自持（SystemUI QS tiles 本即 SystemUI 自持状态机），**不写任何
+  工程变量**（L0：不新增 project.json 变量；写通道收敛纪律不变）；
+- unavailable 触发面 = 锁屏只读联动（「锁屏」=1 → WLAN/蓝牙/自动旋转/飞行模式
+  锁定；手电筒/深色主题始终可用）——**壳层模拟语义（self:）**，非 AOSP 原样
+  （AOSP 锁屏磁贴为「点击请求解锁」；模拟器无解锁请求通道，三态简化披露于此）；
+- 深色主题磁贴副作用 = 壳层主题换肤（html[data-shade-theme] 切 style.css
+  变量组，亮色变量组为 self: 值），零工程侵入；
+- **tile-bounce（按压反馈）** = vendored Spring 解析闭式解：
+  squash 起点 0.92 / response 0.28s / ζ 0.55（self: 手感值——SPEC 附注二留空项
+  SpringForce 劲度/阻尼语料未入库不编造），收敛判定消费
+  `motion.spring.min-visible.scale`（1/500，DynamicAnimation 语义）；
+  bounce 期间 .qs-tile-bouncing 禁 CSS transition（spring 全权接管 transform，
+  防双重插值）。
+
+### 6.3 token 账目（self: 值集中登记）
+
+| 值 | 位置 | 性质 |
+| --- | --- | --- |
+| PANEL_IN_MS=320 / PANEL_OUT_MS=260 | qs-panel.ts | self:（SPEC 无 shade 时长 token；IIO 内核参数） |
+| GRAB_STRIP_H=28 | qs-panel.ts / style.css | self: |
+| POLL_MS=500 / FEEDBACK_MS=4000 | qs-panel.ts | self: |
+| BOUNCE 参数（response 0.28s / ζ 0.55 / squash 0.92 / release v 1.6） | qs-panel.ts | self:（SpringForce 语料未入库，附注二留空项） |
+| 通知段淡出 [0.5→0.72] 线性 | qs-panel.ts notifFade | self: |
+| 亮色主题变量组 | style.css | self: |
+| scrim/content/公式/0.1066/1÷500/14/58 | shade-tokens.ts | **SPEC token 引用**（aosp: 出处行内标注） |
+
 ## 7. 动画基建（vendored md3 内核，用户方针「连续打断与并行动画直接复用」）
 
 | 模块（shell-src/src/motion/） | 内容 | 纪律 |
@@ -104,6 +153,8 @@ refs=0 的变量 = 「声明但未使用」（用户「空壳」观察的第一�
 | md3/animation-presets.js | TimedValue / 预设 / 倍率 | vendored 零改动 |
 | md3/aosp/interpolators.js | AOSP 插值器（EMPHASIZED 等） | vendored 零改动 |
 | md3/aosp/interruptible-in-out-animator.js | Launcher3 IIOAnimator 1:1（连续打断内核） | vendored 零改动 + 旁路 .d.ts 镜像 |
+| shell/shade-tokens.ts | SPEC v1.0 token 代码化出口（shade 插值 + spring 边界 + QS 锚） | 引用制单一事实源（self: 值禁入） |
+| shell/tile-states.ts | 三态磁贴状态机（active/inactive/unavailable） | 壳层自持，不写工程变量 |
 | index.ts | 类型化出口 + createFrameDriver（单一 rAF 宿主，租约制启停） | 壳层动画唯一消费面 |
 
 - 宿主只跑一个 rAF 循环：动画器不自建循环，`update(dt)` 由宿主驱动；
@@ -111,9 +162,8 @@ refs=0 的变量 = 「声明但未使用」（用户「空壳」观察的第一�
   的宿主面与 md3 同律；
 - **app 开/关动画换装路线**：动画攻坚实例把 OPEN_PARAMS/CLOSE_PARAMS 与
   IIOAnimator 接到根入口运行时层时，API 形状即此处形状（零翻译成本）；
-- 契约测试：`npm test`（vitest，spring 5 例 + interruptible 5 例；
-  r20261108 修正 interruptible 用例首帧步进容差口径——按当段 scaled
-  时长折算单帧位移上界，内核语义不变）。
+- 契约测试：`npm test`（vitest，31 例 = spring 5 + interruptible 5 +
+  shade-tokens 15（SPEC token 曲线程序化断言）+ tile-states 6）；
 
 ## 8. 已知边界与坑
 
@@ -142,8 +192,9 @@ npx tsc --noEmit   # 类型闸门
 npx vite build     # 产物 → ../shell/（Pages 双入口之二）
 ```
 
-- 新壳探针：`python3 scripts/shell-verify.py`（A 壳层骨架与桥接挂载 /
-  B iframe 根入口加载与 vm 就绪 / C 磁贴动作写通道真实生效）；
+- 新壳探针：`python3 scripts/shell-probe.py`（A 壳层骨架与桥接挂载 /
+  B iframe 根入口加载与 vm 就绪 / C 磁贴动作写通道真实生效 /
+  D shade 两段 + 三态磁贴 + token 曲线实值，五通道 VERDICT）；
 - L0 回归不变：`python3 scripts/pack-verify.py` 五场景（新壳不改根，
   理论零影响，发版前后各跑一遍留证）；
 - 双版像素对比基线（regression-headless.py）只在 L0 路径强制（#23 任务 4）。

@@ -1,43 +1,51 @@
 /**
- * shell/tiles.ts — QS 磁贴定义（L2 PoC：DOM 壳承载的控制器中心子系统）
+ * shell/tiles.ts — QS 磁贴定义（L2 首批 · #18 对照稿交付）
  *
- * 语义纪律：每个动作磁贴只允许复用工程既有事件链（catalog 的广播图）：
- *   亮度模式 / 壁纸编号 → 写变量 + 广播「壁纸」（个性化APP 同款序列；
- *     链路：个性化APP→壁纸→zz→取色→13 target 全员重取色，见 catalog）；
- *   曲线风格 → 仅写变量（「应用」target 直读，无广播参与——工程内原样）。
- * 空壳变量（refs=0，含控制中心五变量）一律不写——DOM 壳不替工程发明语义，
- * 控制中心正是本壳承载的「工程内未实现」子系统（#18），DOM 侧状态由壳层自持。
+ * 两族磁贴并存：
+ * ① 工程联动族（action/status）：只允许复用工程既有事件链（catalog 的广播图），
+ *    亮度模式 / 壁纸编号 → 写变量 + 广播「壁纸」（个性化APP 同款序列）；
+ *    曲线风格 → 仅写变量（「应用」target 直读，工程内原样）；
+ *    前台/锁屏/时钟 → 只读展示。空壳变量（refs=0）一律不写（catalog 头注纪律）。
+ * ② 壳层自持族（toggle，#18 首批六磁贴）：Wi-Fi/蓝牙/手电筒/自动旋转/亮暗切换/
+ *    飞行模式——三态状态机在 tile-states.ts，不写任何工程变量（L0：不新增
+ *    project.json 变量），unavailable 联动只用只读锁屏变量（self: 模拟语义登记
+ *    docs/SHELL.md）。亮暗切换的壳层副作用 = 壳层主题换肤（style.css 变量组），
+ *    零工程侵入。
  */
 import { BROADCAST_MAP, STAGE_VARIABLE_MAP } from '../bridge/catalog';
 import type { VMBridge } from '../bridge/runtime';
+import { getTileState, toggleTileState, resetTileStates } from './tile-states';
+import type { TileState, ToggleOpts } from './tile-states';
 
-/** 磁贴种类：action = 点按执行动作序列；status = 只读展示（轮询刷新） */
-export type TileKind = 'action' | 'status';
+/** 磁贴种类：action = 点按执行动作序列；status = 只读展示；toggle = 三态开关（壳层自持） */
+export type TileKind = 'action' | 'status' | 'toggle';
 
 export interface TileDef {
   /** 稳定 id（DOM data-attr 与探针断言锚点） */
   readonly id: string;
   readonly kind: TileKind;
-  /** 主标签（动作磁贴为名称；状态磁贴为名称前缀） */
+  /** 主标签 */
   readonly label: string;
-  /** 读的舞台变量（快照轮询源；空数组 = 纯本地状态如时钟） */
+  /** 读的舞台变量（快照轮询源；空数组 = 纯本地状态如时钟/三态磁贴） */
   readonly valueNames: readonly string[];
-  /** 动作磁贴：执行序列，返回给用户的反馈文案（桥接失败必须显式返回错误） */
+  /** action 磁贴：执行序列，返回反馈文案（桥接失败必须显式返回错误） */
   readonly apply?: (bridge: VMBridge) => string;
   /** 状态磁贴：由快照值渲染展示文本 */
   readonly render?: (values: Readonly<Record<string, string>>) => string;
+  /** toggle 磁贴：三态配置（tile-states.ts 状态机） */
+  readonly toggle?: ToggleOpts;
 }
 
 /* ---------------- 动作序列（工程事件链的忠实复刻） ---------------- */
 
 /** 亮度模式四档循环序（README 口径 100/500/600/800；工程写入均为字符串字面量） */
-const BRIGHTNESS_CYCLE: readonly string[] = ['100', '500', '600', '800'];
+const BRIGHTNESS_CYCLE_STR: readonly string[] = ['100', '500', '600', '800'];
 
 function cycleBrightness(bridge: VMBridge): string {
   const cur = bridge.getVar('亮度模式');
   const curStr = cur === null ? '500' : String(cur);
-  const idx = BRIGHTNESS_CYCLE.indexOf(curStr);
-  const next = BRIGHTNESS_CYCLE[(idx + 1) % BRIGHTNESS_CYCLE.length] ?? BRIGHTNESS_CYCLE[0]!;
+  const idx = BRIGHTNESS_CYCLE_STR.indexOf(curStr);
+  const next = BRIGHTNESS_CYCLE_STR[(idx + 1) % BRIGHTNESS_CYCLE_STR.length] ?? BRIGHTNESS_CYCLE_STR[0]!;
   // 工程链路：写变量 → 广播「壁纸」（zz 收到后自转「取色」完成重取色）
   if (!bridge.setVar('亮度模式', next)) return '写入失败：变量不存在或未装载';
   const threads = bridge.broadcast('壁纸');
@@ -61,9 +69,71 @@ function toggleCurveStyle(bridge: VMBridge): string {
   return `曲线风格 → ${next === '1' ? '分段缓动' : '指数趋近'}`;
 }
 
+/* ---------------- 锁屏 unavailable 判定（只读通道，self: 模拟语义） ---------------- */
+
+/** 只读锁屏判定：「锁屏」=1 = 锁定（运行时未就绪时 getVar 返回 null → 不锁） */
+function isLockscreenLocked(bridge: VMBridge): boolean {
+  return bridge.getVar('锁屏') === '1';
+}
+
 /* ---------------- 磁贴表 ---------------- */
 
+/** #18 首批六磁贴（对照稿清单：Wi-Fi/蓝牙/手电筒/自动旋转/亮暗切换/飞行模式） */
+export const TOGGLE_TILES: readonly TileDef[] = [
+  {
+    id: 'wifi',
+    kind: 'toggle',
+    label: 'WLAN',
+    valueNames: [],
+    toggle: { initial: 'inactive', unavailableWhen: isLockscreenLocked },
+  },
+  {
+    id: 'bluetooth',
+    kind: 'toggle',
+    label: '蓝牙',
+    valueNames: [],
+    toggle: { initial: 'inactive', unavailableWhen: isLockscreenLocked },
+  },
+  {
+    id: 'flashlight',
+    kind: 'toggle',
+    label: '手电筒',
+    valueNames: [],
+    toggle: { initial: 'inactive' }, // 锁屏手电筒可用（惯例，self: 登记）
+  },
+  {
+    id: 'auto-rotate',
+    kind: 'toggle',
+    label: '自动旋转',
+    valueNames: [],
+    toggle: { initial: 'inactive', unavailableWhen: isLockscreenLocked },
+  },
+  {
+    id: 'dark-mode',
+    kind: 'toggle',
+    label: '深色主题',
+    valueNames: [],
+    toggle: {
+      initial: 'active', // 壳层默认深色基线（style.css :root 深色变量组）
+      onToggle: (active) => applyShadeTheme(active),
+    },
+  },
+  {
+    id: 'airplane',
+    kind: 'toggle',
+    label: '飞行模式',
+    valueNames: [],
+    toggle: { initial: 'inactive', unavailableWhen: isLockscreenLocked },
+  },
+];
+
+/** 壳层亮暗换肤：html[data-shade-theme] 切换 style.css 变量组（dark-mode 磁贴消费） */
+export function applyShadeTheme(dark: boolean): void {
+  document.documentElement.dataset.shadeTheme = dark ? 'dark' : 'light';
+}
+
 export const TILES: readonly TileDef[] = [
+  ...TOGGLE_TILES,
   {
     id: 'brightness',
     kind: 'action',
@@ -122,9 +192,16 @@ export const TILES: readonly TileDef[] = [
   },
 ];
 
+/** 三态磁贴标签文案（toggle 磁贴 render 通道） */
+export function renderToggleState(label: string, state: TileState): string {
+  if (state === 'unavailable') return `${label} · 不可用`;
+  return `${label} · ${state === 'active' ? '开' : '关'}`;
+}
+
 /**
  * 启动期校验：磁贴引用的变量/广播必须存在于 catalog 且非空壳；
  * 广播必须确有接收者（防桥接语义写错名）。漂移 = 启动即抛（fail loud）。
+ * toggle 磁贴不绑变量（壳层自持），不参与变量目录校验。
  */
 export function validateTilesAgainstCatalog(): void {
   const problems: string[] = [];
@@ -140,3 +217,6 @@ export function validateTilesAgainstCatalog(): void {
   }
   if (problems.length > 0) throw new Error(`磁贴绑定与桥接目录不一致：\n${problems.join('\n')}`);
 }
+
+export { getTileState, toggleTileState, resetTileStates };
+export type { TileState };

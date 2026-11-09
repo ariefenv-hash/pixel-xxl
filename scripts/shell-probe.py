@@ -184,6 +184,56 @@ def main():
             print("[C qs-tiles]", "PASS" if c_ok else "FAIL",
                   "壁纸 %s→%s 亮度 %s→%s" % (before, after, before_b, after_b))
 
+            # ---------- D. shade 两段 + 三态磁贴（L2 首批 · #18 验收面） ----------
+            d_ok = True
+            # D1: 两段 DOM 齐备（scrim / 通知段时钟 / QS 段）
+            d_ok &= page.evaluate("document.querySelector('.shade-scrim') !== null")
+            d_ok &= page.evaluate("document.querySelector('.shade-clock') !== null")
+            d_ok &= page.evaluate("document.querySelector('.shade-qs') !== null")
+            # D2: 六磁贴三态可切换（wifi inactive→active→inactive）
+            wifi_state = page.evaluate(
+                "document.querySelector(\".qs-tile[data-tile-id='wifi']\").dataset.state"
+            )
+            d_ok &= wifi_state == "inactive"
+            page.click(".qs-tile[data-tile-id='wifi']")
+            page.wait_for_timeout(200)
+            wifi_after = page.evaluate(
+                "document.querySelector(\".qs-tile[data-tile-id='wifi']\").dataset.state"
+            )
+            d_ok &= wifi_after == "active"
+            page.click(".qs-tile[data-tile-id='wifi']")
+            page.wait_for_timeout(200)
+            d_ok &= page.evaluate(
+                "document.querySelector(\".qs-tile[data-tile-id='wifi']\").dataset.state"
+            ) == "inactive"
+            # D3: dark-mode 磁贴 → 壳层换肤（html[data-shade-theme]）真实副作用
+            page.click(".qs-tile[data-tile-id='dark-mode']")
+            page.wait_for_timeout(200)
+            theme_after = page.evaluate("document.documentElement.dataset.shadeTheme")
+            d_ok &= theme_after == "light"
+            page.click(".qs-tile[data-tile-id='dark-mode']")
+            page.wait_for_timeout(200)
+            d_ok &= page.evaluate("document.documentElement.dataset.shadeTheme") == "dark"
+            # D4: shade token 曲线实值断言（scrim alpha @ progress=1 = 1；QS 段 alpha = 1）
+            scrim_op = page.evaluate("Number(document.querySelector('.shade-scrim').style.opacity)")
+            d_ok &= abs(scrim_op - 1.0) < 1e-6  # getNotificationScrimAlpha(1) = 1
+            qs_op = page.evaluate("Number(document.querySelector('.shade-qs').style.opacity)")
+            d_ok &= abs(qs_op - 1.0) < 1e-6  # getShadeContentAlpha(1) = 1
+            # D5: 通知段时钟在位（一段可见性已由 A/C 的面板 visible 间接覆盖）
+            clock_txt = page.evaluate("document.querySelector('.shade-clock').textContent || ''")
+            d_ok &= len(clock_txt) == 5 and ":" in clock_txt
+            evidence["checks"]["d_shade_tiles"] = {
+                "verdict": "PASS" if d_ok else "FAIL",
+                "wifi_initial": wifi_state,
+                "wifi_toggled": wifi_after,
+                "theme_after_dark_toggle": theme_after,
+                "scrim_opacity_at_full": scrim_op,
+                "qs_opacity_at_full": qs_op,
+                "clock": clock_txt,
+            }
+            print("[D shade]", "PASS" if d_ok else "FAIL",
+                  "wifi %s→%s theme=%s scrim=%.3f" % (wifi_state, wifi_after, theme_after, scrim_op))
+
             page.screenshot(path=os.path.join(REPO_ROOT, "docs", "shell-evidence.png"))
             browser.close()
     finally:

@@ -78,6 +78,26 @@ body {
   transition: opacity 0.2s linear;
 }
 
+/* ---------- shade scrim（全屏黑遮罩，alpha = motion.shade.scrim-alpha.map） ---------- */
+.shade-scrim {
+  position: absolute;
+  inset: 0;
+  background: #000;
+  opacity: 0;
+  pointer-events: none;
+  will-change: opacity;
+}
+
+/* ---------- shade scrim（全屏黑遮罩，alpha = motion.shade.scrim-alpha.map） ---------- */
+.shade-scrim {
+  position: absolute;
+  inset: 0;
+  background: #000;
+  opacity: 0;
+  pointer-events: none;
+  will-change: opacity;
+}
+
 /* ---------- 控制中心面板 ---------- */
 .qs-panel {
   position: absolute;
@@ -134,10 +154,10 @@ body {
   font-size: 13px;
   text-align: left;
   cursor: pointer;
-  transition: background 0.15s var(--px-ease-emphasized), transform 0.15s var(--px-ease-emphasized);
+  transition: background 0.15s var(--px-ease-emphasized);
 }
 .qs-tile:active {
-  transform: scale(0.97);
+  /* transform 位移由 tile-bounce spring 全权接管（qs-panel.ts），CSS 只负责高亮 */
   background: rgba(255, 255, 255, 0.1);
 }
 .qs-tile:disabled {
@@ -163,6 +183,117 @@ body {
 }
 .qs-tile-flash {
   background: rgba(168, 200, 255, 0.22);
+}
+
+/* ---------- 磁贴：三态（active/inactive/unavailable，AOSP QSTile 同族） ---------- */
+.qs-tile[data-state='active'] {
+  background: rgba(168, 200, 255, 0.18);
+  border-color: rgba(168, 200, 255, 0.45);
+}
+.qs-tile[data-state='active'] .qs-tile-dot {
+  background: var(--px-primary);
+  box-shadow: 0 0 6px rgba(168, 200, 255, 0.8);
+}
+.qs-tile[data-state='inactive'] .qs-tile-dot {
+  background: rgba(255, 255, 255, 0.25);
+}
+.qs-tile[data-state='unavailable'] {
+  opacity: 0.45;
+  cursor: default;
+}
+.qs-tile[data-state='unavailable'] .qs-tile-dot {
+  background: transparent;
+  border: 1.5px solid rgba(255, 255, 255, 0.3);
+}
+/* spring bounce 接管 transform 期间禁 CSS transition（防双重插值拖慢） */
+.qs-tile-bouncing {
+  transition: none !important;
+}
+
+/* ---------- 通知段（一段：progress [0→0.5]，self: 淡出曲线） ---------- */
+.shade-notif {
+  will-change: opacity, transform;
+}
+.shade-clock {
+  font-size: 52px;
+  font-weight: 300;
+  letter-spacing: 1px;
+  line-height: 1.1;
+  padding: 2px 4px 0;
+  font-variant-numeric: tabular-nums;
+}
+.shade-date {
+  font-size: 13px;
+  color: var(--px-on-surface-variant);
+  padding: 0 4px 12px;
+}
+.shade-notif-cards {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  padding: 0 4px 4px;
+}
+.shade-notif-card {
+  display: flex;
+  flex-direction: column;
+  gap: 3px;
+  padding: 12px 14px;
+  border-radius: var(--px-radius-md);
+  border: 1px solid var(--px-outline);
+  background: rgba(255, 255, 255, 0.05);
+  font-size: 13px;
+}
+.shade-notif-card-sub {
+  font-size: 10px;
+  color: var(--px-on-surface-variant);
+}
+.shade-notif-status {
+  font-size: 12px;
+  color: var(--px-on-surface-variant);
+}
+
+/* ---------- QS 段（二段：alpha = motion.shade.content-alpha.map） ---------- */
+.shade-qs {
+  will-change: opacity;
+}
+
+/* ---------- 亮色主题组（dark-mode 磁贴壳层换肤，html[data-shade-theme]） ---------- */
+html[data-shade-theme='light'] body {
+  --px-surface: #f2f3f7;
+  --px-surface-container: rgba(243, 244, 249, 0.94);
+  --px-on-surface: rgba(26, 27, 32, 0.92);
+  --px-on-surface-variant: rgba(26, 27, 32, 0.6);
+  --px-primary: #4a67c4;
+  --px-outline: rgba(26, 27, 32, 0.14);
+}
+html[data-shade-theme='light'] .qs-tile {
+  background: rgba(26, 27, 32, 0.05);
+}
+html[data-shade-theme='light'] .qs-tile[data-state='active'] {
+  background: rgba(74, 103, 196, 0.14);
+  border-color: rgba(74, 103, 196, 0.4);
+}
+html[data-shade-theme='light'] .qs-tile[data-state='inactive'] .qs-tile-dot {
+  background: rgba(26, 27, 32, 0.25);
+}
+html[data-shade-theme='light'] .qs-tile[data-state='unavailable'] .qs-tile-dot {
+  background: transparent;
+  border-color: rgba(26, 27, 32, 0.3);
+}
+html[data-shade-theme='light'] .shade-notif-card {
+  background: rgba(26, 27, 32, 0.05);
+}
+html[data-shade-theme='light'] .qs-handle {
+  background: rgba(26, 27, 32, 0.4);
+}
+html[data-shade-theme='light'] #bridge-status {
+  background: rgba(255, 255, 255, 0.6);
+}
+html[data-shade-theme='light'] .qs-tile-flash {
+  background: rgba(74, 103, 196, 0.18);
+}
+html[data-shade-theme='light'] .qs-feedback {
+  background: rgba(74, 103, 196, 0.1);
 }
 
 /* ---------- 桥接状态胶囊 ---------- */

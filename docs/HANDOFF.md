@@ -4,7 +4,7 @@
 
 # Pixel XXL · HANDOFF 结构化快照
 
-- **generated**: 2026-11-09 14:00+08:00（R135 窗收窗覆写 · Job 2933110 · 本窗 = #4 CI 双红修复（快环境竞态：pack-verify 百分比轮询 + boot-probe hint 条件断言）；R134 = 设计冻结复核审计 + 锚点定谳）
+- **generated**: 2026-11-09 16:00+08:00（R136 窗收窗覆写 · Job 2933110 · 本窗 = ② QS 磁贴 L2 化首批（#18 对照稿交付：shade 两段 + 六磁贴三态 + tile-bounce spring + SPEC token 代码化）；R135 = #4 CI 双红修复；R134 = 设计冻结复核审计 + 锚点定谳）
 - **⚠️ 本窗五度撞号实录（Job 2933040 本系列）**：同窗并行实例与本实例连续同号交叉——
   对侧连发 v1.04 资产包（36ec911）/v1.05 分片+CDN（17dbbd0）/v1.06 IDB+竞速（f904330），
   本方 v1.04 反馈层（4a7343c，tag 已推）/v1.05 合流（f7ed235+a9a1db1）/v1.06 三缺陷修复
@@ -20,7 +20,7 @@
   对方 v1.10 动画连贯性（4a181d3）——同号双树，功能面完全正交（本方 shell-src/、shell/ 产物、
   docs/SHELL.md、shell 系探针 × 对方 index 尾部 fps 块、sw.js、PORTING/MOBILE/ANALYSIS §2、
   anim/fps 探针），仅 docs/HANDOFF 覆写相撞（docs/ANALYSIS 自动合并成功），合流重滚 **v1.11** 防倒挂。
-- **head**: **v1.15 = #4 CI 双红修复（快环境竞态：pack-verify 百分比轮询采样 + boot-probe hint 条件断言）+ CI 触发面观测入坑（workflow_dispatch = 全量四 job 手动验证通道）**——上一版 v1.14 = DESIGN-SPEC 复核冻结 v1.0（76/76 审计 PASS）+ 锚点定谳 + 锚点治理议题（docs/DESIGN-SPEC-AUDIT.md + docs/design-spec-audit.json；#2 设计冻结登记）；再上 v1.13 = 设计规范 v1.0-draft + CI 双闸；再上 v1.12 = #4 CI 基线；再上 v1.11 = 八度撞号合流终树（对方动画 4a181d3 × 本方语言迁移 d32f5e9 并档；L0 忠实态零触碰 + fps 修复双双保留）
+- **head**: **v1.16 = ② QS 磁贴 L2 化首批（#18 对照稿交付）**：shade 两段模型（一段通知/二段 QS，scrim/content alpha = SPEC token 曲线逐字转录 md3 语料 ShadeInterpolation.kt，R136 重核零漂移）+ 首批六磁贴三态状态机（WLAN/蓝牙/手电筒/自动旋转/深色主题/飞行模式，壳层自持不写工程变量 L0）+ tile-bounce（vendored Spring，收敛阈值 = motion.spring.min-visible.scale）+ shade-tokens.ts（SPEC v1.0 token 代码化单一事实源）+ shell-probe 五通道（新增 D shade 场景）+ vitest 31 例——上一版 v1.15 = #4 CI 双红修复 + CI 触发面观测入坑（workflow_dispatch 全量通道，run 42573063532 绿灯确证）；再上 v1.14 = DESIGN-SPEC 复核冻结 v1.0；再上 v1.13 = 设计规范 v1.0-draft + CI 双闸；再上 v1.12 = #4 CI 基线；再上 v1.11 = 八度撞号合流终树
 - **上一窗 head 归档**：对方 v1.10 = 动画连贯性升级（4a181d3，tag v1.10）× 本方 v1.10 = #23 语言迁移（d32f5e9，未 tag，撞号让号并入 v1.11）；v1.08 = 六度撞号合流（46646d0b+81762208）；backup-v106-bfb 转归档
 - **本窗事故记录（#30 规则六首条外新增）**：开窗时误判 shell-src/ 为空白目录，在未盘点未跟踪遗留半成品（上一截断窗 08:01~08:11 的 motion/catalog/shell 组件）前先行写入，覆盖 package.json/package-lock/vite.config/tsconfig/index.html/bridge/runtime.ts 共 6 个文件——发现后按"旧版为主干恢复 + 新增作补充"合流，重建 3 个被覆盖文件（runtime.ts/index.html/配置），损失部分不可逆（旧 index.html/main 原始版未找回，按 style.css+qs-panel 引用面重建）；教训已入 #30 返工表
 - **基线核验**: v1.07 终树 pack-verify 五场景 PASS（A 同源竞速命中+IDB 写入+feedback 真实百分比/auto_hidden/vm=80、B 二访零请求 pack_source=idb、C 360 逐文件兜底、E SW 零网络+IDB 重写）；boot-feedback-probe 移动通道证据留下窗补跑（原注：
@@ -266,32 +266,29 @@ TurboWarp 单文件打包产物（57.4MB）→ **忠实多文件 Web 移植**（
 - **免认证 WebFetch 摘要有漏报风险**（R135 实测）：issues 列表摘要漏报 #2 新评论与
   schedule run——事实性断言（增量核查/状态判定）用认证 API + python 解析。
 
-## 下窗续点（R136）
+## 下窗续点（R137）
 
 0. **开窗入口已切换**：置顶议题 #2（SOP·铁律）+ #30 读完再动手闸门 + 本文件 +
    git log --oneline -5；认领登记按 #2 §一4（认领 + 预计版本号，后到者跳号 #3）；
-1. **② QS 磁贴 L2 化（设计冻结已解锁，R136 首选；R135 已完成引用面备料）**：#18 对照稿
-   三栏表 → 首批磁贴清单（Wi-Fi/蓝牙/手电筒/自动旋转/亮暗切换/飞行模式，开关态可切换 +
-   按压反馈），消费 SPEC v1.0 token（引用制生效）：面板 alpha 用 motion.shade.*
-  （scrim [0→0.5] / content [0.3→1.0] / f′=f×1.2−0.2+cos 曲线）、Header 过渡用
-   motion.qs.fade-*（帧 14/58、displacement 0.1066）、tile-bounce 走 spring
-   MIN_VISIBLE_CHANGE 族（1 / 1÷10 / 1÷256 / 1÷500）；语料：motion.shade.* +
-   motion.qs.fade-* + systemui-docs/quickaffordance.md；落点 = shell-src 新壳
-   （qs-panel.ts 现有 320/260ms/28px/420ms 等 8 处魔数 token 化或登记 self:/measured: +
-   tiles.ts 六磁贴 POC 升级），写通道只复用工程既有事件链（VMBridge catalog 对账）；
-   **新磁贴不新增 project.json 变量（L0），引擎联动仅限既有变量**；QS 网格 px 属
-   附注二留空项随动工实拉；
+1. **② QS 磁贴收尾与深化（R136 首批已交付，余项按序）**：
+   - 探针 D 场景补锁屏 unavailable 分支（先写「锁屏」=1 再断言 unavailable→解锁回落，
+     写通道纪律内）；
+   - motion.qs.fade-*（帧 14/58）落 L3 Header 过渡轮：本窗以 token 常量暴露未消费
+     （IIO 320/260ms 时间轴不匹配，SHELL.md §6.1 披露），消费须先证 1s 变形时间轴；
+   - #18 对照稿深化项：QS 网格 px（附注二留空项随动工实拉）/折叠态显示 N 个/
+     展开编辑页/长按磁贴详情；
+   - 面板高度长尾：12 磁贴后 QS 段超高需滚动窗（AOSP shade 语义）待实装；
 2. **③ app 开/关动画接 vendored 内核**：**对侧 2933040 动画工作面，继续避开**——
    除非对侧 #1 明示转交；API 形状 = shell-src/src/motion/ 出口；
 3. **锚点治理议题跟踪**：android-17.0.0_r1 可达性恢复时（镜像补全/用户侧 sources
    jar），按 SPEC 附注一纪律逐项回核 aosp: 值，有差异即修订 SPEC 并披露；
-4. **SPEC 附注二留空项补考**：SpringForce 劲度/阻尼（sources jar）· Launcher3
-   栅格 px（#13 对照稿）· QS 磁贴网格尺寸（#18 对照稿）——各自随议题动工实拉；
-5. 用户真机验收 v1.10 动画（60Hz 设备开/关动画是否顺滑；120Hz 设备应零变化）；
-   boot-feedback-probe 移动通道已入 CI 并修复（R135），真机复核仍以用户侧为准；
-6. **#4 CI 收尾**：R135 dispatch 全量绿灯确证后，持续观察 schedule boot-probe 与
-   shell-gates 时长漂移；regression-headless 入 CI 仍缓行（actions/cache 预热 57MB 原版
-   + 8081/8082 双服务，外部大文件依赖脆）；
+4. **SPEC 附注二留空项补考**：SpringForce 劲度/阻尼（sources jar；当前 tile-bounce
+   参数为 self: 手感值见 SHELL.md §6.3 账目）· Launcher3 栅格 px（#13 对照稿）·
+   QS 磁贴网格尺寸（#18 对照稿）——各自随议题动工实拉；
+5. 用户真机验收（60Hz 顺滑/120Hz 零变化 + /shell/ 面板两段手势手感与六磁贴反馈）；
+6. **#4 CI 收尾**：持续观察 schedule boot-probe 与 shell-gates 时长漂移；
+   regression-headless 入 CI 仍缓行（actions/cache 预热 57MB 原版 + 8081/8082 双服务，
+   外部大文件依赖脆）；
 7. **#31 方针持续执行**：测试发现的问题即修即录；无议题时自行批量立议题
    （填充内容类优先级最低）。
 
@@ -309,6 +306,7 @@ TurboWarp 单文件打包产物（57.4MB）→ **忠实多文件 Web 移植**（
 | v1.13 | Job 2933110（R133） | 设计规范 v1.0-draft（DESIGN-SPEC.md 69 token）+ CI 双闸（shell-gates job + catalog 对账闸） | 未 tag（docs/CI 面，零运行时；v1.09/v1.12 先例同律） |
 | v1.14 | Job 2933110（R134） | 设计冻结复核（76/76 审计 PASS + SPEC 固化 v1.0 + #2 冻结登记）+ 锚点定谳（android-17.0.0_r1 不可达）+ 锚点治理议题 | 未 tag（docs 面，零运行时；v1.09/v1.12/v1.13 先例同律） |
 | v1.15 | Job 2933110（R135） | #4 CI 双红修复（pack-verify 百分比轮询采样 + boot-probe hint 条件断言，快环境竞态同族根因）+ CI 触发面观测入坑（dispatch 全量通道） | 未 tag（scripts/CI 面，零运行时；v1.09/v1.12/v1.13/v1.14 先例同律） |
+| v1.16 | Job 2933110（R136） | ② QS 磁贴 L2 化首批（#18 对照稿交付：shade 两段 + 六磁贴三态 + tile-bounce spring + SPEC token 代码化 shade-tokens.ts + 探针 D 场景 + vitest 31 例） | 未 tag（shell-src 新壳面 + shell/ 产物，零根入口触碰；sw VERSION 保持 v1.11） |
 
 ## 议题索引（2026-11-08 · 新立 29 个议题 #2~#30（含 #30 读完再动手闸门），已回读核对 + #2 已置顶）
 
