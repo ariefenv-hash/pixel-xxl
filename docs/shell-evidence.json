@@ -1,5 +1,5 @@
 {
-  "time": "2026-11-09T08:25:24+0000",
+  "time": "2026-11-09T10:29:24+0000",
   "port": 8791,
   "checks": {
     "fidelity": {
@@ -43,7 +43,7 @@
     "b_bridge": {
       "verdict": "PASS",
       "initial_壁纸编号": "3",
-      "status": "桥接就绪（变量目录 94 项对账一致）· 磁贴写通道已启用"
+      "status": "桥接就绪 · 磁贴写通道已启用 · targets=21 threads=0 · pack=origin"
     },
     "c_qs_tiles": {
       "verdict": "PASS",
@@ -60,7 +60,15 @@
       "theme_after_dark_toggle": "light",
       "scrim_opacity_at_full": 1,
       "qs_opacity_at_full": 1,
-      "clock": "08:25"
+      "clock": "10:29",
+      "wifi_locked": "unavailable",
+      "flashlight_locked": "inactive",
+      "wifi_unlocked": "inactive",
+      "quick_row_count": 4,
+      "grid_after_quick_toggle": "active",
+      "detail_title": "WLAN",
+      "detail_btn": "关闭磁贴",
+      "wifi_after_detail_close": "inactive"
     }
   },
   "verdict": "PASS"

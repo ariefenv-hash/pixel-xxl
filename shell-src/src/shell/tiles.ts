@@ -198,6 +198,51 @@ export function renderToggleState(label: string, state: TileState): string {
   return `${label} · ${state === 'active' ? '开' : '关'}`;
 }
 
+/* ------- 折叠态磁贴行（#18 任务 1「折叠态显示 N 个」· R137） -------
+ * AOSP 语义：通知 shade 折叠段顶部常驻一行 QS 磁贴（QuickQSPanel 同构位），
+ * 二段展开显示全量网格。行内数量 N：SPEC 附注二留空项（SystemUI 原生资源
+ * 语料未入库——md3 语料树 1588 blob 实查无 QS 原生 dimens，R137 实查披露），
+ * 取 4 为壳层 self: 值（登记 docs/SHELL.md §6.3，防编造不标 aosp:）。
+ */
+/** 折叠态顶部磁贴行数量（self: 值） */
+export const QUICK_ROW_COUNT = 4;
+/** 折叠行磁贴 = 首批 toggle 磁贴前 N 个（与网格共享同一状态机实例） */
+export const QUICK_ROW_TILES: readonly TileDef[] = TOGGLE_TILES.slice(0, QUICK_ROW_COUNT);
+
+/* ------- 长按磁贴详情（#18 对照稿深化项 · R137） -------
+ * AOSP 语义：长按 QS 磁贴 → 磁贴详情对话框（标题 + 开关钮，Android 12+ 同构）。
+ * 长按阈值 400ms：framework ViewConfiguration 惯例值，语料未入库按 self: 登记
+ * （不标 aosp:，docs/SHELL.md §6.3）；工程内无设置页 → 详情卡不放设置入口
+ * （self: 裁剪，非 AOSP 原样）。文案为壳层演示语义（self:）。
+ */
+export interface TileDetailContent {
+  readonly title: string;
+  readonly status: string;
+  readonly body: string;
+  /** 是否提供「关闭磁贴」钮（toggle 磁贴；action/status 详情只读） */
+  readonly closable: boolean;
+}
+
+/** 详情卡说明文案（self: 壳层演示语义，非 AOSP 原文） */
+const TOGGLE_DETAIL_BODY =
+  '壳层自持三态磁贴：工程内无实体服务，状态由壳层状态机维护（docs/SHELL.md §6.2 披露）。';
+const ACTION_DETAIL_BODY = '工程联动磁贴：点击执行工程事件链（写变量 + 广播，catalog 对账纪律）。';
+const STATUS_DETAIL_BODY = '只读展示磁贴：随工程变量快照轮询刷新，无开关。';
+
+/** 磁贴详情卡内容（纯函数，vitest 直测） */
+export function describeTile(
+  def: TileDef,
+  render?: (values: Readonly<Record<string, string>>) => string,
+): TileDetailContent {
+  if (def.kind === 'toggle') {
+    return { title: def.label, status: '', body: TOGGLE_DETAIL_BODY, closable: true };
+  }
+  if (def.kind === 'action') {
+    return { title: def.label, status: render ? render({}) : '', body: ACTION_DETAIL_BODY, closable: false };
+  }
+  return { title: def.label, status: render ? render({}) : '', body: STATUS_DETAIL_BODY, closable: false };
+}
+
 /**
  * 启动期校验：磁贴引用的变量/广播必须存在于 catalog 且非空壳；
  * 广播必须确有接收者（防桥接语义写错名）。漂移 = 启动即抛（fail loud）。

@@ -4,7 +4,7 @@
 
 # Pixel XXL · HANDOFF 结构化快照
 
-- **generated**: 2026-11-09 16:00+08:00（R136 窗收窗覆写 · Job 2933110 · 本窗 = ② QS 磁贴 L2 化首批（#18 对照稿交付：shade 两段 + 六磁贴三态 + tile-bounce spring + SPEC token 代码化）；R135 = #4 CI 双红修复；R134 = 设计冻结复核审计 + 锚点定谳）
+- **generated**: 2026-11-09 18:00+08:00（R137 窗收窗覆写 · Job 2933110 · 本窗 = ② QS 磁贴收尾与深化第一批（#18：探针 D 锁屏分支 + 折叠态磁贴行 + 长按详情 + QS 段滚动窗 + 位移模型修正）；R136 = ② QS 磁贴 L2 化首批；R135 = #4 CI 双红修复）
 - **⚠️ 本窗五度撞号实录（Job 2933040 本系列）**：同窗并行实例与本实例连续同号交叉——
   对侧连发 v1.04 资产包（36ec911）/v1.05 分片+CDN（17dbbd0）/v1.06 IDB+竞速（f904330），
   本方 v1.04 反馈层（4a7343c，tag 已推）/v1.05 合流（f7ed235+a9a1db1）/v1.06 三缺陷修复
@@ -20,7 +20,7 @@
   对方 v1.10 动画连贯性（4a181d3）——同号双树，功能面完全正交（本方 shell-src/、shell/ 产物、
   docs/SHELL.md、shell 系探针 × 对方 index 尾部 fps 块、sw.js、PORTING/MOBILE/ANALYSIS §2、
   anim/fps 探针），仅 docs/HANDOFF 覆写相撞（docs/ANALYSIS 自动合并成功），合流重滚 **v1.11** 防倒挂。
-- **head**: **v1.16 = ② QS 磁贴 L2 化首批（#18 对照稿交付）**：shade 两段模型（一段通知/二段 QS，scrim/content alpha = SPEC token 曲线逐字转录 md3 语料 ShadeInterpolation.kt，R136 重核零漂移）+ 首批六磁贴三态状态机（WLAN/蓝牙/手电筒/自动旋转/深色主题/飞行模式，壳层自持不写工程变量 L0）+ tile-bounce（vendored Spring，收敛阈值 = motion.spring.min-visible.scale）+ shade-tokens.ts（SPEC v1.0 token 代码化单一事实源）+ shell-probe 五通道（新增 D shade 场景）+ vitest 31 例——上一版 v1.15 = #4 CI 双红修复 + CI 触发面观测入坑（workflow_dispatch 全量通道，run 42573063532 绿灯确证）；再上 v1.14 = DESIGN-SPEC 复核冻结 v1.0；再上 v1.13 = 设计规范 v1.0-draft + CI 双闸；再上 v1.12 = #4 CI 基线；再上 v1.11 = 八度撞号合流终树
+- **head**: **v1.17 = ② QS 磁贴收尾与深化第一批（#18）**：探针 D 场景补锁屏 unavailable 分支（写「锁屏」=1 → 网络类 unavailable + 手电筒可用 + 解锁恢复）+ 折叠态磁贴行 N=4（QuickQSPanel 同构位，与网格共享状态机）+ 长按磁贴详情（AOSP tile dialog 同构：400ms → 详情卡 + 开关钮 + 点 scrim 关）+ QS 段超高滚动窗（max-height + overflow-y auto）+ **面板位移两段模型修正**（p≤0.5 滑入贴顶/p>0.5 贴顶过渡——R136 恒定位移致通知段/clock 从未入视口，探针实测发现）+ tile-states 锁定语义修正（锁定→一律显示 unavailable 内部态保留；解锁→恢复先前选择，R136 缺口）+ vitest 39 例——上一版 v1.16 = ② QS 磁贴 L2 化首批（#18 对照稿交付：shade 两段 + 六磁贴三态 + tile-bounce spring + SPEC token 代码化）；再上 v1.15 = #4 CI 双红修复 + CI 触发面观测入坑；再上 v1.14 = DESIGN-SPEC 复核冻结 v1.0；再上 v1.13 = 设计规范 v1.0-draft + CI 双闸；再上 v1.12 = #4 CI 基线；再上 v1.11 = 八度撞号合流终树
 - **上一窗 head 归档**：对方 v1.10 = 动画连贯性升级（4a181d3，tag v1.10）× 本方 v1.10 = #23 语言迁移（d32f5e9，未 tag，撞号让号并入 v1.11）；v1.08 = 六度撞号合流（46646d0b+81762208）；backup-v106-bfb 转归档
 - **本窗事故记录（#30 规则六首条外新增）**：开窗时误判 shell-src/ 为空白目录，在未盘点未跟踪遗留半成品（上一截断窗 08:01~08:11 的 motion/catalog/shell 组件）前先行写入，覆盖 package.json/package-lock/vite.config/tsconfig/index.html/bridge/runtime.ts 共 6 个文件——发现后按"旧版为主干恢复 + 新增作补充"合流，重建 3 个被覆盖文件（runtime.ts/index.html/配置），损失部分不可逆（旧 index.html/main 原始版未找回，按 style.css+qs-panel 引用面重建）；教训已入 #30 返工表
 - **基线核验**: v1.07 终树 pack-verify 五场景 PASS（A 同源竞速命中+IDB 写入+feedback 真实百分比/auto_hidden/vm=80、B 二访零请求 pack_source=idb、C 360 逐文件兜底、E SW 零网络+IDB 重写）；boot-feedback-probe 移动通道证据留下窗补跑（原注：
@@ -134,6 +134,50 @@ TurboWarp 单文件打包产物（57.4MB）→ **忠实多文件 Web 移植**（
 - **状态**：SPEC 为 v1.0-draft 待 #8 评审冻结——冻结前不作为实现依据（#6 验收
   口径：评审通过后在交接议题登记「设计冻结」）。
   → **R134 已复核冻结，见下节。**
+
+## 本窗交付（v1.17 ② QS 磁贴收尾与深化第一批 · R137）
+
+- **探针 D 场景补锁屏 unavailable 分支（R137 续点 1 首项）**：写「锁屏」=1（工程既有变量，
+  写通道纪律内）→ 网络类磁贴 unavailable + 手电筒锁屏可用（惯例 self:）→ 解锁恢复。
+  **顺带定谳两处 R136 缺口（#31 即修即录）**：① tile-states 锁定语义——R136 只在
+  「无记录/已存 unavailable」两路判定，已 active 磁贴锁定时仍显示原态，且 unavailable
+  存储态无写入路径（死分支）；修正后锁定→一律显示 unavailable（内部态保留）、
+  解锁→恢复先前选择（贴近真实设备）；② 面板位移模型——R136 恒定位移
+  translateY(-(1-p)×105%) 在一段时露出面板底部，通知段/clock/折叠行从未入视口
+  （notifFade 淡出窗 [0.5→0.72] 与内容入视口窗错开）；修正为两段模型：p≤0.5 滑入段
+  （0.5 恰好贴顶）+ p>0.5 贴顶过渡，一段 = 通知面板贴顶全量可见（AOSP 语义），
+  探针 D7a 实断言 clock_top∈[0,844)。
+- **#18 对照稿深化项三项（R137 续点 1 交付面）**：① 折叠态磁贴行（任务 1
+  「折叠态显示 N 个」）＝通知段顶部常驻 N=4 磁贴行（QuickQSPanel 同构位；
+  **N 为 self: 值**——SPEC 附注二留空项，md3 语料树 1588 blob 实查无 SystemUI
+  原生 QS dimens，防编造不标 aosp:，实查披露）；与网格共享同一状态机
+  （toggle 双实例同刷，探针 D7 实断言折叠行点击→网格同步）；② 长按磁贴详情
+  （AOSP tile dialog 同构位）：pointerdown 400ms（framework 惯例值 self:）→
+  详情卡（标题/状态/说明/开关钮；action/status 详情只读；点击钮后 dialog 保持
+  打开文案实刷新；点 scrim 关；同磁贴尾随 click 吞用防竞态）；工程内无设置页 →
+  不放设置入口（self: 裁剪披露）；③ QS 段超高滚动窗（面板高度长尾）：
+  .shade-qs max-height min(56vh,460px) + overflow-y auto（self: 值，附注二
+  留空项不编造），探针 D9 computed 断言。
+- **QS 网格 px 实拉结论（R137 续点 4 随动工实拉项）**：md3 语料树 1588 blob
+  全量实查——SystemUI 原生 QS dimens/网格尺寸**不在语料**（仅 md3 ios-desktop
+  参考实现 + quickaffordance.md，按 #18 任务 3 只作数值参考不标 aosp:）→
+  SPEC 附注二留空项维持留空，折叠行 N/滚动窗高度按 self: 登记披露。
+- **探针/测试扩容（铁律三全过）**：vitest 39/39（tile-states 8 含 R137 修正 2 例 +
+  新 quick-row.spec 6 例：折叠行数量/成员/共享状态机前缀 + describeTile 三类磁贴
+  详情纯函数）；shell-probe 五通道 VERDICT: PASS（D 场景扩为 D1-D9：三态翻转/
+  换肤/token 曲线实值/锁屏 unavailable 分支/折叠行同步+一段可见性/长按详情闭环/
+  滚动窗，wifi 选择器加 .qs-grid 限定——折叠行同 id 实例共存后无限定选择器会命中
+  二段不可见的折叠行实例）；pack-verify 五场景 VERDICT: PASS（根入口零影响实证）；
+  tsc 零错 + check-inline-js 4/4。
+- **零根入口触碰声明**：diff = shell-src 五件（qs-panel/tile-states/tiles/style.css/
+  tests×2）+ shell 产物四件（index.html + assets 新 hash 对，旧 hash 对 git rm）+
+  scripts/shell-probe.py + docs（SHELL.md §6 披露扩容/HANDOFF/shell-evidence）。
+  sw VERSION 保持 v1.11（shell 页面不注册 SW）；L0 红线零触碰
+  （core/app/index.html/project.json/素材零 diff）；新 self: 值集中登记
+  SHELL.md §6.3（折叠行 N=4/长按 400ms/滚动窗 max-height/滑入段 105% 余量）。
+- **撞号协调**：v1.17 已于 #3 领号（id 6737312543）+ #1 认领帖（6737313021）先于动工；
+  开窗 fetch 对齐 origin/main = 913031f（v1.16，CI run 42586781425 全绿）；
+  #3 全量 9 条评论实读零撞号。
 
 ## 本窗交付（v1.15 #4 CI 双红修复 · R135）
 
@@ -266,31 +310,32 @@ TurboWarp 单文件打包产物（57.4MB）→ **忠实多文件 Web 移植**（
 - **免认证 WebFetch 摘要有漏报风险**（R135 实测）：issues 列表摘要漏报 #2 新评论与
   schedule run——事实性断言（增量核查/状态判定）用认证 API + python 解析。
 
-## 下窗续点（R137）
+## 下窗续点（R138）
 
 0. **开窗入口已切换**：置顶议题 #2（SOP·铁律）+ #30 读完再动手闸门 + 本文件 +
    git log --oneline -5；认领登记按 #2 §一4（认领 + 预计版本号，后到者跳号 #3）；
-1. **② QS 磁贴收尾与深化（R136 首批已交付，余项按序）**：
-   - 探针 D 场景补锁屏 unavailable 分支（先写「锁屏」=1 再断言 unavailable→解锁回落，
-     写通道纪律内）；
-   - motion.qs.fade-*（帧 14/58）落 L3 Header 过渡轮：本窗以 token 常量暴露未消费
+1. **② QS 磁贴继续（R137 已交：探针 D 锁屏分支/折叠行 N=4/长按详情/滚动窗/
+   位移模型修正，余项按序）**：
+   - #18 对照稿余项：QS 展开编辑页（磁贴重排/长按拖动）；
+   - motion.qs.fade-*（帧 14/58）落 L3 Header 过渡轮：token 常量已暴露未消费
      （IIO 320/260ms 时间轴不匹配，SHELL.md §6.1 披露），消费须先证 1s 变形时间轴；
-   - #18 对照稿深化项：QS 网格 px（附注二留空项随动工实拉）/折叠态显示 N 个/
-     展开编辑页/长按磁贴详情；
-   - 面板高度长尾：12 磁贴后 QS 段超高需滚动窗（AOSP shade 语义）待实装；
+   - 折叠行数 N 与 QS 网格 px 维持 SPEC 附注二留空（R137 实查：md3 语料树
+     1588 blob 无 SystemUI 原生 QS dimens，不编造；待用户侧 sources jar 渠道）；
 2. **③ app 开/关动画接 vendored 内核**：**对侧 2933040 动画工作面，继续避开**——
    除非对侧 #1 明示转交；API 形状 = shell-src/src/motion/ 出口；
 3. **锚点治理议题跟踪**：android-17.0.0_r1 可达性恢复时（镜像补全/用户侧 sources
    jar），按 SPEC 附注一纪律逐项回核 aosp: 值，有差异即修订 SPEC 并披露；
 4. **SPEC 附注二留空项补考**：SpringForce 劲度/阻尼（sources jar；当前 tile-bounce
    参数为 self: 手感值见 SHELL.md §6.3 账目）· Launcher3 栅格 px（#13 对照稿）·
-   QS 磁贴网格尺寸（#18 对照稿）——各自随议题动工实拉；
-5. 用户真机验收（60Hz 顺滑/120Hz 零变化 + /shell/ 面板两段手势手感与六磁贴反馈）；
+   QS 磁贴网格尺寸（#18 对照稿，R137 实查语料内无，维持留空）——各自随议题
+   动工实拉；
+5. 用户真机验收（60Hz 顺滑/120Hz 零变化 + /shell/ 面板两段手势 + 折叠行 +
+   长按详情与六磁贴反馈；R137 位移模型修正后一段通知贴顶体验重点看）；
 6. **#4 CI 收尾**：持续观察 schedule boot-probe 与 shell-gates 时长漂移；
    regression-headless 入 CI 仍缓行（actions/cache 预热 57MB 原版 + 8081/8082 双服务，
    外部大文件依赖脆）；
-7. **#31 方针持续执行**：测试发现的问题即修即录；无议题时自行批量立议题
-   （填充内容类优先级最低）。
+7. **#31 方针持续执行**：测试发现的问题即修即录（R137 实证：探针补测即定谳两处
+   R136 缺口并同窗修复）；无议题时自行批量立议题（填充内容类优先级最低）。
 
 ## 版本号登记表（#3 领号制 · 与 git tags 实测同步）
 
@@ -307,6 +352,7 @@ TurboWarp 单文件打包产物（57.4MB）→ **忠实多文件 Web 移植**（
 | v1.14 | Job 2933110（R134） | 设计冻结复核（76/76 审计 PASS + SPEC 固化 v1.0 + #2 冻结登记）+ 锚点定谳（android-17.0.0_r1 不可达）+ 锚点治理议题 | 未 tag（docs 面，零运行时；v1.09/v1.12/v1.13 先例同律） |
 | v1.15 | Job 2933110（R135） | #4 CI 双红修复（pack-verify 百分比轮询采样 + boot-probe hint 条件断言，快环境竞态同族根因）+ CI 触发面观测入坑（dispatch 全量通道） | 未 tag（scripts/CI 面，零运行时；v1.09/v1.12/v1.13/v1.14 先例同律） |
 | v1.16 | Job 2933110（R136） | ② QS 磁贴 L2 化首批（#18 对照稿交付：shade 两段 + 六磁贴三态 + tile-bounce spring + SPEC token 代码化 shade-tokens.ts + 探针 D 场景 + vitest 31 例） | 未 tag（shell-src 新壳面 + shell/ 产物，零根入口触碰；sw VERSION 保持 v1.11） |
+| v1.17 | Job 2933110（R137） | ② QS 磁贴收尾与深化第一批（#18：探针 D 锁屏分支 + 折叠行 N=4 + 长按详情 + QS 段滚动窗 + 位移两段模型修正 + tile-states 锁定语义修正 + vitest 39 例） | 未 tag（shell-src 新壳面 + shell/ 产物 + scripts 探针，零根入口触碰；sw VERSION 保持 v1.11） |
 
 ## 议题索引（2026-11-08 · 新立 29 个议题 #2~#30（含 #30 读完再动手闸门），已回读核对 + #2 已置顶）
 

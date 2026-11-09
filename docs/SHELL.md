@@ -112,6 +112,17 @@ refs=0 的变量 = 「声明但未使用」（用户「空壳」观察的第一�
   时间轴锚点，与本面板 IIO 320/260ms 时间轴不匹配，token 常量已暴露
   （shade-tokens.ts）留 L3 Header 过渡轮消费，不硬套（防编造时序）；
 - 通知段淡出曲线 [0.5→0.72] 线性 = self:（SPEC 无对应 token）；
+- **面板位移两段模型（R137 修正）**：p≤0.5 为滑入段（0.5 时恰好全落贴顶），
+  p>0.5 保持贴顶不动、仅内容过渡（通知淡出/QS 淡入）——AOSP 一段 shade =
+  通知面板贴顶全量可见。R136 恒定位移 translateY(-(1-p)×105%) 在一段时露出
+  的是面板底部（QS 尾部），通知段/clock 从未入视口（探针 D7a 实测发现，
+  #31 即修即录）；105% 滑出余量保留（self:）；
+- **折叠态磁贴行（#18 任务 1「折叠态显示 N 个」· R137）**：通知段顶部常驻
+  一行 N=4 磁贴（QuickQSPanel 同构位；N 为 self: 值——SPEC 附注二留空项，
+  md3 语料树 1588 blob 实查无 SystemUI 原生 QS dimens，防编造不标 aosp:）；
+  行磁贴与网格共享同一状态机（toggle 双实例同刷）；可见性随通知段
+  notifFade 曲线（一段全量可见、二段隐藏 = AOSP 语义；SPEC 无折叠行专用
+  token，复用通知段曲线按 self: 登记）；
 - 通知段内容为壳层演示语义（self:）：工程内无通知子系统（#18 现状口径），
   占位卡不声称 AOSP 通知面。
 
@@ -124,6 +135,18 @@ refs=0 的变量 = 「声明但未使用」（用户「空壳」观察的第一�
 - unavailable 触发面 = 锁屏只读联动（「锁屏」=1 → WLAN/蓝牙/自动旋转/飞行模式
   锁定；手电筒/深色主题始终可用）——**壳层模拟语义（self:）**，非 AOSP 原样
   （AOSP 锁屏磁贴为「点击请求解锁」；模拟器无解锁请求通道，三态简化披露于此）；
+- **锁定语义修正（R137，探针 D 场景补锁屏分支时发现，#31 即修即录）**：
+  R136 版只在「无记录」与「已存 unavailable」两路判定锁定，已 active/inactive
+  磁贴锁定时仍显示原态（缺口）；unavailable 存储态无写入路径（死分支）。
+  修正后：**锁定 → 一律显示 unavailable（内部态保留）；解锁 → 恢复内部态**
+  （无记录走 initial）——贴近真实设备「解锁后磁贴保持用户先前选择」；
+  探针 D6 实断言（锁 unavailable/手电筒可用/解锁恢复 inactive）；
+- **长按磁贴详情（#18 对照稿深化项 · R137）**：长按磁贴 400ms → 详情卡
+  （AOSP tile dialog 同构位：标题 + 开关钮；action/status 详情只读）；
+  点击开关钮后对话框保持打开且文案实刷新（AOSP 语义）；点 scrim 关卡；
+  长按阈值 400ms = framework ViewConfiguration 惯例值，语料未入库按 self:
+  登记（不标 aosp:）；工程内无设置页 → 详情卡不放设置入口（self: 裁剪）；
+  文案为壳层演示语义（self:）；
 - 深色主题磁贴副作用 = 壳层主题换肤（html[data-shade-theme] 切 style.css
   变量组，亮色变量组为 self: 值），零工程侵入；
 - **tile-bounce（按压反馈）** = vendored Spring 解析闭式解：
@@ -142,6 +165,10 @@ refs=0 的变量 = 「声明但未使用」（用户「空壳」观察的第一�
 | POLL_MS=500 / FEEDBACK_MS=4000 | qs-panel.ts | self: |
 | BOUNCE 参数（response 0.28s / ζ 0.55 / squash 0.92 / release v 1.6） | qs-panel.ts | self:（SpringForce 语料未入库，附注二留空项） |
 | 通知段淡出 [0.5→0.72] 线性 | qs-panel.ts notifFade | self: |
+| 折叠行 N=4 | tiles.ts QUICK_ROW_COUNT | self:（附注二留空项：语料无 QS 原生值，R137 实查披露） |
+| 长按阈值 400ms / 取消位移 8px | qs-panel.ts LONG_PRESS_MS | self:（framework 惯例值，语料未入库） |
+| QS 段滚动窗 max-height min(56vh, 460px) | style.css .shade-qs | self:（附注二留空项：语料无 QS 段高度 token） |
+| 滑入段位移 105% 余量（p≤0.5 线性×2） | qs-panel.ts syncDom | self:（R137 修正披露） |
 | 亮色主题变量组 | style.css | self: |
 | scrim/content/公式/0.1066/1÷500/14/58 | shade-tokens.ts | **SPEC token 引用**（aosp: 出处行内标注） |
 
@@ -162,8 +189,9 @@ refs=0 的变量 = 「声明但未使用」（用户「空壳」观察的第一�
   的宿主面与 md3 同律；
 - **app 开/关动画换装路线**：动画攻坚实例把 OPEN_PARAMS/CLOSE_PARAMS 与
   IIOAnimator 接到根入口运行时层时，API 形状即此处形状（零翻译成本）；
-- 契约测试：`npm test`（vitest，31 例 = spring 5 + interruptible 5 +
-  shade-tokens 15（SPEC token 曲线程序化断言）+ tile-states 6）；
+- 契约测试：`npm test`（vitest，39 例 = spring 5 + interruptible 5 +
+  shade-tokens 15（SPEC token 曲线程序化断言）+ tile-states 8（含 R137
+  锁定语义修正 2 例）+ quick-row 6（折叠行/详情纯函数））；
 
 ## 8. 已知边界与坑
 
@@ -194,7 +222,8 @@ npx vite build     # 产物 → ../shell/（Pages 双入口之二）
 
 - 新壳探针：`python3 scripts/shell-probe.py`（A 壳层骨架与桥接挂载 /
   B iframe 根入口加载与 vm 就绪 / C 磁贴动作写通道真实生效 /
-  D shade 两段 + 三态磁贴 + token 曲线实值，五通道 VERDICT）；
+  D shade 两段 + 三态磁贴 + token 曲线实值 + 锁屏 unavailable 分支（D6）
+  + 折叠行同步（D7）+ 长按详情闭环（D8）+ 滚动窗（D9），五通道 VERDICT）；
 - L0 回归不变：`python3 scripts/pack-verify.py` 五场景（新壳不改根，
   理论零影响，发版前后各跑一遍留证）；
 - 双版像素对比基线（regression-headless.py）只在 L0 路径强制（#23 任务 4）。

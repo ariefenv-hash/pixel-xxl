@@ -88,16 +88,6 @@ body {
   will-change: opacity;
 }
 
-/* ---------- shade scrim（全屏黑遮罩，alpha = motion.shade.scrim-alpha.map） ---------- */
-.shade-scrim {
-  position: absolute;
-  inset: 0;
-  background: #000;
-  opacity: 0;
-  pointer-events: none;
-  will-change: opacity;
-}
-
 /* ---------- 控制中心面板 ---------- */
 .qs-panel {
   position: absolute;
@@ -255,7 +245,87 @@ body {
 /* ---------- QS 段（二段：alpha = motion.shade.content-alpha.map） ---------- */
 .shade-qs {
   will-change: opacity;
+  /* 超高滚动窗（#18 面板高度长尾 · R137）：磁贴超一屏时 QS 段内滚（AOSP shade 语义）；
+     max-height 为 self: 值（SPEC 附注二留空项：语料无 QS 段高度 token，不编造） */
+  max-height: min(56vh, 460px);
+  overflow-y: auto;
 }
+
+/* ---------- 折叠态磁贴行（#18 任务 1「折叠态显示 N 个」· R137） ----------
+ * 通知 shade 顶部常驻一行 N=4 磁贴（QuickQSPanel 同构位，N 为 self: 值）；
+ * 可见性随通知段 notifFade 曲线（复用，SPEC 无折叠行专用 token，§6.3 登记）。 */
+.shade-quick-row {
+  display: flex;
+  gap: 8px;
+  padding: 0 4px 12px;
+}
+.shade-quick-row .qs-tile-mini {
+  flex: 1 1 0;
+  min-width: 0;
+  padding: 10px 8px;
+  min-height: 46px;
+  font-size: 11px;
+  flex-direction: column;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 6px;
+}
+.shade-quick-row .qs-tile-mini .qs-tile-text {
+  white-space: normal;
+  line-height: 1.2;
+  font-size: 11px;
+}
+
+/* ---------- 长按磁贴详情（AOSP tile dialog 同构位 · self: 文案） ---------- */
+.qs-detail-scrim {
+  position: absolute;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.55);
+  pointer-events: auto;
+}
+.qs-tile-detail {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  width: min(78vw, 300px);
+  padding: 18px 18px 16px;
+  border-radius: var(--px-radius-lg);
+  background: var(--px-surface-container);
+  border: 1px solid var(--px-outline);
+  box-shadow: 0 18px 48px rgba(0, 0, 0, 0.55);
+  pointer-events: auto;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+.qs-detail-title {
+  font-size: 15px;
+  font-weight: 500;
+}
+.qs-detail-status {
+  font-size: 12px;
+  color: var(--px-primary);
+}
+.qs-detail-body {
+  font-size: 11px;
+  line-height: 1.6;
+  color: var(--px-on-surface-variant);
+}
+.qs-detail-action {
+  margin-top: 4px;
+  padding: 10px 14px;
+  border-radius: 999px;
+  border: 0;
+  background: var(--px-primary);
+  color: var(--px-on-primary);
+  font: inherit;
+  font-size: 13px;
+  font-weight: 500;
+  cursor: pointer;
+}
+.qs-detail-action[hidden] { display: none; }
+.qs-detail-action[disabled] { opacity: 0.5; cursor: default; }
 
 /* ---------- 亮色主题组（dark-mode 磁贴壳层换肤，html[data-shade-theme]） ---------- */
 html[data-shade-theme='light'] body {
@@ -294,6 +364,9 @@ html[data-shade-theme='light'] .qs-tile-flash {
 }
 html[data-shade-theme='light'] .qs-feedback {
   background: rgba(74, 103, 196, 0.1);
+}
+html[data-shade-theme='light'] .qs-detail-scrim {
+  background: rgba(26, 27, 32, 0.35);
 }
 
 /* ---------- 桥接状态胶囊 ---------- */

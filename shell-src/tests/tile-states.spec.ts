@@ -2,7 +2,8 @@
  * tile-states.spec.ts — 三态磁贴状态机（L2 首批 · #18）
  *
  * 覆盖：active↔inactive 翻转、unavailable（锁屏只读联动）不切换且解锁回落、
- * onToggle 回调、resetTileStates 隔离。
+ * onToggle 回调、resetTileStates 隔离；R137 语义修正：锁定 → 一律显示
+ * unavailable（内部态保留），解锁 → 恢复内部态。
  */
 import { describe, it, expect, beforeEach } from 'vitest';
 import { getTileState, toggleTileState, resetTileStates } from '../src/shell/tile-states';
@@ -66,6 +67,21 @@ describe('toggle 三态状态机', () => {
     // unavailable 判定走只读通道（bridge 桩），须传入才会判定
     expect(toggleTileState('airplane', opts, fakeBridge({}))).toBe('unavailable');
     expect(calls).toEqual([]);
+  });
+
+  it('R137 修正：锁定显示 unavailable 且内部态保留，解锁恢复 active', () => {
+    const unlocked = fakeBridge({});
+    const locked = fakeBridge({ 锁屏: '1' });
+    toggleTileState('wifi', lockable, unlocked); // → active
+    expect(getTileState('wifi', lockable, locked)).toBe('unavailable'); // 锁定显示（不丢内部态）
+    expect(getTileState('wifi', lockable, unlocked)).toBe('active');   // 解锁恢复先前选择
+  });
+
+  it('R137 修正：锁定时点击不切换且不写内部态', () => {
+    const locked = fakeBridge({ 锁屏: '1' });
+    expect(toggleTileState('wifi', lockable, locked)).toBe('unavailable');
+    // 解锁后从初始态起步（锁定期间零写入）
+    expect(getTileState('wifi', lockable, fakeBridge({}))).toBe('inactive');
   });
 
   it('resetTileStates 清空壳层自持态（工程 reload 不残留）', () => {

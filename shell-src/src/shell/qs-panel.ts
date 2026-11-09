@@ -28,7 +28,13 @@ import { createFrameDriver, InterruptibleInOutAnimator, Spring, makeSpringParams
 // @ts-ignore —— vendored JS
 import { EMPHASIZED } from '../motion/md3/aosp/interpolators.js';
 import type { VMBridge } from '../bridge/runtime';
-import { TILES, validateTilesAgainstCatalog, renderToggleState } from './tiles';
+import {
+  TILES,
+  validateTilesAgainstCatalog,
+  renderToggleState,
+  QUICK_ROW_TILES,
+  describeTile,
+} from './tiles';
 import type { TileDef } from './tiles';
 import { resetTileStates, getTileState, toggleTileState } from './tile-states';
 import {
@@ -47,6 +53,10 @@ const POLL_MS = 500; // self:
 export const GRAB_STRIP_H = 28; // self:
 /** 动作反馈行淡出延时 */
 const FEEDBACK_MS = 4000; // self:
+/** 长按磁贴详情阈值（self:：framework ViewConfiguration 惯例值，语料未入库不标 aosp:） */
+const LONG_PRESS_MS = 400; // self:
+/** 长按取消位移（px，超此值视为滚动意图取消详情） */
+const LONG_PRESS_CANCEL_PX = 8; // self:
 /** bounce spring 参数（self: 手感值；response 秒 / ζ 阻尼比 / 点击释放初速度） */
 const BOUNCE_RESPONSE_S = 0.28;
 const BOUNCE_DAMPING_RATIO = 0.55;
@@ -65,6 +75,14 @@ export class QsPanel {
   private readonly headerSource: HTMLElement;
   private readonly clockText: HTMLElement;
   private readonly dateText: HTMLElement;
+  private readonly detailScrim: HTMLElement;
+  private readonly detailCard: HTMLElement;
+  private readonly detailTitle: HTMLElement;
+  private readonly detailStatus: HTMLElement;
+  private readonly detailBody: HTMLElement;
+  private readonly detailAction: HTMLButtonElement;
+  /** 详情卡当前来源磁贴（null = 关闭；长按后同磁贴 click 吞用） */
+  private detailOpenFor: HTMLElement | null = null;
   private readonly animator: InterruptibleInOutAnimator;
   private readonly driver = createFrameDriver();
   private lease: { stop(): void } | null = null;
@@ -133,14 +151,17 @@ export class QsPanel {
     this.headerSource.textContent = 'DOM 壳层 · 桥接 TurboWarp 运行时';
     header.append(this.headerTitle, this.headerSource);
 
-    // 通知段（一段：progress 0→0.5 可见）
+    // 通知段（一段：progress 0→0.5 可见；顶部含折叠态磁贴行 = #18 任务 1）
     this.notifSection = document.createElement('div');
     this.notifSection.className = 'shade-notif';
+    const quickRow = document.createElement('div');
+    quickRow.className = 'shade-quick-row';
+    for (const def of QUICK_ROW_TILES) quickRow.appendChild(this.buildTile(def, 'mini'));
     this.clockText = document.createElement('div');
     this.clockText.className = 'shade-clock';
     this.dateText = document.createElement('div');
     this.dateText.className = 'shade-date';
-    this.notifSection.append(this.clockText, this.dateText, this.buildNotifCards());
+    this.notifSection.append(quickRow, this.clockText, this.dateText, this.buildNotifCards());
 
     // QS 段（二段：progress 0.5→1.0 渐显，alpha = content-alpha.map 曲线）
     this.qsSection = document.createElement('div');
@@ -155,6 +176,33 @@ export class QsPanel {
     this.feedback.className = 'qs-feedback';
     this.feedback.hidden = true;
 
+    // 长按磁贴详情（#18 对照稿深化项：AOSP tile dialog 同构位，self: 文案）
+    this.detailScrim = document.createElement('div');
+    this.detailScrim.className = 'qs-detail-scrim';
+    this.detailScrim.hidden = true;
+    this.detailScrim.addEventListener('click', () => this.closeTileDetail());
+    this.detailCard = document.createElement('div');
+    this.detailCard.className = 'qs-tile-detail';
+    this.detailCard.setAttribute('role', 'dialog');
+    this.detailCard.hidden = true;
+    this.detailTitle = document.createElement('div');
+    this.detailTitle.className = 'qs-detail-title';
+    this.detailStatus = document.createElement('div');
+    this.detailStatus.className = 'qs-detail-status';
+    this.detailBody = document.createElement('div');
+    this.detailBody.className = 'qs-detail-body';
+    this.detailAction = document.createElement('button');
+    this.detailAction.type = 'button';
+    this.detailAction.className = 'qs-detail-action';
+    this.detailAction.addEventListener('click', () => {
+      const def = this.detailActionDef;
+      if (!def?.toggle) return;
+      toggleTileState(def.id, def.toggle, this.bridge);
+      this.refreshToggleTile(def);
+      this.syncDetailDom(def); // AOSP dialog 语义：点击开关后对话框保持打开、文案实刷新
+    });
+    this.detailCard.append(this.detailTitle, this.detailStatus, this.detailBody, this.detailAction);
+
     this.panel.append(header, this.notifSection, this.qsSection, this.feedback);
 
     this.strip = document.createElement('div');
@@ -165,7 +213,7 @@ export class QsPanel {
     handle.className = 'qs-handle';
     this.strip.appendChild(handle);
 
-    this.root.append(this.scrim, this.panel, this.strip);
+    this.root.append(this.scrim, this.panel, this.strip, this.detailScrim, this.detailCard);
 
     // ---- 动画：连续打断内核（vendored md3） ----
     this.animator = new InterruptibleInOutAnimator({
@@ -232,10 +280,13 @@ export class QsPanel {
 
   /* ---------------- 磁贴 ---------------- */
 
-  private buildTile(def: TileDef): HTMLElement {
+  /** 详情卡当前磁贴定义（action 钮消费） */
+  private detailActionDef: TileDef | null = null;
+
+  private buildTile(def: TileDef, variant: 'grid' | 'mini' = 'grid'): HTMLElement {
     const el = document.createElement('button');
     el.type = 'button';
-    el.className = 'qs-tile';
+    el.className = variant === 'mini' ? 'qs-tile qs-tile-mini' : 'qs-tile';
     el.dataset.tileId = def.id;
     el.setAttribute('aria-label', def.label);
 
@@ -246,21 +297,19 @@ export class QsPanel {
     el.append(dot, text);
 
     if (def.kind === 'toggle' && def.toggle) {
-      el.addEventListener('click', () => this.onToggleClick(def, el));
-      this.refreshToggleTile(def, el);
-    } else if (def.kind === 'action' && def.apply) {
+      this.bindLongPress(def, el);
       el.addEventListener('click', () => {
+        if (this.detailOpenFor === el) return; // 长按已开详情：吞掉同磁贴尾随 click
+        this.onToggleClick(def, el);
+      });
+      this.refreshToggleTile(def);
+    } else if (def.kind === 'action' && def.apply) {
+      this.bindLongPress(def, el);
+      el.addEventListener('click', () => {
+        if (this.detailOpenFor === el) return; // 同上
         const feedback = def.apply!(this.bridge);
         // 反馈独立成行（不再覆盖磁贴文本）；空反馈不占位
-        if (feedback) {
-          this.feedback.textContent = feedback;
-          this.feedback.hidden = false;
-          if (this.feedbackTimer !== null) window.clearTimeout(this.feedbackTimer);
-          this.feedbackTimer = window.setTimeout(() => {
-            this.feedback.hidden = true;
-            this.feedbackTimer = null;
-          }, FEEDBACK_MS);
-        }
+        if (feedback) this.showFeedback(feedback);
         this.bounce(el);
         // 动作后立即刷一次只读磁贴（不等下个轮询拍）
         this.refreshTiles();
@@ -276,30 +325,102 @@ export class QsPanel {
 
   private onToggleClick(def: TileDef, el: HTMLElement): void {
     if (!def.toggle) return;
-    const before = el.dataset.state;
+    const before = getTileState(def.id, def.toggle, this.bridge);
     const state = toggleTileState(def.id, def.toggle, this.bridge);
     if (state === 'unavailable') {
-      // 不可用反馈（独立反馈行，磁贴态不变）
-      this.feedback.textContent = `${def.label}：当前不可用（锁屏中）`;
-      this.feedback.hidden = false;
-      if (this.feedbackTimer !== null) window.clearTimeout(this.feedbackTimer);
-      this.feedbackTimer = window.setTimeout(() => {
-        this.feedback.hidden = true;
-        this.feedbackTimer = null;
-      }, FEEDBACK_MS);
+      // 不可用反馈（独立反馈行，磁贴态不变，内部态零写入）
+      this.showFeedback(`${def.label}：当前不可用（锁屏中）`);
       this.bounce(el);
       return;
     }
-    this.refreshToggleTile(def, el);
+    this.refreshToggleTile(def); // 折叠行 + 网格同刷（共享同一状态机）
     if (before !== state) this.bounce(el);
   }
 
-  private refreshToggleTile(def: TileDef, el: HTMLElement): void {
+  /** 反馈行（独立行，4s 淡出；多处消费：action 文案 / unavailable 提示） */
+  private showFeedback(text: string): void {
+    this.feedback.textContent = text;
+    this.feedback.hidden = false;
+    if (this.feedbackTimer !== null) window.clearTimeout(this.feedbackTimer);
+    this.feedbackTimer = window.setTimeout(() => {
+      this.feedback.hidden = true;
+      this.feedbackTimer = null;
+    }, FEEDBACK_MS);
+  }
+
+  /** 刷新一个 toggle 磁贴的全部实例（折叠行 + 网格；共享同一状态机） */
+  private refreshToggleTile(def: TileDef): void {
     if (!def.toggle) return;
     const state = getTileState(def.id, def.toggle, this.bridge);
-    el.dataset.state = state;
-    const text = el.querySelector<HTMLElement>('.qs-tile-text');
-    if (text) text.textContent = renderToggleState(def.label, state);
+    for (const el of this.root.querySelectorAll<HTMLElement>(`.qs-tile[data-tile-id="${def.id}"]`)) {
+      el.dataset.state = state;
+      const text = el.querySelector<HTMLElement>('.qs-tile-text');
+      if (text) text.textContent = renderToggleState(def.label, state);
+    }
+  }
+
+  /* ---------------- 长按磁贴详情（#18 对照稿深化项 · R137） ---------------- */
+
+  /**
+   * 长按 → 详情卡（AOSP tile dialog 同构位）。
+   * 时序：pointerdown 起 400ms（self:）计时；up/cancel/位移超阈提前取消；
+   * 到时开卡并记录来源磁贴（同磁贴尾随 click 吞用——防快按长按边缘竞态）。
+   */
+  private bindLongPress(def: TileDef, el: HTMLElement): void {
+    let timer: number | null = null;
+    let downY = 0;
+    const disarm = (): void => {
+      if (timer !== null) {
+        window.clearTimeout(timer);
+        timer = null;
+      }
+    };
+    el.addEventListener('pointerdown', (e) => {
+      disarm();
+      downY = e.clientY;
+      timer = window.setTimeout(() => {
+        timer = null;
+        this.detailOpenFor = el;
+        this.openTileDetail(def);
+      }, LONG_PRESS_MS);
+    });
+    el.addEventListener('pointermove', (e) => {
+      if (Math.abs(e.clientY - downY) > LONG_PRESS_CANCEL_PX) disarm();
+    });
+    el.addEventListener('pointerup', disarm);
+    el.addEventListener('pointercancel', disarm);
+    el.addEventListener('pointerleave', disarm);
+  }
+
+  /** 详情卡 DOM 同步（open 与 action 钮点击后共用；AOSP dialog 点击后保持打开） */
+  private syncDetailDom(def: TileDef): void {
+    const detail = describeTile(def, (v) => def.render ? def.render(v) : '');
+    this.detailTitle.textContent = detail.title;
+    this.detailBody.textContent = detail.body;
+    this.detailActionDef = def;
+    if (def.kind === 'toggle' && def.toggle) {
+      const state = getTileState(def.id, def.toggle, this.bridge);
+      this.detailStatus.textContent = renderToggleState(def.label, state);
+      this.detailAction.hidden = false;
+      this.detailAction.textContent = state === 'active' ? '关闭磁贴' : '打开磁贴';
+      this.detailAction.disabled = state === 'unavailable';
+    } else {
+      this.detailStatus.textContent = detail.status || def.label;
+      this.detailAction.hidden = true; // action/status 详情只读
+    }
+  }
+
+  private openTileDetail(def: TileDef): void {
+    this.syncDetailDom(def);
+    this.detailScrim.hidden = false;
+    this.detailCard.hidden = false;
+  }
+
+  private closeTileDetail(): void {
+    this.detailOpenFor = null;
+    this.detailActionDef = null;
+    this.detailScrim.hidden = true;
+    this.detailCard.hidden = true;
   }
 
   /** tile-bounce（按压反馈）：vendored Spring 解析闭式解，收敛阈值 = min-visible.scale */
@@ -341,12 +462,12 @@ export class QsPanel {
 
   private refreshTiles(): void {
     for (const def of TILES) {
-      const el = this.root.querySelector<HTMLElement>(`.qs-tile[data-tile-id="${def.id}"]`);
-      if (!el) continue;
       if (def.kind === 'toggle' && def.toggle) {
-        this.refreshToggleTile(def, el);
+        this.refreshToggleTile(def); // 全实例刷（折叠行 + 网格）
         continue;
       }
+      const el = this.root.querySelector<HTMLElement>(`.qs-tile[data-tile-id="${def.id}"]`);
+      if (!el) continue;
       if (!def.render) continue;
       const text = el.querySelector<HTMLElement>('.qs-tile-text');
       if (text) text.textContent = def.render(this.snapshotSync(def));
@@ -390,8 +511,14 @@ export class QsPanel {
     this.scrim.style.opacity = String(getNotificationScrimAlpha(progress));
     this.scrim.style.visibility = progress <= 0.001 ? 'hidden' : 'visible';
 
-    // 面板位移（1 = 完全展开；0 = 收起于屏外）
-    const pct = Math.round((1 - progress) * 105);
+    // 面板位移（两段 shade 位移模型 · R137 修正）：p≤0.5 为滑入段（0.5 时恰好
+    // 全落贴顶），p>0.5 保持贴顶不动、仅内容过渡（通知淡出/QS 淡入）——
+    // AOSP 一段 shade = 通知面板贴顶全量可见。
+    // #31 即修即录（探针 D7 外视口实测发现）：R136 恒定位移 translateY(-(1-p)*105)
+    // 在一段时露出的是面板**底部**（QS 尾部），通知段/clock/折叠行从未入视口
+    // （notifFade 淡出窗 [0.5→0.72] 与内容入视口窗错开，clock 实际不可见）。
+    const slide = Math.min(1, progress * 2);
+    const pct = Math.round((1 - slide) * 105);
     this.panel.style.transform = `translateY(-${pct}%)`;
     this.panel.style.visibility = progress <= 0.001 ? 'hidden' : 'visible';
 
@@ -503,5 +630,16 @@ export class QsPanel {
   /** 供探针断言：面板是否处于在飞（非 settled） */
   get animating(): boolean {
     return !this.animator.isSettled();
+  }
+
+  /**
+   * 探针/自动化专用：瞬置展开分数（setProgress + syncDom，不动轮询租约）。
+   * 消费面：D 场景折叠行交互（折叠行随通知段 notifFade 曲线，一段才可见——
+   * AOSP 语义；探针需先拉回一段再点折叠行磁贴）。非交互入口，不供业务调用。
+   */
+  setProgressForProbe(progress: number): void {
+    const p = Math.max(0, Math.min(1, progress));
+    this.animator.setProgress(p);
+    this.syncDom(p);
   }
 }

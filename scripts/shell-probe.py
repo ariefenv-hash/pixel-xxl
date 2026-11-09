@@ -190,21 +190,22 @@ def main():
             d_ok &= page.evaluate("document.querySelector('.shade-scrim') !== null")
             d_ok &= page.evaluate("document.querySelector('.shade-clock') !== null")
             d_ok &= page.evaluate("document.querySelector('.shade-qs') !== null")
-            # D2: 六磁贴三态可切换（wifi inactive→active→inactive）
+            # D2: 六磁贴三态可切换（wifi inactive→active→inactive；网格限定——
+            #     R137 起折叠行同 id 实例共存，无限定选择器会命中二段不可见的折叠行）
             wifi_state = page.evaluate(
-                "document.querySelector(\".qs-tile[data-tile-id='wifi']\").dataset.state"
+                "document.querySelector(\".qs-grid .qs-tile[data-tile-id='wifi']\").dataset.state"
             )
             d_ok &= wifi_state == "inactive"
-            page.click(".qs-tile[data-tile-id='wifi']")
+            page.click(".qs-grid .qs-tile[data-tile-id='wifi']")
             page.wait_for_timeout(200)
             wifi_after = page.evaluate(
-                "document.querySelector(\".qs-tile[data-tile-id='wifi']\").dataset.state"
+                "document.querySelector(\".qs-grid .qs-tile[data-tile-id='wifi']\").dataset.state"
             )
             d_ok &= wifi_after == "active"
-            page.click(".qs-tile[data-tile-id='wifi']")
+            page.click(".qs-grid .qs-tile[data-tile-id='wifi']")
             page.wait_for_timeout(200)
             d_ok &= page.evaluate(
-                "document.querySelector(\".qs-tile[data-tile-id='wifi']\").dataset.state"
+                "document.querySelector(\".qs-grid .qs-tile[data-tile-id='wifi']\").dataset.state"
             ) == "inactive"
             # D3: dark-mode 磁贴 → 壳层换肤（html[data-shade-theme]）真实副作用
             page.click(".qs-tile[data-tile-id='dark-mode']")
@@ -222,6 +223,86 @@ def main():
             # D5: 通知段时钟在位（一段可见性已由 A/C 的面板 visible 间接覆盖）
             clock_txt = page.evaluate("document.querySelector('.shade-clock').textContent || ''")
             d_ok &= len(clock_txt) == 5 and ":" in clock_txt
+            # D6: 锁屏 unavailable 分支（R137 续点 1 交付面）：写「锁屏」=1（工程既有
+            #     变量、写通道纪律内）→ 网络类 unavailable；手电筒/深色主题始终可用；
+            #     解锁 → wifi 恢复 inactive（R137 语义修正：内部态保留，解锁恢复先前选择）
+            page.evaluate("window.__PIXEL_SHELL.bridge.setVar('锁屏','1')")
+            page.wait_for_timeout(700)  # > 轮询 500ms 一拍
+            wifi_locked = page.evaluate(
+                "document.querySelector(\".qs-grid .qs-tile[data-tile-id='wifi']\").dataset.state"
+            )
+            d_ok &= wifi_locked == "unavailable"
+            flash_locked = page.evaluate(
+                "document.querySelector(\".qs-grid .qs-tile[data-tile-id='flashlight']\").dataset.state"
+            )
+            d_ok &= flash_locked != "unavailable"  # 锁屏手电筒可用（惯例，self:）
+            page.evaluate("window.__PIXEL_SHELL.bridge.setVar('锁屏','0')")
+            page.wait_for_timeout(700)
+            wifi_unlocked = page.evaluate(
+                "document.querySelector(\".qs-grid .qs-tile[data-tile-id='wifi']\").dataset.state"
+            )
+            d_ok &= wifi_unlocked == "inactive"
+            # D7: 折叠态磁贴行（#18 任务 1「折叠态显示 N 个」· R137）：N=4 + 网格状态同步。
+            #     折叠行随通知段 notifFade 曲线（一段可见、二段隐藏 = AOSP 语义），
+            #     先探针瞬置拉回一段（progress=0.3）再交互。
+            #     D7a: 一段可见性实断言（R137 位移模型修正的验收面：一段全量位
+            #     progress=0.5 时面板恰好贴顶，通知段时钟真实入视口）
+            page.evaluate("window.__PIXEL_SHELL.panel.setProgressForProbe(0.5)")
+            page.wait_for_timeout(200)
+            clock_top = page.evaluate(
+                "document.querySelector('.shade-clock').getBoundingClientRect().top"
+            )
+            d_ok &= 0 <= clock_top < 844  # 一段全量位时钟真实入视口（位移模型修正）
+            quick_count = page.evaluate(
+                "document.querySelectorAll('.shade-quick-row .qs-tile').length"
+            )
+            d_ok &= quick_count == 4
+            page.evaluate("window.__PIXEL_SHELL.panel.setProgressForProbe(0.5)")
+            page.wait_for_timeout(200)
+            page.click(".shade-quick-row .qs-tile[data-tile-id='wifi']")
+            page.wait_for_timeout(200)
+            grid_after_quick = page.evaluate(
+                "document.querySelector(\".qs-grid .qs-tile[data-tile-id='wifi']\").dataset.state"
+            )
+            d_ok &= grid_after_quick == "active"  # 折叠行/网格共享同一状态机
+            page.evaluate("window.__PIXEL_SHELL.panel.setProgressForProbe(1)")
+            page.wait_for_timeout(200)
+            # D8: 长按磁贴详情（AOSP tile dialog 同构位）：pointerdown 400ms → 详情卡
+            #     出现 → 「关闭磁贴」钮 → 磁贴 inactive（网格同步）→ 点 scrim 关卡
+            page.evaluate(
+                "document.querySelector(\".qs-grid .qs-tile[data-tile-id='wifi']\")"
+                ".dispatchEvent(new PointerEvent('pointerdown', {pointerId: 9, bubbles: true}))"
+            )
+            page.wait_for_timeout(520)
+            detail_visible = page.evaluate(
+                "!document.querySelector('.qs-tile-detail').hidden"
+            )
+            d_ok &= detail_visible
+            detail_title = page.evaluate(
+                "document.querySelector('.qs-detail-title')?.textContent || ''"
+            )
+            d_ok &= detail_title == "WLAN"
+            btn_txt = page.evaluate(
+                "document.querySelector('.qs-detail-action')?.textContent || ''"
+            )
+            d_ok &= "关闭" in btn_txt
+            page.click(".qs-tile-detail .qs-detail-action")
+            page.wait_for_timeout(200)
+            wifi_after_close = page.evaluate(
+                "document.querySelector(\".qs-grid .qs-tile[data-tile-id='wifi']\").dataset.state"
+            )
+            d_ok &= wifi_after_close == "inactive"
+            d_ok &= page.evaluate(
+                "(document.querySelector('.qs-detail-status')?.textContent || '').includes('关')"
+            )  # dialog 保持打开且文案实刷新（AOSP 语义）
+            # 点 scrim 关卡（点卡片外空白区——卡片居中，scrim 默认中心点会被卡体拦截）
+            page.click(".qs-detail-scrim", position={"x": 20, "y": 780})
+            page.wait_for_timeout(150)
+            d_ok &= page.evaluate("document.querySelector('.qs-tile-detail').hidden")
+            # D9: QS 段超高滚动窗（#18 面板高度长尾 · R137）：overflow-y = auto
+            d_ok &= page.evaluate(
+                "getComputedStyle(document.querySelector('.shade-qs')).overflowY === 'auto'"
+            )
             evidence["checks"]["d_shade_tiles"] = {
                 "verdict": "PASS" if d_ok else "FAIL",
                 "wifi_initial": wifi_state,
@@ -230,9 +311,19 @@ def main():
                 "scrim_opacity_at_full": scrim_op,
                 "qs_opacity_at_full": qs_op,
                 "clock": clock_txt,
+                "wifi_locked": wifi_locked,
+                "flashlight_locked": flash_locked,
+                "wifi_unlocked": wifi_unlocked,
+                "quick_row_count": quick_count,
+                "grid_after_quick_toggle": grid_after_quick,
+                "detail_title": detail_title,
+                "detail_btn": btn_txt,
+                "wifi_after_detail_close": wifi_after_close,
             }
             print("[D shade]", "PASS" if d_ok else "FAIL",
-                  "wifi %s→%s theme=%s scrim=%.3f" % (wifi_state, wifi_after, theme_after, scrim_op))
+                  "wifi %s→%s theme=%s scrim=%.3f lock:%s/%s→%s quick=%s detail=%s" % (
+                      wifi_state, wifi_after, theme_after, scrim_op,
+                      wifi_locked, flash_locked, wifi_unlocked, quick_count, detail_title))
 
             page.screenshot(path=os.path.join(REPO_ROOT, "docs", "shell-evidence.png"))
             browser.close()
