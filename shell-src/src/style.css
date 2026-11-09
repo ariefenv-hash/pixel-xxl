@@ -107,13 +107,19 @@ body {
   pointer-events: auto;
   will-change: transform;
 }
+/* header 双态叠放（L3 Header 过渡轮 · R139）：grid 同格叠放，alpha 驱动可见性，
+   高度取双态最大值（同构内容等高）；空窗期双态皆隐不塌陷 */
 .qs-header {
+  display: grid;
+  margin: 2px 4px 14px;
+}
+.qs-header-state {
+  grid-area: 1 / 1;
   display: flex;
   align-items: baseline;
   justify-content: space-between;
-  margin: 2px 4px 14px;
 }
-.qs-header > span:first-child {
+.qs-header-state > span:first-child {
   font-size: 15px;
   font-weight: 500;
   letter-spacing: 0.5px;

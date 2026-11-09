@@ -1,5 +1,5 @@
 {
-  "time": "2026-11-09T16:33:32+0000",
+  "time": "2026-11-09T20:14:48+0000",
   "port": 8791,
   "checks": {
     "fidelity": {
@@ -43,7 +43,7 @@
     "b_bridge": {
       "verdict": "PASS",
       "initial_壁纸编号": "3",
-      "status": "桥接就绪 · 磁贴写通道已启用 · targets=21 threads=0 · pack=origin"
+      "status": "桥接就绪（变量目录 94 项对账一致）· 磁贴写通道已启用"
     },
     "c_qs_tiles": {
       "verdict": "PASS",
@@ -63,6 +63,16 @@
       "order_restored": true,
       "quick_row_restored_first": "wifi"
     },
+    "d11_header_transition": {
+      "verdict": "PASS",
+      "old_alpha_at_005": 0.530957,
+      "new_hidden_at_005": true,
+      "old_alpha_at_gate_01066": 0,
+      "gap_both_hidden": true,
+      "new_alpha_at_05": 0.104539,
+      "new_alpha_at_1": 1,
+      "old_restored_after_reverse": true
+    },
     "d_shade_tiles": {
       "verdict": "PASS",
       "wifi_initial": "inactive",
@@ -70,7 +80,7 @@
       "theme_after_dark_toggle": "light",
       "scrim_opacity_at_full": 1,
       "qs_opacity_at_full": 1,
-      "clock": "16:34",
+      "clock": "20:15",
       "wifi_locked": "unavailable",
       "flashlight_locked": "inactive",
       "wifi_unlocked": "inactive",

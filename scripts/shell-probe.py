@@ -409,6 +409,77 @@ def main():
             }
             print("[D10 edit]", "PASS" if e_ok else "FAIL",
                   "reorder %s→%s restored=%s" % (ids0[0], order1[0], restored == ids0))
+            # D11: header 双态过渡（L3 Header 过渡轮 · R139）：motion.qs.fade-* 帧 14/58
+            #      经语料标定点（帧 14 ≡ 位移 0.1066）位移轴消费——旧态淡出 [0→0.1066]
+            #      （完成点=标定点）、新态淡入 [0.4416→1]（起点=帧 58 线性换算）、
+            #      空窗 [0.1066→0.4416] 双态皆隐、纯函数反向对称。
+            h_ok = True
+            GATE = 0.1066
+            FIN = 58 * 0.1066 / 14
+            page.evaluate("window.__PIXEL_SHELL.panel.setProgressForProbe(0.05)")
+            page.wait_for_timeout(100)
+            old_005 = page.evaluate(
+                "parseFloat(document.querySelector(\".qs-header-state[data-state='notif']\").style.opacity)"
+            )
+            new_005 = page.evaluate(
+                "parseFloat(document.querySelector(\".qs-header-state[data-state='qs']\").style.opacity)"
+            )
+            new_005_vis = page.evaluate(
+                "document.querySelector(\".qs-header-state[data-state='qs']\").style.visibility"
+            )
+            h_ok &= abs(old_005 - (1 - 0.05 / GATE)) < 0.02
+            h_ok &= new_005 == 0 and new_005_vis == "hidden"
+            page.evaluate("window.__PIXEL_SHELL.panel.setProgressForProbe(0.1066)")
+            page.wait_for_timeout(100)
+            old_gate = page.evaluate(
+                "parseFloat(document.querySelector(\".qs-header-state[data-state='notif']\").style.opacity)"
+            )
+            h_ok &= old_gate == 0  # 完成点 = 语料标定点（complete@0.1066，#31 修正）
+            page.evaluate("window.__PIXEL_SHELL.panel.setProgressForProbe(0.3)")
+            page.wait_for_timeout(100)
+            gap_old = page.evaluate(
+                "parseFloat(document.querySelector(\".qs-header-state[data-state='notif']\").style.opacity)"
+            )
+            gap_new = page.evaluate(
+                "parseFloat(document.querySelector(\".qs-header-state[data-state='qs']\").style.opacity)"
+            )
+            h_ok &= gap_old == 0 and gap_new == 0  # 空窗双态皆隐（帧序 14<58 天然导出）
+            page.evaluate("window.__PIXEL_SHELL.panel.setProgressForProbe(0.5)")
+            page.wait_for_timeout(100)
+            new_05 = page.evaluate(
+                "parseFloat(document.querySelector(\".qs-header-state[data-state='qs']\").style.opacity)"
+            )
+            h_ok &= abs(new_05 - (0.5 - FIN) / (1 - FIN)) < 0.02
+            page.evaluate("window.__PIXEL_SHELL.panel.setProgressForProbe(1)")
+            page.wait_for_timeout(100)
+            new_1 = page.evaluate(
+                "parseFloat(document.querySelector(\".qs-header-state[data-state='qs']\").style.opacity)"
+            )
+            old_1_vis = page.evaluate(
+                "document.querySelector(\".qs-header-state[data-state='notif']\").style.visibility"
+            )
+            h_ok &= new_1 == 1 and old_1_vis == "hidden"
+            # 反向对称（drag 跟手纯函数）：p 收回 0.05 旧态恢复同值可见
+            page.evaluate("window.__PIXEL_SHELL.panel.setProgressForProbe(0.05)")
+            page.wait_for_timeout(100)
+            old_back = page.evaluate(
+                "parseFloat(document.querySelector(\".qs-header-state[data-state='notif']\").style.opacity)"
+            )
+            h_ok &= abs(old_back - (1 - 0.05 / GATE)) < 0.02
+            page.evaluate("window.__PIXEL_SHELL.panel.setProgressForProbe(1)")  # 证据截图恢复满展开
+            page.wait_for_timeout(100)
+            evidence["checks"]["d11_header_transition"] = {
+                "verdict": "PASS" if h_ok else "FAIL",
+                "old_alpha_at_005": old_005,
+                "new_hidden_at_005": new_005_vis == "hidden",
+                "old_alpha_at_gate_01066": old_gate,
+                "gap_both_hidden": gap_old == 0 and gap_new == 0,
+                "new_alpha_at_05": new_05,
+                "new_alpha_at_1": new_1,
+                "old_restored_after_reverse": abs(old_back - (1 - 0.05 / GATE)) < 0.02,
+            }
+            print("[D11 header]", "PASS" if h_ok else "FAIL",
+                  "old@0.05=%.3f new@0.5=%.3f" % (old_005, new_05))
             evidence["checks"]["d_shade_tiles"] = {
                 "verdict": "PASS" if d_ok else "FAIL",
                 "wifi_initial": wifi_state,

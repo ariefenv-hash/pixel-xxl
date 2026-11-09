@@ -106,11 +106,20 @@ refs=0 的变量 = 「声明但未使用」（用户「空壳」观察的第一�
   `motion.shade.content-alpha.map`（输入 [0.3→1.0]，<0.3 全透明 = 两段互斥由语料
   曲线本身保证）；公式出口 = `shell-src/src/shell/shade-tokens.ts`
   （f′≤0→0 短路分支逐字转录 md3 语料 ShadeInterpolation.kt，R136 重核零漂移）；
-- **header 淡出门槛** = `motion.qs.percent-displacement-at-fade-out`（0.1066）：
-  副标题行在展开分数越过 10.66% 后线性淡出（drag 跟手消费）；
-  `motion.qs.fade-out-complete-frame`（14）/`fade-in-start-frame`（58）为 60fps
-  时间轴锚点，与本面板 IIO 320/260ms 时间轴不匹配，token 常量已暴露
-  （shade-tokens.ts）留 L3 Header 过渡轮消费，不硬套（防编造时序）；
+- **header 双态过渡（L3 Header 过渡轮 · R139）** = `motion.qs.fade-*` 帧锚消费：
+  语料标定等式（integers.xml 注释原文「Percentage of displacement for items in
+  QQS to guarantee matching with bottom of clock AT fade_out_complete_frame」）——
+  **帧 14 ≡ 位移 0.1066**，为语料自身给出的时间轴↔位移轴唯一标定点；据此帧锚
+  经标定点换算到位移轴消费（drag 跟手纯函数，不引入固定 ms 时长）：旧态
+  （通知）淡出 [0→0.1066]（帧 0→14，完成点=标定点）、新态（控制中心）淡入
+  [0.4416→1]（起点 = 帧 58 线性换算 58×0.1066/14）、空窗 [0.1066→0.4416]
+  双态皆隐（帧序 14<58 天然导出）。**「1s 变形时间轴」定谳**：60fps 下帧 58 ≈
+  967ms，过渡时间轴跨度 ≥58 帧 ≈ 1s 量级（可证下限）；淡入完成帧/总时长语料
+  无 token 不可证 → 不在时间轴消费帧锚，IIO 320/260ms 不匹配问题随位移轴
+  消费消解。self: 披露：淡出窗口起点取时间轴零点（帧 0 ≡ 位移 0）、帧→位移
+  线性外推（语料仅此一标定点）、淡入完成点取满展开（几何必要性）。
+  #31 修正：v1.16 消费为「副标题 start@0.1066」，与语料注释对照为
+  complete@0.1066，本窗对齐（探针 D11 实断言，含反向对称）；
 - 通知段淡出曲线 [0.5→0.72] 线性 = self:（SPEC 无对应 token）；
 - **面板位移两段模型（R137 修正）**：p≤0.5 为滑入段（0.5 时恰好全落贴顶），
   p>0.5 保持贴顶不动、仅内容过渡（通知淡出/QS 淡入）——AOSP 一段 shade =
@@ -170,6 +179,8 @@ refs=0 的变量 = 「声明但未使用」（用户「空壳」观察的第一�
 | QS 段滚动窗 max-height min(56vh, 460px) | style.css .shade-qs | self:（附注二留空项：语料无 QS 段高度 token） |
 | 滑入段位移 105% 余量（p≤0.5 线性×2） | qs-panel.ts syncDom | self:（R137 修正披露） |
 | 编辑页起拖阈值 6px / FLIP 补位 180ms | qs-panel.ts EDIT_DRAG_START_PX / EDIT_FLIP_MS | self:（R138，语料无对应 token） |
+| header 旧态淡出 [0→0.1066] 线性 / 新态淡入 [0.4416→1] 线性 | qs-panel.ts headerOldAlpha / headerNewAlpha | self: 窗口（锚点语料标定：帧14≡0.1066、帧58 线性换算≈0.4416；完成点=满展开披露，R139） |
+| 帧锚位移步长 0.1066/14（线性外推） | shade-tokens.ts QS_FRAME_TO_PROGRESS | self:（语料仅帧 14 单标定点，全程映射不可证，R139 披露） |
 | 编辑页卡尺寸 min(86vw,340px) / max-height 76vh | style.css .qs-edit-card | self:（R138） |
 | 磁贴序会话级不落盘 | qs-panel.ts this.order | self:（与 tile-states states Map 同律：工程 reload 不残留；AOSP 经 Settings 持久化，本壳无设置页不落盘） |
 | 亮色主题变量组 | style.css | self: |
@@ -218,9 +229,10 @@ refs=0 的变量 = 「声明但未使用」（用户「空壳」观察的第一�
   的宿主面与 md3 同律；
 - **app 开/关动画换装路线**：动画攻坚实例把 OPEN_PARAMS/CLOSE_PARAMS 与
   IIOAnimator 接到根入口运行时层时，API 形状即此处形状（零翻译成本）；
-- 契约测试：`npm test`（vitest，39 例 = spring 5 + interruptible 5 +
+- 契约测试：`npm test`（vitest，68 例 = spring 5 + interruptible 5 +
   shade-tokens 15（SPEC token 曲线程序化断言）+ tile-states 8（含 R137
-  锁定语义修正 2 例）+ quick-row 6（折叠行/详情纯函数））；
+  锁定语义修正 2 例）+ quick-row 6（折叠行/详情纯函数）+ tile-order 20
+  （R138）+ qs-header 9（header 双态过渡纯函数，R139））；
 
 ## 8. 已知边界与坑
 

@@ -7,10 +7,12 @@
  *     （输入 [0→0.5] 映射 → interpolateEaseInOut，aosp:ShadeInterpolation.kt 原样）；
  *   - QS 段 alpha = motion.shade.content-alpha.map（输入 [0.3→1.0]，<0.3 全透明
  *     → 通知段期间 QS 网格自然不可见，两段过渡即语料曲线本身）；
- *   - header 副标题淡出门槛 = motion.qs.percent-displacement-at-fade-out（0.1066，
- *     drag 跟手消费；motion.qs.fade-* 帧锚 14/58 为 60fps 时间轴锚点，与本面板
- *     IIO 320/260ms 时间轴不匹配，token 常量已暴露留 L3 Header 过渡轮消费，
- *     不硬套——docs/SHELL.md §6 披露）。
+ *   - header 双态过渡（L3 Header 过渡轮 · R139）= motion.qs.fade-* 帧锚 14/58
+ *     经语料标定点（帧 14 ≡ 位移 0.1066，integers.xml 注释原文）换算到位移轴
+ *     消费：旧态淡出 [0→0.1066]、新态淡入 [0.4416→1]、空窗双态皆隐；
+ *     「1s 变形时间轴」定谳与 self: 披露见 docs/SHELL.md §6.1——不在时间轴
+ *     消费帧锚，IIO 320/260ms 不匹配问题消解（#31 修正 v1.16 start@0.1066
+ *     为语料原义 complete@0.1066）。
  *
  * 动画内核 = vendored md3 InterruptibleInOutAnimator（Launcher3 连续打断 1:1）：
  *   - 反向触发从当前 progress 接续（不先 end 再 start）——快速连拉/连推不丢动画；
@@ -48,6 +50,7 @@ import {
   getNotificationScrimAlpha,
   getShadeContentAlpha,
   QS_PERCENT_DISPLACEMENT_AT_FADE_OUT,
+  QS_FADE_IN_START_PROGRESS,
   SPRING_MIN_VISIBLE_SCALE,
 } from './shade-tokens';
 
@@ -83,6 +86,35 @@ interface EditGeom {
   count: number;
 }
 
+/* ---------- header 双态过渡曲线（L3 Header 过渡轮 · self: 线性窗口，锚点语料标定） ---------- */
+
+/**
+ * 旧态（通知）header alpha：线性 [0→0.1066] 淡出——完成点 = 语料标定点
+ * percent_displacement_at_fade_out（帧 14 ≡ 位移 0.1066）。
+ * #31 修正（R139）：v1.16 消费为「start@0.1066」，与语料注释原文
+ * 「Percentage of displacement for items in QQS to guarantee matching with
+ * bottom of clock at fade_out_complete_frame」对照为 complete@0.1066，本窗对齐。
+ * 窗口起点取时间轴零点（帧 0 ≡ 位移 0，self: 披露 docs/SHELL.md §6.1/§6.3）。
+ */
+export function headerOldAlpha(progress: number): number {
+  if (progress <= 0) return 1;
+  if (progress >= QS_PERCENT_DISPLACEMENT_AT_FADE_OUT) return 0;
+  return 1 - progress / QS_PERCENT_DISPLACEMENT_AT_FADE_OUT;
+}
+
+/**
+ * 新态（QS）header alpha：线性 [QS_FADE_IN_START_PROGRESS→1] 淡入——起点 =
+ * fade_in_start_frame(58) 经语料标定点线性换算 ≈ 0.4416；完成点取满展开
+ * （self: 披露——语料无 fade-in 完成帧 token，不编造；满展开时新 header
+ * 必须全量可见 = 几何必要性）。空窗 [0.1066→0.4416] 由帧序天然保证
+ * （fade_out_complete(14) < fade_in_start(58)），两曲线无重叠。
+ */
+export function headerNewAlpha(progress: number): number {
+  if (progress <= QS_FADE_IN_START_PROGRESS) return 0;
+  if (progress >= 1) return 1;
+  return (progress - QS_FADE_IN_START_PROGRESS) / (1 - QS_FADE_IN_START_PROGRESS);
+}
+
 export class QsPanel {
   private readonly bridge: VMBridge;
   private readonly root: HTMLElement;
@@ -92,8 +124,8 @@ export class QsPanel {
   private readonly feedback: HTMLElement;
   private readonly notifSection: HTMLElement;
   private readonly qsSection: HTMLElement;
-  private readonly headerTitle: HTMLElement;
-  private readonly headerSource: HTMLElement;
+  private readonly headerOld: HTMLElement;
+  private readonly headerNew: HTMLElement;
   private readonly clockText: HTMLElement;
   private readonly dateText: HTMLElement;
   private readonly detailScrim: HTMLElement;
@@ -184,15 +216,29 @@ export class QsPanel {
     this.panel.setAttribute('role', 'dialog');
     this.panel.setAttribute('aria-label', '通知与控制中心');
 
-    // header：主标题随段切换（通知 ↔ 控制中心），副标题 0.1066 位移门槛淡出
+    // header 双态实例（L3 Header 过渡轮 · R139）：motion.qs.fade-* 帧锚 14/58 经
+    // 语料标定点（帧 14 ≡ 位移 0.1066）换算到位移轴消费——旧态淡出 [0→0.1066]
+    // （帧 0→14，完成点=语料标定点）、新态淡入 [0.4416→1]（起点=帧 58 线性换算；
+    // 完成点=满展开 self: 披露——语料无 fade-in 完成帧 token 不编造）；空窗期
+    // [0.1066→0.4416] 双态皆隐（帧锚天然导出）。AOSP 同构位：QQS header → QS
+    // header 过渡（integers.xml「Values for transition of QS Headers」）。
     const header = document.createElement('div');
     header.className = 'qs-header';
-    this.headerTitle = document.createElement('span');
-    this.headerTitle.textContent = '通知';
-    this.headerSource = document.createElement('span');
-    this.headerSource.className = 'qs-source';
-    this.headerSource.textContent = 'DOM 壳层 · 桥接 TurboWarp 运行时';
-    header.append(this.headerTitle, this.headerSource);
+    const mkHeaderState = (state: string, title: string): HTMLElement => {
+      const rootEl = document.createElement('div');
+      rootEl.className = 'qs-header-state';
+      rootEl.dataset.state = state;
+      const t = document.createElement('span');
+      t.textContent = title;
+      const src = document.createElement('span');
+      src.className = 'qs-source';
+      src.textContent = 'DOM 壳层 · 桥接 TurboWarp 运行时';
+      rootEl.append(t, src);
+      return rootEl;
+    };
+    this.headerOld = mkHeaderState('notif', '通知');
+    this.headerNew = mkHeaderState('qs', '控制中心');
+    header.append(this.headerOld, this.headerNew);
 
     // 通知段（一段：progress 0→0.5 可见；顶部含折叠态磁贴行 = #18 任务 1；
     //         R138 起行成员 = 当前磁贴序前 4 toggle 族，tile-order 动态派生）
@@ -835,13 +881,16 @@ export class QsPanel {
     this.notifSection.style.visibility = notifAlpha <= 0.001 ? 'hidden' : 'visible';
     this.notifSection.style.pointerEvents = notifAlpha > 0.5 ? 'auto' : 'none';
 
-    // header：主标题随段切换；副标题 0.1066 位移门槛淡出（motion.qs.percent-displacement-at-fade-out）
-    const seg = progress >= 0.5 ? '控制中心' : '通知';
-    if (this.headerTitle.textContent !== seg) this.headerTitle.textContent = seg;
-    // fade-out 门槛：p ≤ 0.1066 全显，p ∈ (0.1066 → 0.24] 线性淡出至 0
-    const gate = QS_PERCENT_DISPLACEMENT_AT_FADE_OUT;
-    const srcAlpha = progress <= gate ? 1 : Math.max(0, 1 - (progress - gate) / (0.24 - gate));
-    this.headerSource.style.opacity = String(srcAlpha);
+    // header 双态 alpha（L3 Header 过渡轮 · motion.qs.fade-* 帧锚位移轴消费）：
+    // 旧态淡出 [0→0.1066]（帧 0→14，完成点=语料标定点）；新态淡入
+    // [0.4416→1]（起点=帧 58 线性换算；完成点=满展开 self: 披露）；
+    // 空窗 [0.1066→0.4416] 双态皆隐（帧序 14 < 58 天然导出）。
+    const oldAlpha = headerOldAlpha(progress);
+    const newAlpha = headerNewAlpha(progress);
+    this.headerOld.style.opacity = String(oldAlpha);
+    this.headerOld.style.visibility = oldAlpha <= 0.001 ? 'hidden' : 'visible';
+    this.headerNew.style.opacity = String(newAlpha);
+    this.headerNew.style.visibility = newAlpha <= 0.001 ? 'hidden' : 'visible';
 
     // 拉出条把手随展开渐隐（展开后面板头部接管视觉）
     this.strip.style.opacity = String(Math.max(0, 1 - progress * 3));

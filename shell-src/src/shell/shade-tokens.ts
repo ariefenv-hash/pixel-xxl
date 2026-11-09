@@ -91,9 +91,36 @@ export const QS_FADE_OUT_COMPLETE_FRAME = 14;
 export const QS_FADE_IN_START_FRAME = 58;
 /**
  * motion.qs.percent-displacement-at-fade-out = 0.1066。
- * drag 跟手场景消费点：面板展开分数越过 10.66% 后 header 副标题行开始淡出。
+ * drag 跟手场景消费点（R139 语义修正）：语料注释原文「Percentage of displacement
+ * for items in QQS to guarantee matching with bottom of clock AT fade_out_complete_frame」
+ * —— 0.1066 是淡出**完成**时刻（帧 14）的位移标定值，非淡出起点。
  */
 export const QS_PERCENT_DISPLACEMENT_AT_FADE_OUT = 0.1066;
 
 /** 60fps 帧锚 → 毫秒换算基准（披露：AOSP RenderThread 帧编号按 60fps 时间轴标注） */
 export const FRAME_60FPS_MS = 1000 / 60;
+
+/* ---------- §3.4 帧锚 → 位移轴标定换算（R139 L3 Header 过渡轮 · 语料注释派生） ---------- */
+
+/**
+ * 语料标定等式：fade_out_complete_frame(14) ≡ 位移 0.1066
+ * （integers.xml 注释原文直接给出该对应关系——时间轴↔位移轴唯一标定点）。
+ * 帧步长 = 0.1066 / 14 ≈ 0.007614 位移/帧；帧 0 ≡ 位移 0（时间轴零点 = 展开起点，
+ * 「matching at fade_out_complete_frame」保证语义下的最自然读法，self: 披露）。
+ * 语料仅此一标定点，帧→位移全程线性外推（self: 披露，docs/SHELL.md §6.1）。
+ */
+export const QS_FRAME_TO_PROGRESS =
+  QS_PERCENT_DISPLACEMENT_AT_FADE_OUT / QS_FADE_OUT_COMPLETE_FRAME;
+
+/** 帧锚 → 位移轴换算（线性标定，见 QS_FRAME_TO_PROGRESS 注释） */
+export function qsFrameToProgress(frames: number): number {
+  return frames * QS_FRAME_TO_PROGRESS;
+}
+
+/**
+ * 帧 58（fade_in_start_frame）→ 位移轴淡入起点 ≈ 0.4416
+ * （= 58 × 0.1066 / 14，线性外推披露）。
+ * 淡入完成点：语料无 fade-in 完成帧 token，不可证 → 取满展开（p=1，几何必要性：
+ * 满展开时新 header 必须全量可见），self: 披露。
+ */
+export const QS_FADE_IN_START_PROGRESS = qsFrameToProgress(QS_FADE_IN_START_FRAME);

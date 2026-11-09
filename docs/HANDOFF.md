@@ -4,7 +4,7 @@
 
 # Pixel XXL · HANDOFF 结构化快照
 
-- **generated**: 2026-11-10 00:00+08:00（R138 窗收窗覆写 · Job 2933110 · 本窗 = ② QS 展开编辑页（#18 对照稿余项：磁贴重排/长按拖动 + tile-order 纯函数模块 + 折叠行跟随磁贴序 + hidden×flex 缺陷修复）；R137 = ② QS 磁贴收尾与深化第一批；R136 = ② QS 磁贴 L2 化首批）
+- **generated**: 2026-11-10 04:00+08:00（R139 窗收窗覆写 · Job 2933110 · 本窗 = ② motion.qs.fade-* L3 Header 过渡轮（帧 14/58 经语料标定点位移轴消费 + 「1s 变形时间轴」定谳 + start→complete 语义修正）；R138 = ② QS 展开编辑页；R137 = ② QS 磁贴收尾与深化第一批；R136 = ② QS 磁贴 L2 化首批）
 - **⚠️ 本窗五度撞号实录（Job 2933040 本系列）**：同窗并行实例与本实例连续同号交叉——
   对侧连发 v1.04 资产包（36ec911）/v1.05 分片+CDN（17dbbd0）/v1.06 IDB+竞速（f904330），
   本方 v1.04 反馈层（4a7343c，tag 已推）/v1.05 合流（f7ed235+a9a1db1）/v1.06 三缺陷修复
@@ -20,7 +20,7 @@
   对方 v1.10 动画连贯性（4a181d3）——同号双树，功能面完全正交（本方 shell-src/、shell/ 产物、
   docs/SHELL.md、shell 系探针 × 对方 index 尾部 fps 块、sw.js、PORTING/MOBILE/ANALYSIS §2、
   anim/fps 探针），仅 docs/HANDOFF 覆写相撞（docs/ANALYSIS 自动合并成功），合流重滚 **v1.11** 防倒挂。
-- **head**: **v1.18 = ② QS 展开编辑页（#18 对照稿余项）**：tile-order.ts 纯函数模块（normalizeOrder/moveTile/gridIndexForPoint/getQuickRowTiles/orderToDefs，vitest 20 例）+ 编辑覆层（QS 段底部「编辑磁贴」入口钮 → scrim+卡：整卡拖动重排、目标格 live reflow FLIP 180ms、drop 提交工作序 normalizeOrder 兜底）+ 网格/折叠行 rebuild 跟随（折叠行=当前序前 4 toggle 族，QuickQSPanel 语义）+ 三态状态机跨 rebuild 保留 + **#31 即修即录**：hidden 属性 × display:flex author-origin 压制缺陷（v1.16 潜伏，D10 探针暴露：hidden 卡片照常渲染拦截点击，补作者级 [hidden] display:none 规则组四件）+ vitest 59 例 + 探针 D10 真指针拖动场景——上一版 v1.17 = ② QS 磁贴收尾与深化第一批（#18：探针 D 锁屏分支 + 折叠态磁贴行 + 长按详情 + QS 段滚动窗 + 位移模型修正）；再上 v1.16 = ② QS 磁贴 L2 化首批（#18 对照稿交付：shade 两段 + 六磁贴三态 + tile-bounce spring + SPEC token 代码化）；再上 v1.15 = #4 CI 双红修复 + CI 触发面观测入坑；再上 v1.14 = DESIGN-SPEC 复核冻结 v1.0；再上 v1.13 = 设计规范 v1.0-draft + CI 双闸；再上 v1.12 = #4 CI 基线；再上 v1.11 = 八度撞号合流终树
+- **head**: **v1.19 = ② motion.qs.fade-* L3 Header 过渡轮（R139）**：帧 14/58 经语料标定等式（帧 14 ≡ 位移 0.1066，integers.xml 注释原文）换算到位移轴消费（drag 跟手纯函数）+ header 双态实例（.qs-header-state grid 叠放：旧态淡出 [0→0.1066]、新态淡入 [0.4416→1]、空窗双隐）+ 「1s 变形时间轴」定谳（≥58 帧 ≈ 1s 量级可证下限，总时长不可证 → 位移轴消费路径）+ #31 修正 v1.16 start@0.1066 → complete@0.1066 + vitest 68 例 + 探针 D1-D11——上一版 v1.18 = ② QS 展开编辑页（tile-order 纯函数 + 编辑覆层整卡拖动重排 + 折叠行跟随磁贴序 + hidden×flex 缺陷修复 + vitest 59 例 + 探针 D10）；再上 v1.17 = ② QS 磁贴收尾与深化第一批（#18：探针 D 锁屏分支 + 折叠态磁贴行 + 长按详情 + QS 段滚动窗 + 位移模型修正）；再上 v1.16 = ② QS 磁贴 L2 化首批（#18 对照稿交付：shade 两段 + 六磁贴三态 + tile-bounce spring + SPEC token 代码化）；再上 v1.15 = #4 CI 双红修复 + CI 触发面观测入坑；再上 v1.14 = DESIGN-SPEC 复核冻结 v1.0；再上 v1.13 = 设计规范 v1.0-draft + CI 双闸；再上 v1.12 = #4 CI 基线；再上 v1.11 = 八度撞号合流终树
 - **上一窗 head 归档**：对方 v1.10 = 动画连贯性升级（4a181d3，tag v1.10）× 本方 v1.10 = #23 语言迁移（d32f5e9，未 tag，撞号让号并入 v1.11）；v1.08 = 六度撞号合流（46646d0b+81762208）；backup-v106-bfb 转归档
 - **本窗事故记录（#30 规则六首条外新增）**：开窗时误判 shell-src/ 为空白目录，在未盘点未跟踪遗留半成品（上一截断窗 08:01~08:11 的 motion/catalog/shell 组件）前先行写入，覆盖 package.json/package-lock/vite.config/tsconfig/index.html/bridge/runtime.ts 共 6 个文件——发现后按"旧版为主干恢复 + 新增作补充"合流，重建 3 个被覆盖文件（runtime.ts/index.html/配置），损失部分不可逆（旧 index.html/main 原始版未找回，按 style.css+qs-panel 引用面重建）；教训已入 #30 返工表
 - **基线核验**: v1.07 终树 pack-verify 五场景 PASS（A 同源竞速命中+IDB 写入+feedback 真实百分比/auto_hidden/vm=80、B 二访零请求 pack_source=idb、C 360 逐文件兜底、E SW 零网络+IDB 重写）；boot-feedback-probe 移动通道证据留下窗补跑（原注：
@@ -134,6 +134,49 @@ TurboWarp 单文件打包产物（57.4MB）→ **忠实多文件 Web 移植**（
 - **状态**：SPEC 为 v1.0-draft 待 #8 评审冻结——冻结前不作为实现依据（#6 验收
   口径：评审通过后在交接议题登记「设计冻结」）。
   → **R134 已复核冻结，见下节。**
+
+## 本窗交付（v1.19 ② motion.qs.fade-* L3 Header 过渡轮 · R139）
+
+- **语料实拉定谳（消费前先证，R139 续点首项）**：md3 语料树实查（blob 1606，
+  较 R137 +18）——SystemUI 原生 Header 过渡消费方源码（NotificationPanel 等）
+  **不在语料**（GitHub code search 全库 fade_out_complete_frame 零消费方）；唯一
+  帧锚出处 = systemui/volume-dialog/integers.xml 注释块：`<!-- Values for
+  transition of QS Headers -->` fade_out_complete_frame=14 / fade_in_start_frame=58
+  / percent_displacement_at_fade_out=0.1066（注释原文「Percentage of displacement
+  for items in QQS to guarantee matching with bottom of clock AT
+  fade_out_complete_frame」）。
+- **「1s 变形时间轴」定谳（R139 续点悬案收口）**：60fps 下帧 58 ≈ 967ms——
+  过渡时间轴跨度 ≥58 帧 ≈ 1s 量级（可证下限）；淡入完成帧/总时长语料无 token
+  **不可证** → 帧锚不在时间轴消费，改经语料标定等式（**帧 14 ≡ 位移 0.1066**，
+  注释原文直接给出）换算到**位移轴**消费（drag 跟手纯函数，不引入固定 ms
+  时长）——R136 披露的「IIO 320/260ms 时间轴不匹配」问题随位移轴消费消解。
+- **header 双态过渡落地（qs-panel.ts + style.css）**：单实例文本切换 + 副标题
+  独立淡出 → 双态实例（.qs-header-state[data-state=notif|qs]，grid 同格叠放，
+  alpha 驱动可见性）：旧态（通知）淡出 [0→0.1066]（帧 0→14，完成点=标定点）、
+  新态（控制中心）淡入 [0.4416→1]（起点=帧 58 线性换算）、空窗 [0.1066→0.4416]
+  双态皆隐（帧序 14<58 天然导出）；纯函数出口 headerOldAlpha/headerNewAlpha
+  （qs-panel.ts 导出，vitest 直测）。
+- **#31 即修即录（R139 两项）**：① v1.16 副标题淡出消费为「start@0.1066」，
+  与语料注释原文对照为 **complete@0.1066**（0.1066 是淡出完成时刻的位移
+  标定值，非起点）——本窗对齐语料原义；② R138 SHELL.md §7 测试数陈旧
+  （39 例未随 59 例更新）——顺手修正为 68 例。
+- **测试（铁律三全过）**：tsc 零错 + vitest **68/68**（+9：qs-header.spec——
+  标定等式/帧步长/帧 58 换算/双态窗口边界/中点线性/空窗互斥全程扫描）+
+  vite build 产物落 shell/（新 hash 对 index-BAEo2yh2.js/index-CLoIxw7P.css，
+  旧对 git rm；docstring 修订后重建 hash 不变 = 构建可复现）+ check-inline-js
+  4/4 + shell-probe 五通道 VERDICT: PASS（**D 场景扩为 D1-D11**：D11 header
+  过渡真浏览器实值断言——old@p=0.05=0.531（理论 0.5310）/完成点 0.1066 归零/
+  空窗双隐/new@p=0.5=0.105（理论 0.1045）/满展开=1/反向对称恢复）+
+  pack-verify 五场景 VERDICT: PASS（根入口零影响实证）。
+- **零根入口触碰声明**：diff = shell-src 四件（shade-tokens/qs-panel/style.css
+  /tests/qs-header.spec 新）+ shell 产物三件（index.html + 新 hash 对，旧对
+  git rm）+ scripts/shell-probe.py（D11）+ docs（SHELL.md §6.1/§6.3/§7 +
+  HANDOFF/shell-evidence）。sw VERSION 保持 v1.11（shell 页面不注册 SW）；
+  L0 红线零触碰（core/app/index.html/project.json/素材零 diff）；新 self: 值
+  集中登记 SHELL.md §6.3（header 双态窗口/帧锚位移步长）。
+- **撞号协调**：v1.19 已于 #3 领号（id 6750097822）+ #1 认领帖（6750098306）
+  先于动工；开窗 fetch 对齐 origin/main = 806f876（v1.18，CI run 42657481575
+  全绿）；#3 全量 13 条评论实读零撞号（最新 6745804795 = R138 收窗登记）。
 
 ## 本窗交付（v1.18 ② QS 展开编辑页 · R138）
 
@@ -355,19 +398,19 @@ TurboWarp 单文件打包产物（57.4MB）→ **忠实多文件 Web 移植**（
 - **免认证 WebFetch 摘要有漏报风险**（R135 实测）：issues 列表摘要漏报 #2 新评论与
   schedule run——事实性断言（增量核查/状态判定）用认证 API + python 解析。
 
-## 下窗续点（R139）
+## 下窗续点（R140）
 
 0. **开窗入口已切换**：置顶议题 #2（SOP·铁律）+ #30 读完再动手闸门 + 本文件 +
    git log --oneline -5；认领登记按 #2 §一4（认领 + 预计版本号，后到者跳号 #3）；
-1. **② QS 磁贴继续（R138 已交：展开编辑页/tile-order 纯函数/折叠行跟随磁贴序/
-   hidden×flex 缺陷修复；#18 对照稿任务 1 四要素网格/折叠行/编辑页/tile-bounce
-   全部落齐，余项按序）**：
-   - motion.qs.fade-*（帧 14/58）落 L3 Header 过渡轮：token 常量已暴露未消费
-     （IIO 320/260ms 时间轴不匹配，SHELL.md §6.1 披露），消费须先证 1s 变形时间轴；
-   - #18 验收回扫：磁贴清单数值参考面（324×720 宽度排布）与折叠行 N 维持
-     SPEC 附注二留空（R137 实查：md3 语料树 1588 blob 无 SystemUI 原生 QS
+1. **② QS 磁贴（R139 已交：motion.qs.fade-* L3 Header 过渡轮——帧 14/58 经
+   语料标定点（帧 14 ≡ 位移 0.1066）位移轴消费 + header 双态实例 + 「1s 变形
+   时间轴」定谳 + start→complete 语义修正；#18 对照稿任务面已全收口）**：
+   - 通知面接入评估（L3 轮）：工程内无通知子系统现状口径维持披露（#18），
+     动工前先在 #18 登记方案再动手；
+   - SPEC 附注二留空项维持（R137/R139 实查：md3 语料无 SystemUI 原生 QS
      dimens，不编造；待用户侧 sources jar 渠道）；
-   - 用户真机验收项追加：编辑页拖动重排手感（起拖 6px/FLIP 180ms 为 self: 手感值）；
+   - 用户真机验收项追加：header 双态过渡手感（空窗期 header 全隐为帧锚语义，
+     若体感突兀可复核淡出窗口起点假设——self: 披露项）；
 2. **③ app 开/关动画接 vendored 内核**：**对侧 2933040 动画工作面，继续避开**——
    除非对侧 #1 明示转交；API 形状 = shell-src/src/motion/ 出口；
 3. **锚点治理议题跟踪**：android-17.0.0_r1 可达性恢复时（镜像补全/用户侧 sources
@@ -377,13 +420,14 @@ TurboWarp 单文件打包产物（57.4MB）→ **忠实多文件 Web 移植**（
    QS 磁贴网格尺寸（#18 对照稿，R137 实查语料内无，维持留空）——各自随议题
    动工实拉；
 5. 用户真机验收（60Hz 顺滑/120Hz 零变化 + /shell/ 面板两段手势 + 折叠行 +
-   长按详情 + 编辑页拖动重排；R137 位移模型修正后一段通知贴顶体验重点看）；
+   长按详情 + 编辑页拖动重排 + header 双态过渡；R137 位移模型修正后一段通知
+   贴顶体验重点看）；
 6. **#4 CI 收尾**：持续观察 schedule boot-probe 与 shell-gates 时长漂移；
    regression-headless 入 CI 仍缓行（actions/cache 预热 57MB 原版 + 8081/8082 双服务，
    外部大文件依赖脆）；
-7. **#31 方针持续执行**：测试发现的问题即修即录（R138 实证：D10 探针暴露
-   v1.16 hidden×flex 潜伏缺陷同窗修复）；无议题时自行批量立议题（填充内容类
-   优先级最低）。
+7. **#31 方针持续执行**：测试发现的问题即修即录（R139 实证：v1.16
+   start@0.1066 语义偏差 + R138 §7 测试数陈旧，均即修即录）；无议题时自行
+   批量立议题（填充内容类优先级最低）。
 
 ## 版本号登记表（#3 领号制 · 与 git tags 实测同步）
 
@@ -402,6 +446,7 @@ TurboWarp 单文件打包产物（57.4MB）→ **忠实多文件 Web 移植**（
 | v1.16 | Job 2933110（R136） | ② QS 磁贴 L2 化首批（#18 对照稿交付：shade 两段 + 六磁贴三态 + tile-bounce spring + SPEC token 代码化 shade-tokens.ts + 探针 D 场景 + vitest 31 例） | 未 tag（shell-src 新壳面 + shell/ 产物，零根入口触碰；sw VERSION 保持 v1.11） |
 | v1.17 | Job 2933110（R137） | ② QS 磁贴收尾与深化第一批（#18：探针 D 锁屏分支 + 折叠行 N=4 + 长按详情 + QS 段滚动窗 + 位移两段模型修正 + tile-states 锁定语义修正 + vitest 39 例） | 未 tag（shell-src 新壳面 + shell/ 产物 + scripts 探针，零根入口触碰；sw VERSION 保持 v1.11） |
 | v1.18 | Job 2933110（R138） | ② QS 展开编辑页（#18 对照稿余项：tile-order 纯函数模块 + 编辑覆层整卡拖动重排 + 折叠行跟随磁贴序 + 状态机跨 rebuild 保留 + hidden×flex 缺陷修复 + vitest 59 例 + 探针 D10） | 未 tag（shell-src 新壳面 + shell/ 产物 + scripts 探针，零根入口触碰；sw VERSION 保持 v1.11） |
+| v1.19 | Job 2933110（R139） | ② motion.qs.fade-* L3 Header 过渡轮（帧 14/58 经语料标定点位移轴消费 + header 双态实例 grid 叠放 + 「1s 变形时间轴」定谳 + start→complete 语义修正 + vitest 68 例 + 探针 D11） | 未 tag（shell-src 新壳面 + shell/ 产物 + scripts 探针，零根入口触碰；sw VERSION 保持 v1.11） |
 
 ## 议题索引（2026-11-08 · 新立 29 个议题 #2~#30（含 #30 读完再动手闸门），已回读核对 + #2 已置顶）
 
