@@ -480,6 +480,95 @@ def main():
             }
             print("[D11 header]", "PASS" if h_ok else "FAIL",
                   "old@0.05=%.3f new@0.5=%.3f" % (old_005, new_05))
+            # D12: 媒体卡全生命周期（L3 通知面第一批 · R140 · #18 任务 4）：
+            #      数据源 = 既有事件链只读（music播放状态 "0"/"1" / 当前播放music 曲名，
+            #      project.json 写块实证防发明）→ MediaStyle 同构位卡出现/更新/撤除/
+            #      回空态 + ongoing 卡 swipe 不可消除 + 清除全部钮显隐语义。
+            n_ok = True
+            page.evaluate("window.__PIXEL_SHELL.panel.setProgressForProbe(0.2)")  # 一段：通知段可见
+            page.wait_for_timeout(150)
+
+            def notif_probe():
+                return page.evaluate("""(() => {
+                  const list = document.querySelector('.shade-notif-list');
+                  const empty = document.querySelector('.shade-notif-empty');
+                  const clear = document.querySelector('.shade-notif-clear');
+                  const cards = list ? list.querySelectorAll('.shade-notif-item') : [];
+                  const first = cards[0] || null;
+                  return {
+                    empty_visible: !empty.hidden,
+                    card_count: cards.length,
+                    card_app: first ? first.querySelector('.shade-notif-item-app').textContent : null,
+                    card_title: first ? first.querySelector('.shade-notif-item-title').textContent : null,
+                    card_text: first ? first.querySelector('.shade-notif-item-text').textContent : null,
+                    clear_hidden: clear.hidden,
+                  };
+                })()""")
+
+            page.evaluate("window.__PIXEL_SHELL.bridge.setVar('music播放状态','0')")
+            page.evaluate("window.__PIXEL_SHELL.bridge.setVar('当前播放music','fripSide - only my railgun')")
+            page.wait_for_timeout(700)  # 等 ≥1 轮询拍（500ms）
+            p0 = notif_probe()
+            n_ok &= p0["empty_visible"] and p0["card_count"] == 0
+            n_ok &= p0["clear_hidden"]  # 无可消除卡 → 清除全部隐藏（AOSP 空态语义）
+
+            page.evaluate("window.__PIXEL_SHELL.bridge.setVar('music播放状态','1')")
+            page.wait_for_timeout(700)
+            p1 = notif_probe()
+            n_ok &= (not p1["empty_visible"]) and p1["card_count"] == 1
+            n_ok &= p1["card_app"] == "音乐"
+            n_ok &= p1["card_title"] == "fripSide - only my railgun"
+            n_ok &= p1["card_text"] == "正在播放"
+            n_ok &= p1["clear_hidden"]  # ongoing 卡不可消除 → 清除全部仍隐藏
+
+            # 换曲：upsert 保位更新（AOSP 同 id 通知 update 不重排）
+            page.evaluate("window.__PIXEL_SHELL.bridge.setVar('当前播放music','探针 D12 - 换曲断言')")
+            page.wait_for_timeout(700)
+            p2 = notif_probe()
+            n_ok &= p2["card_count"] == 1 and p2["card_title"] == "探针 D12 - 换曲断言"
+
+            # ongoing 卡 swipe 无消除（对卡 pointer 拖动 dx≈100px → 卡保留）
+            card_box = page.evaluate(
+                """(() => { const c = document.querySelector('.shade-notif-item');
+                   const r = c.getBoundingClientRect(); return {x: r.x, y: r.y, w: r.width, h: r.height}; })()"""
+            )
+            if card_box:
+                cx, cy = card_box["x"] + card_box["w"] / 2, card_box["y"] + card_box["h"] / 2
+                page.mouse.move(cx, cy)
+                page.mouse.down()
+                page.mouse.move(cx + 100, cy, steps=6)
+                page.mouse.up()
+                page.wait_for_timeout(200)
+                p3 = notif_probe()
+                n_ok &= p3["card_count"] == 1  # ongoing：swipe 不消除
+                card_dx = page.evaluate(
+                    "document.querySelector('.shade-notif-item').style.transform || ''"
+                )
+                # 未绑 swipe 通道 → transform 恒空（跟手位移不存在）
+                n_ok &= card_dx == ""
+            else:
+                n_ok = False
+
+            # 停播撤除 → 回空态
+            page.evaluate("window.__PIXEL_SHELL.bridge.setVar('music播放状态','0')")
+            page.wait_for_timeout(700)
+            p4 = notif_probe()
+            n_ok &= p4["empty_visible"] and p4["card_count"] == 0
+
+            evidence["checks"]["d12_media_notif"] = {
+                "verdict": "PASS" if n_ok else "FAIL",
+                "empty_initial": p0["empty_visible"],
+                "card_on_play": p1["card_count"] == 1,
+                "card_app": p1["card_app"],
+                "card_title": p1["card_title"],
+                "song_upsert_swap": p2["card_title"],
+                "ongoing_no_swipe_dismiss": card_box is not None and p3["card_count"] == 1,
+                "removed_on_stop": p4["card_count"] == 0,
+                "empty_back": p4["empty_visible"],
+            }
+            print("[D12 media]", "PASS" if n_ok else "FAIL",
+                  "empty=%s play=%s swap=%s stop=%s" % (
+                      p0["card_count"], p1["card_count"], p2["card_title"], p4["card_count"]))
             evidence["checks"]["d_shade_tiles"] = {
                 "verdict": "PASS" if d_ok else "FAIL",
                 "wifi_initial": wifi_state,

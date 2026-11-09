@@ -40,6 +40,14 @@ import {
 import type { TileDef } from './tiles';
 import { resetTileStates, getTileState, toggleTileState } from './tile-states';
 import {
+  upsertNotification,
+  removeNotification,
+  isDismissable,
+  clearDismissible,
+  mediaNotification,
+} from './notifications';
+import type { NotificationRecord } from './notifications';
+import {
   normalizeOrder,
   moveTile,
   gridIndexForPoint,
@@ -75,6 +83,10 @@ const BOUNCE_RELEASE_V = 1.6;
 const EDIT_DRAG_START_PX = 6; // self:
 /** 编辑页重排 FLIP 补位动画时长（ms，self:） */
 const EDIT_FLIP_MS = 180; // self:
+/** 通知卡 swipe 消除位移阈值（px，self:——语料无固定阈值，不标 aosp:） */
+const NOTIF_SWIPE_DISMISS_PX = 64; // self:
+/** 通知卡弹回/撤除过渡时长（ms，self:） */
+const NOTIF_TRANSITION_MS = 120; // self:
 
 /** 编辑网格几何快照（起拖瞬间定格，拖动中不重测——cellW/H 含 gap 步进） */
 interface EditGeom {
@@ -136,6 +148,15 @@ export class QsPanel {
   private readonly detailAction: HTMLButtonElement;
   private readonly quickRow: HTMLElement;
   private readonly grid: HTMLElement;
+  // definite assignment（buildNotifCards 在构造器内调用赋值——方法内赋值 TS 静态分析
+  // 不可见，与 notifStatusEl 先例同律改可空/! 断言）
+  private notifListEl!: HTMLElement;
+  private notifEmptyEl!: HTMLElement;
+  private notifClearBtn!: HTMLButtonElement;
+  /** 通知记录（内存自持，L0 零工程变量写入；源 = 既有事件链只读轮询） */
+  private notifRecords: NotificationRecord[] = [];
+  /** 媒体源 diff 缓存（"1|曲名"；变化才重渲——防每拍重建 DOM） */
+  private lastMediaKey: string | null = null;
   private readonly editScrim: HTMLElement;
   private readonly editCard: HTMLElement;
   private readonly editGrid: HTMLElement;
@@ -380,22 +401,120 @@ export class QsPanel {
     const wrap = document.createElement('div');
     wrap.className = 'shade-notif-cards';
 
-    const placeholder = document.createElement('div');
-    placeholder.className = 'shade-notif-card';
-    const t = document.createElement('span');
-    t.textContent = '通知 · 0 条';
-    const s = document.createElement('span');
-    s.className = 'shade-notif-card-sub';
-    s.textContent = '工程内无通知子系统（#18 现状口径）——壳层占位';
-    placeholder.append(t, s);
-    wrap.appendChild(placeholder);
+    // 通知卡列表（真结构渲染位；卡 = notifications.ts 状态机记录）
+    this.notifListEl = document.createElement('div');
+    this.notifListEl.className = 'shade-notif-list';
 
-    // 前台/锁屏只读状态卡（复用工程变量只读通道）
+    // 空态（AOSP 语义：无通知时显示空态文案，self: 文案登记）
+    this.notifEmptyEl = document.createElement('div');
+    this.notifEmptyEl.className = 'shade-notif-empty';
+    this.notifEmptyEl.textContent = '无通知';
+
+    // 清除全部（AOSP CLEAR ALL 同构位；无可消除卡时隐藏 = renderNotifs 控制）
+    this.notifClearBtn = document.createElement('button');
+    this.notifClearBtn.type = 'button';
+    this.notifClearBtn.className = 'shade-notif-clear';
+    this.notifClearBtn.textContent = '清除全部';
+    this.notifClearBtn.setAttribute('aria-label', '清除全部通知');
+    this.notifClearBtn.hidden = true;
+    this.notifClearBtn.addEventListener('click', () => {
+      const res = clearDismissible(this.notifRecords);
+      if (res.cleared > 0) {
+        this.notifRecords = res.list;
+        this.renderNotifs();
+      }
+    });
+
+    // 前台/锁屏只读状态卡（v1.17 先例保留；复用工程变量只读通道）
     const status = document.createElement('div');
     status.className = 'shade-notif-card shade-notif-status';
-    wrap.appendChild(status);
+    wrap.append(this.notifListEl, this.notifEmptyEl, this.notifClearBtn, status);
     this.notifStatusEl = status;
     return wrap;
+  }
+
+  /**
+   * 媒体源同步（既有事件链只读轮询；值域 project.json 实证防发明：
+   * music播放状态 = "0"/"1"（usic APP 写块 8 处全为字面量 "0"/"1"，播放中="1"）、
+   * 当前播放music = "歌手 - 曲名" 字符串）。diff 缓存变化才重渲。
+   */
+  private syncMediaCard(): void {
+    const playing = this.bridge.getVar('music播放状态');
+    const song = this.bridge.getVar('当前播放music');
+    const isPlaying = String(playing ?? '0') === '1';
+    const songStr = typeof song === 'string' && song ? song : '';
+    const key = isPlaying ? `1|${songStr}` : '0';
+    if (key === this.lastMediaKey) return;
+    this.lastMediaKey = key;
+    if (isPlaying && songStr) {
+      this.notifRecords = upsertNotification(this.notifRecords, mediaNotification(songStr));
+    } else {
+      this.notifRecords = removeNotification(this.notifRecords, 'media');
+    }
+    this.renderNotifs();
+  }
+
+  /** 通知卡列表重建（空态/清除全部钮显隐 + swipe 通道绑定） */
+  private renderNotifs(): void {
+    this.notifListEl.textContent = '';
+    for (const rec of this.notifRecords) {
+      const card = document.createElement('div');
+      card.className = 'shade-notif-item';
+      card.dataset.notifId = rec.id;
+      const appEl = document.createElement('span');
+      appEl.className = 'shade-notif-item-app';
+      appEl.textContent = rec.app;
+      const titleEl = document.createElement('span');
+      titleEl.className = 'shade-notif-item-title';
+      titleEl.textContent = rec.title;
+      const textEl = document.createElement('span');
+      textEl.className = 'shade-notif-item-text';
+      textEl.textContent = rec.text;
+      card.append(appEl, titleEl, textEl);
+      if (isDismissable(rec)) this.bindNotifSwipe(card, rec.id);
+      this.notifListEl.appendChild(card);
+    }
+    this.notifEmptyEl.hidden = this.notifRecords.length > 0;
+    this.notifClearBtn.hidden = !this.notifRecords.some(isDismissable);
+  }
+
+  /**
+   * swipe X 消除通道（AOSP 通知可横向滑除语义；双向跟手 self:）。
+   * 本批可消除源暂空（唯一源 = ongoing 媒体卡，不绑）——通道与阈值先就位，
+   * 后续批次接可消除源零结构改动（#18 方案登记披露）。
+   */
+  private bindNotifSwipe(el: HTMLElement, id: string): void {
+    let startX = 0;
+    let dragging = false;
+    el.style.touchAction = 'pan-y';
+    el.addEventListener('pointerdown', (e) => {
+      startX = e.clientX;
+      dragging = true;
+      el.style.transition = 'none';
+    });
+    el.addEventListener('pointermove', (e) => {
+      if (!dragging) return;
+      const dx = e.clientX - startX;
+      if (Math.abs(dx) > 2) el.style.transform = `translateX(${dx.toFixed(1)}px)`;
+    });
+    el.addEventListener('pointerup', (e) => {
+      if (!dragging) return;
+      dragging = false;
+      const dx = e.clientX - startX;
+      el.style.transition = `transform ${NOTIF_TRANSITION_MS}ms`;
+      if (Math.abs(dx) >= NOTIF_SWIPE_DISMISS_PX) {
+        this.notifRecords = removeNotification(this.notifRecords, id);
+        this.renderNotifs();
+      } else {
+        el.style.transform = '';
+      }
+    });
+    el.addEventListener('pointercancel', () => {
+      if (!dragging) return;
+      dragging = false;
+      el.style.transition = `transform ${NOTIF_TRANSITION_MS}ms`;
+      el.style.transform = '';
+    });
   }
 
   private notifStatusEl: HTMLElement | null = null;
@@ -820,6 +939,7 @@ export class QsPanel {
       if (text) text.textContent = def.render(this.snapshotSync(def));
     }
     this.refreshNotifStatus();
+    this.syncMediaCard();
     this.refreshClock();
   }
 

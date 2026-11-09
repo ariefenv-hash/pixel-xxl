@@ -132,8 +132,21 @@ refs=0 的变量 = 「声明但未使用」（用户「空壳」观察的第一�
   行磁贴与网格共享同一状态机（toggle 双实例同刷）；可见性随通知段
   notifFade 曲线（一段全量可见、二段隐藏 = AOSP 语义；SPEC 无折叠行专用
   token，复用通知段曲线按 self: 登记）；
-- 通知段内容为壳层演示语义（self:）：工程内无通知子系统（#18 现状口径），
-  占位卡不声称 AOSP 通知面。
+- **通知面本体（L3 通知面第一批 · R140 · #18 任务 4）**：占位卡升级为真结构
+  ——通知卡列表（notifications.ts 状态机渲染）+ 媒体卡（MediaStyle 同构位：
+  app=音乐 / title=曲名原样 / 正文=正在播放，ongoing 语义）+ 空态「无通知」
+  （AOSP 空态语义）+ 清除全部钮（AOSP CLEAR ALL 同构位，无可消除卡时隐藏）
+  + swipe X 消除通道（双向跟手，阈值 64px self:；本批可消除源暂空——唯一源
+  = ongoing 媒体卡不绑，通道与测试先就位，后续批次接可消除源零结构改动）；
+- **媒体卡数据源（防发明实证 · R140）**：工程既有事件链**只读轮询**——
+  `music播放状态` refs=8 值域 "0"/"1"（usic APP 写块 8 处全为字面量 "0"/"1"，
+  播放中="1"）、`当前播放music` refs=2 = "歌手 - 曲名" 字符串（写入方 =
+  usic APP 本体，project.json 实证）；upsert 保位更新（AOSP 同 id 通知 update
+  不重排语义）；播放中→卡出现、停止→撤除（探针 D12 真浏览器全生命周期实断言）；
+- 通知段披露口径升级（self:）：工程内无通知子系统维持（#18 现状口径）——
+  通知源**仅媒体事件链**（壳层模拟语义，零新增写通道 L0 同律）；其余通知源
+  空缺，卡结构不标 aosp: 结构 token（语料树无 NotificationStackScrollLayout
+  / NotificationSummaryAdapter 源码，R140 实查同律）。
 
 ### 6.2 三态磁贴（tile-states.ts，#18 首批六磁贴）
 
@@ -181,6 +194,8 @@ refs=0 的变量 = 「声明但未使用」（用户「空壳」观察的第一�
 | 编辑页起拖阈值 6px / FLIP 补位 180ms | qs-panel.ts EDIT_DRAG_START_PX / EDIT_FLIP_MS | self:（R138，语料无对应 token） |
 | header 旧态淡出 [0→0.1066] 线性 / 新态淡入 [0.4416→1] 线性 | qs-panel.ts headerOldAlpha / headerNewAlpha | self: 窗口（锚点语料标定：帧14≡0.1066、帧58 线性换算≈0.4416；完成点=满展开披露，R139） |
 | 帧锚位移步长 0.1066/14（线性外推） | shade-tokens.ts QS_FRAME_TO_PROGRESS | self:（语料仅帧 14 单标定点，全程映射不可证，R139 披露） |
+| 通知 swipe 消除阈值 64px（双向跟手）/ 弹回过渡 120ms | qs-panel.ts NOTIF_SWIPE_DISMISS_PX / NOTIF_TRANSITION_MS | self:（R140，语料无对应 token） |
+| 媒体卡文案（app=音乐 / 正文=正在播放） / 空态「无通知」 | notifications.ts mediaNotification / qs-panel.ts | self:（title=曲名原样不加工；MediaStyle 同构位披露） |
 | 编辑页卡尺寸 min(86vw,340px) / max-height 76vh | style.css .qs-edit-card | self:（R138） |
 | 磁贴序会话级不落盘 | qs-panel.ts this.order | self:（与 tile-states states Map 同律：工程 reload 不残留；AOSP 经 Settings 持久化，本壳无设置页不落盘） |
 | 亮色主题变量组 | style.css | self: |
@@ -229,10 +244,11 @@ refs=0 的变量 = 「声明但未使用」（用户「空壳」观察的第一�
   的宿主面与 md3 同律；
 - **app 开/关动画换装路线**：动画攻坚实例把 OPEN_PARAMS/CLOSE_PARAMS 与
   IIOAnimator 接到根入口运行时层时，API 形状即此处形状（零翻译成本）；
-- 契约测试：`npm test`（vitest，68 例 = spring 5 + interruptible 5 +
+- 契约测试：`npm test`（vitest，78 例 = spring 5 + interruptible 5 +
   shade-tokens 15（SPEC token 曲线程序化断言）+ tile-states 8（含 R137
   锁定语义修正 2 例）+ quick-row 6（折叠行/详情纯函数）+ tile-order 20
-  （R138）+ qs-header 9（header 双态过渡纯函数，R139））；
+  （R138）+ qs-header 9（header 双态过渡纯函数，R139）+ notifications 10
+  （通知状态机：upsert 保位/移除/ongoing 保护/CLEAR ALL/媒体卡字段，R140））；
 
 ## 8. 已知边界与坑
 

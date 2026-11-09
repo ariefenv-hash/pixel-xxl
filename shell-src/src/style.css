@@ -248,6 +248,59 @@ body {
   color: var(--px-on-surface-variant);
 }
 
+/* 通知卡列表（L3 通知面第一批 · R140：AOSP 通知卡公开形态同构位 self:，
+ * 卡结构 = notifications.ts 状态机记录；app 行 / title / text 三行） */
+.shade-notif-list {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+.shade-notif-item {
+  display: flex;
+  flex-direction: column;
+  gap: 3px;
+  padding: 12px 14px;
+  border-radius: var(--px-radius-md);
+  border: 1px solid var(--px-outline);
+  background: rgba(255, 255, 255, 0.05);
+  font-size: 13px;
+  /* swipe X 消除跟手（弹回过渡由 JS 写 transition；120ms self:） */
+  will-change: transform;
+  touch-action: pan-y;
+}
+.shade-notif-item-app {
+  font-size: 10px;
+  color: var(--px-on-surface-variant);
+}
+.shade-notif-item-title {
+  font-weight: 500;
+}
+.shade-notif-item-text {
+  font-size: 12px;
+  color: var(--px-on-surface-variant);
+}
+/* 空态（AOSP 语义：无通知时居中空态文案，self: 文案「无通知」） */
+.shade-notif-empty {
+  padding: 28px 0 12px;
+  text-align: center;
+  font-size: 13px;
+  color: var(--px-on-surface-variant);
+}
+/* 清除全部（AOSP CLEAR ALL 同构位，文本钮右对齐；无可消除卡时 hidden） */
+.shade-notif-clear {
+  align-self: flex-end;
+  padding: 4px 10px;
+  border: none;
+  border-radius: var(--px-radius-md);
+  background: transparent;
+  color: var(--px-primary);
+  font-size: 12px;
+  cursor: pointer;
+}
+.shade-notif-clear:hover {
+  background: rgba(255, 255, 255, 0.08);
+}
+
 /* ---------- QS 段（二段：alpha = motion.shade.content-alpha.map） ---------- */
 .shade-qs {
   will-change: opacity;

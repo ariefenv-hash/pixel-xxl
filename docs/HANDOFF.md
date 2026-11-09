@@ -4,7 +4,7 @@
 
 # Pixel XXL · HANDOFF 结构化快照
 
-- **generated**: 2026-11-10 04:00+08:00（R139 窗收窗覆写 · Job 2933110 · 本窗 = ② motion.qs.fade-* L3 Header 过渡轮（帧 14/58 经语料标定点位移轴消费 + 「1s 变形时间轴」定谳 + start→complete 语义修正）；R138 = ② QS 展开编辑页；R137 = ② QS 磁贴收尾与深化第一批；R136 = ② QS 磁贴 L2 化首批）
+- **generated**: 2026-11-10 06:00+08:00（R140 窗收窗覆写 · Job 2933110 · 本窗 = ② L3 通知面接入第一批（#18 任务 4 · 方案先登记后动工）；R139 = ② motion.qs.fade-* L3 Header 过渡轮；R138 = ② QS 展开编辑页；R137 = ② QS 磁贴收尾与深化第一批）
 - **⚠️ 本窗五度撞号实录（Job 2933040 本系列）**：同窗并行实例与本实例连续同号交叉——
   对侧连发 v1.04 资产包（36ec911）/v1.05 分片+CDN（17dbbd0）/v1.06 IDB+竞速（f904330），
   本方 v1.04 反馈层（4a7343c，tag 已推）/v1.05 合流（f7ed235+a9a1db1）/v1.06 三缺陷修复
@@ -20,7 +20,7 @@
   对方 v1.10 动画连贯性（4a181d3）——同号双树，功能面完全正交（本方 shell-src/、shell/ 产物、
   docs/SHELL.md、shell 系探针 × 对方 index 尾部 fps 块、sw.js、PORTING/MOBILE/ANALYSIS §2、
   anim/fps 探针），仅 docs/HANDOFF 覆写相撞（docs/ANALYSIS 自动合并成功），合流重滚 **v1.11** 防倒挂。
-- **head**: **v1.19 = ② motion.qs.fade-* L3 Header 过渡轮（R139）**：帧 14/58 经语料标定等式（帧 14 ≡ 位移 0.1066，integers.xml 注释原文）换算到位移轴消费（drag 跟手纯函数）+ header 双态实例（.qs-header-state grid 叠放：旧态淡出 [0→0.1066]、新态淡入 [0.4416→1]、空窗双隐）+ 「1s 变形时间轴」定谳（≥58 帧 ≈ 1s 量级可证下限，总时长不可证 → 位移轴消费路径）+ #31 修正 v1.16 start@0.1066 → complete@0.1066 + vitest 68 例 + 探针 D1-D11——上一版 v1.18 = ② QS 展开编辑页（tile-order 纯函数 + 编辑覆层整卡拖动重排 + 折叠行跟随磁贴序 + hidden×flex 缺陷修复 + vitest 59 例 + 探针 D10）；再上 v1.17 = ② QS 磁贴收尾与深化第一批（#18：探针 D 锁屏分支 + 折叠态磁贴行 + 长按详情 + QS 段滚动窗 + 位移模型修正）；再上 v1.16 = ② QS 磁贴 L2 化首批（#18 对照稿交付：shade 两段 + 六磁贴三态 + tile-bounce spring + SPEC token 代码化）；再上 v1.15 = #4 CI 双红修复 + CI 触发面观测入坑；再上 v1.14 = DESIGN-SPEC 复核冻结 v1.0；再上 v1.13 = 设计规范 v1.0-draft + CI 双闸；再上 v1.12 = #4 CI 基线；再上 v1.11 = 八度撞号合流终树
+- **head**: **v1.20 = ② L3 通知面接入第一批（R140）**：通知面本体最小闭环（占位卡 → notifications.ts 状态机 + 通知卡真结构 + 媒体卡 MediaStyle 同构位 + 空态「无通知」+ 清除全部钮 + swipe X 消除通道阈值 64px self:）+ 数据源防发明实证（music播放状态 "0"/"1" / 当前播放music "歌手 - 曲名"，usic APP 写块 project.json 实证，只读轮询零新增写通道）+ ongoing 不可消除语义 + vitest 78 例 + 探针 D1-D12——上一版 v1.19 = ② motion.qs.fade-* L3 Header 过渡轮（帧 14/58 经语料标定等式位移轴消费 + header 双态实例 + 「1s 变形时间轴」定谳 + vitest 68 例 + 探针 D11）；再上 v1.18 = ② QS 展开编辑页（tile-order 纯函数 + 编辑覆层整卡拖动重排 + vitest 59 例 + 探针 D10）；再上 v1.17 = ② QS 磁贴收尾与深化第一批；再上 v1.16 = ② QS 磁贴 L2 化首批；再上 v1.15 = #4 CI 双红修复；再上 v1.14 = DESIGN-SPEC 复核冻结 v1.0；再上 v1.13 = 设计规范 v1.0-draft + CI 双闸；再上 v1.12 = #4 CI 基线；再上 v1.11 = 八度撞号合流终树
 - **上一窗 head 归档**：对方 v1.10 = 动画连贯性升级（4a181d3，tag v1.10）× 本方 v1.10 = #23 语言迁移（d32f5e9，未 tag，撞号让号并入 v1.11）；v1.08 = 六度撞号合流（46646d0b+81762208）；backup-v106-bfb 转归档
 - **本窗事故记录（#30 规则六首条外新增）**：开窗时误判 shell-src/ 为空白目录，在未盘点未跟踪遗留半成品（上一截断窗 08:01~08:11 的 motion/catalog/shell 组件）前先行写入，覆盖 package.json/package-lock/vite.config/tsconfig/index.html/bridge/runtime.ts 共 6 个文件——发现后按"旧版为主干恢复 + 新增作补充"合流，重建 3 个被覆盖文件（runtime.ts/index.html/配置），损失部分不可逆（旧 index.html/main 原始版未找回，按 style.css+qs-panel 引用面重建）；教训已入 #30 返工表
 - **基线核验**: v1.07 终树 pack-verify 五场景 PASS（A 同源竞速命中+IDB 写入+feedback 真实百分比/auto_hidden/vm=80、B 二访零请求 pack_source=idb、C 360 逐文件兜底、E SW 零网络+IDB 重写）；boot-feedback-probe 移动通道证据留下窗补跑（原注：
@@ -134,6 +134,48 @@ TurboWarp 单文件打包产物（57.4MB）→ **忠实多文件 Web 移植**（
 - **状态**：SPEC 为 v1.0-draft 待 #8 评审冻结——冻结前不作为实现依据（#6 验收
   口径：评审通过后在交接议题登记「设计冻结」）。
   → **R134 已复核冻结，见下节。**
+
+## 本窗交付（v1.20 ② L3 通知面接入第一批 · R140）
+
+- **评估轮（#18 纪律执行：方案先登记后动工）**：① 工程现状口径维持（原工程无通知
+  子系统，ANDROID-PORTING §2 对照表无通知栏对应物 + ANALYSIS grep 零命中 +「通知」APP
+  = #27 六个 213 块同构占位壳之一）→ 通知面本体只能壳层自持；② 语料证据面：
+  ShadeInterpolation.kt 两曲线均已代码化且消费（scrim/QS 段）；通知面本体结构
+  （NotificationStackScrollLayout/NotificationSummaryAdapter）md3 语料树无源码（R140
+  实查同律）——卡结构走「同构位」纪律不标 aosp: 结构 token；③ 数据源实证（catalog
+  + project.json 写块逐个扫描）：`music播放状态` refs=8 值域 "0"/"1"（usic APP 写块
+  8 处全为字面量，播放中="1"）、`当前播放music` refs=2 = "歌手 - 曲名" 字符串（写入方
+  = usic APP 本体）——媒体播放事件链真实存在，MediaStyle 通知卡有真实数据源；方案
+  帖已发 #18（id 6752774760）先于动工。
+- **通知面本体（notifications.ts 新 + qs-panel.ts + style.css）**：通知卡列表真结构
+  （app 行/title/text 三行）替换占位卡；**媒体卡 = MediaStyle 同构位**（app=音乐 /
+  title=曲名原样不加工 / 正文=正在播放，ongoing 语义）播放中→卡出现、停止→撤除；
+  空态「无通知」（AOSP 空态语义）；清除全部钮（AOSP CLEAR ALL 同构位，无可消除卡时
+  隐藏）；swipe X 消除通道（双向跟手，阈值 64px self:；本批可消除源暂空——唯一源
+  = ongoing 媒体卡不绑，通道与测试先就位）；upsert 保位更新（AOSP 同 id 通知 update
+  不重排）；媒体源 diff 缓存（变化才重渲——防每拍重建 DOM）。状态机纯函数零 DOM
+  （vitest 直测），内存自持零工程变量写入（L0 同律）。
+- **动效零新增**：通知列表可见性维持 notifFade（self: 曲线不变，防动效回归）；
+  卡弹回/撤除过渡 120ms self: 登记 §6.3。
+- **测试（铁律三全过）**：tsc 零错 + vitest **78/78**（+10：notifications.spec——
+  upsert 保位/尾部追加/纯函数不 mutate/remove 引用短路/ongoing 保护/CLEAR ALL
+  ongoing 保留/媒体卡字段）+ vite build 产物落 shell/（新 hash 对
+  index-BEDlk27u.js/index-B7jZckrQ.css，旧对 git rm）+ check-inline-js 4/4 +
+  shell-probe 五通道 VERDICT: PASS（**D 场景扩为 D1-D12**：D12 媒体卡全生命周期
+  真浏览器实断言——空态→播放卡出现（app=音乐/title=曲名/正文=正在播放）→换曲
+  upsert 保位→ongoing 卡 swipe 100px 不消除→停播撤除回空态；清除全部钮显隐
+  语义随行）+ pack-verify 五场景 VERDICT: PASS（根入口零影响实证）。
+- **零根入口触碰声明**：diff = shell-src 五件（notifications.ts 新/qs-panel.ts/
+  style.css/tests/notifications.spec.ts 新 + tsconfig 未动）+ shell 产物三件
+  （index.html + 新 hash 对，旧对 git rm）+ scripts/shell-probe.py（D12）+ docs
+  （SHELL.md §6.1/§6.3/§7 + HANDOFF/shell-evidence）。sw VERSION 保持 v1.11
+  （shell 页面不注册 SW）；L0 红线零触碰（core/app/index.html/project.json/素材
+  零 diff）；新 self: 值集中登记 SHELL.md §6.3（swipe 阈值 64px/过渡 120ms/媒体卡
+  文案/空态文案）。
+- **撞号协调**：v1.20 已于 #3 领号（id 6752774196）先于动工；开窗 fetch 对齐
+  origin/main = 64218c5（v1.19，CI run 42692311738 + Pages 42692310914 全绿，API
+  实证）；#3 全量 15 条评论实读零撞号（最新 6750678333 = R139 收窗登记）；
+  本窗实开（02:00/04:00 窗摘要滞后修正）：v1.19 已由 R139 窗交付，本窗接续 R140。
 
 ## 本窗交付（v1.19 ② motion.qs.fade-* L3 Header 过渡轮 · R139）
 
@@ -398,36 +440,34 @@ TurboWarp 单文件打包产物（57.4MB）→ **忠实多文件 Web 移植**（
 - **免认证 WebFetch 摘要有漏报风险**（R135 实测）：issues 列表摘要漏报 #2 新评论与
   schedule run——事实性断言（增量核查/状态判定）用认证 API + python 解析。
 
-## 下窗续点（R140）
+## 下窗续点（R141）
 
 0. **开窗入口已切换**：置顶议题 #2（SOP·铁律）+ #30 读完再动手闸门 + 本文件 +
    git log --oneline -5；认领登记按 #2 §一4（认领 + 预计版本号，后到者跳号 #3）；
-1. **② QS 磁贴（R139 已交：motion.qs.fade-* L3 Header 过渡轮——帧 14/58 经
-   语料标定点（帧 14 ≡ 位移 0.1066）位移轴消费 + header 双态实例 + 「1s 变形
-   时间轴」定谳 + start→complete 语义修正；#18 对照稿任务面已全收口）**：
-   - 通知面接入评估（L3 轮）：工程内无通知子系统现状口径维持披露（#18），
-     动工前先在 #18 登记方案再动手；
-   - SPEC 附注二留空项维持（R137/R139 实查：md3 语料无 SystemUI 原生 QS
-     dimens，不编造；待用户侧 sources jar 渠道）；
-   - 用户真机验收项追加：header 双态过渡手感（空窗期 header 全隐为帧锚语义，
-     若体感突兀可复核淡出窗口起点假设——self: 披露项）；
+   **基座纪律（R140 实证）**：沙箱重建后本地仓可能是陈旧快照——开窗先 `git fetch` +
+   `git reset --hard origin/main` 对齐远端再核树（R140 本地一度停在 v1.10 快照 +
+   海量脏文件，fetch 增量 + hard reset 修复）；git 协议慢时 tarball API（api.github.com
+   /tarball/<sha>，只读核验用）；
+1. **② L3 通知面第二批（R140 已交第一批：媒体卡全生命周期 + 空态 + 清除全部 +
+   swipe 通道就位）**，候选面（动工前在 #18 登记批次方案）：
+   - 可消除事件源扩展（swipe 通道本批已就位暂空——后续批次接源零结构改动）；
+   - 锁屏通知联动（#17 关联，锁屏页通知列表评估）；
+   - heads-up 横幅（范围大，独立批次评估后再动）；
+   - SPEC 附注二留空项维持（待用户侧 sources jar 渠道）；
 2. **③ app 开/关动画接 vendored 内核**：**对侧 2933040 动画工作面，继续避开**——
    除非对侧 #1 明示转交；API 形状 = shell-src/src/motion/ 出口；
 3. **锚点治理议题跟踪**：android-17.0.0_r1 可达性恢复时（镜像补全/用户侧 sources
    jar），按 SPEC 附注一纪律逐项回核 aosp: 值，有差异即修订 SPEC 并披露；
-4. **SPEC 附注二留空项补考**：SpringForce 劲度/阻尼（sources jar；当前 tile-bounce
-   参数为 self: 手感值见 SHELL.md §6.3 账目）· Launcher3 栅格 px（#13 对照稿）·
-   QS 磁贴网格尺寸（#18 对照稿，R137 实查语料内无，维持留空）——各自随议题
+4. **SPEC 附注二留空项补考**：SpringForce 劲度/阻尼（sources jar）· Launcher3 栅格
+   px（#13 对照稿）· QS 磁贴网格尺寸（#18 对照稿，语料内无，维持留空）——随议题
    动工实拉；
 5. 用户真机验收（60Hz 顺滑/120Hz 零变化 + /shell/ 面板两段手势 + 折叠行 +
-   长按详情 + 编辑页拖动重排 + header 双态过渡；R137 位移模型修正后一段通知
-   贴顶体验重点看）；
+   长按详情 + 编辑页拖动重排 + header 双态过渡 + **媒体通知卡全生命周期（新增：
+   打开 music APP 播放→下拉一段看媒体卡，换曲/停播实变化）**）；
 6. **#4 CI 收尾**：持续观察 schedule boot-probe 与 shell-gates 时长漂移；
-   regression-headless 入 CI 仍缓行（actions/cache 预热 57MB 原版 + 8081/8082 双服务，
-   外部大文件依赖脆）；
-7. **#31 方针持续执行**：测试发现的问题即修即录（R139 实证：v1.16
-   start@0.1066 语义偏差 + R138 §7 测试数陈旧，均即修即录）；无议题时自行
-   批量立议题（填充内容类优先级最低）。
+   regression-headless 入 CI 仍缓行；
+7. **#31 方针持续执行**：测试发现的问题即修即录；无议题时自行批量立议题
+   （填充内容类优先级最低）。
 
 ## 版本号登记表（#3 领号制 · 与 git tags 实测同步）
 
@@ -447,6 +487,7 @@ TurboWarp 单文件打包产物（57.4MB）→ **忠实多文件 Web 移植**（
 | v1.17 | Job 2933110（R137） | ② QS 磁贴收尾与深化第一批（#18：探针 D 锁屏分支 + 折叠行 N=4 + 长按详情 + QS 段滚动窗 + 位移两段模型修正 + tile-states 锁定语义修正 + vitest 39 例） | 未 tag（shell-src 新壳面 + shell/ 产物 + scripts 探针，零根入口触碰；sw VERSION 保持 v1.11） |
 | v1.18 | Job 2933110（R138） | ② QS 展开编辑页（#18 对照稿余项：tile-order 纯函数模块 + 编辑覆层整卡拖动重排 + 折叠行跟随磁贴序 + 状态机跨 rebuild 保留 + hidden×flex 缺陷修复 + vitest 59 例 + 探针 D10） | 未 tag（shell-src 新壳面 + shell/ 产物 + scripts 探针，零根入口触碰；sw VERSION 保持 v1.11） |
 | v1.19 | Job 2933110（R139） | ② motion.qs.fade-* L3 Header 过渡轮（帧 14/58 经语料标定点位移轴消费 + header 双态实例 grid 叠放 + 「1s 变形时间轴」定谳 + start→complete 语义修正 + vitest 68 例 + 探针 D11） | 未 tag（shell-src 新壳面 + shell/ 产物 + scripts 探针，零根入口触碰；sw VERSION 保持 v1.11） |
+| v1.20 | Job 2933110（R140） | ② L3 通知面接入第一批（#18 任务 4：notifications.ts 状态机 + 通知卡真结构 + 媒体卡 MediaStyle 同构位（数据源防发明实证 music播放状态/当前播放music）+ 空态 + 清除全部 + swipe 消除通道就位 + ongoing 语义 + vitest 78 例 + 探针 D12） | 未 tag（shell-src 新壳面 + shell/ 产物 + scripts 探针，零根入口触碰；sw VERSION 保持 v1.11） |
 
 ## 议题索引（2026-11-08 · 新立 29 个议题 #2~#30（含 #30 读完再动手闸门），已回读核对 + #2 已置顶）
 
