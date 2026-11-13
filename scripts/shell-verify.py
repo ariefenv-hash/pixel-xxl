@@ -89,6 +89,10 @@ def main():
                 'iframe_src': page.evaluate("() => document.getElementById('runtime').getAttribute('src')"),
             }
             out['A']['iframe_src_passthrough'] = out['A']['iframe_src'] == '../index.html?probe=1'
+            # fast-face 冒烟（v1.21）：加载初期快速面应在 DOM（壳层第一帧渲染）
+            out['A']['fast_face_seen'] = page.evaluate(
+                "() => !!document.getElementById('fast-face')"
+                " && !!document.querySelector('#fast-face .ff-clock')")
             # 等待 iframe 内根入口全链路就绪（启动屏出现）——与 pack-verify 同口径
             page.wait_for_function(
                 "() => { try { const f=document.getElementById('runtime');"
@@ -103,6 +107,10 @@ def main():
                 "() => { const s = document.getElementById('bridge-status');"
                 "return s && !s.hidden && s.dataset.level === 'ok'; }", timeout=30000)
             out['A']['bridge_status'] = page.evaluate(JS_BRIDGE_STATUS)
+            # fast-face 交接冒烟（v1.21）：attach ok 后快速面应已淡出移除（480ms+兜底 560ms 内）
+            page.wait_for_timeout(800)
+            out['A']['fast_face_handover'] = page.evaluate(
+                "() => !document.getElementById('fast-face')")
 
             # ---------- B) QS 面板 DOM ----------
             out['B'] = {
@@ -117,10 +125,11 @@ def main():
                     "() => !!document.querySelector('#qs-root .qs-grab-strip')"),
             }
             # 动画展开（连续打断内核路径）：open() → 等 isOpen
-            page.evaluate("() => window.__shell && window.__shell.panel.open()")
+            # （v1.19 起握手名对齐 __PIXEL_SHELL——main.ts 唯一出口，旧 __shell 名废弃）
+            page.evaluate("() => window.__PIXEL_SHELL && window.__PIXEL_SHELL.panel.open()")
             try:
                 page.wait_for_function(
-                    "() => window.__shell && window.__shell.panel.isOpen", timeout=10000)
+                    "() => window.__PIXEL_SHELL && window.__PIXEL_SHELL.panel.isOpen", timeout=10000)
                 out['B']['panel_open_anim'] = True
             except Exception:
                 out['B']['panel_open_anim'] = False
@@ -151,8 +160,13 @@ def main():
     ok = (a['iframe_present'] and a['qs_root_present'] and a['iframe_src_passthrough']
           and a.get('root_entry_launch_ready') and a.get('vm_ready')
           and a['bridge_status'] and a['bridge_status']['level'] == 'ok'
-          and '对账一致' in a['bridge_status']['text']
-          and b['panel_present'] and b['tile_count'] == 6
+          # 心跳文案 v1.19 起覆写为「桥接就绪 · 磁贴写通道已启用 · targets=…」，
+          # 「对账一致」只在 attach 瞬时存在——锚稳定前缀「桥接就绪」
+          and '桥接就绪' in a['bridge_status']['text']
+          and a.get('fast_face_seen') and a.get('fast_face_handover')
+          and b['panel_present'] and b['tile_count'] >= 6
+          # 磁贴面已演进到 16（v1.20 全量铺开）；断言锚关键磁贴存在，不锁死总数
+          and 'brightness' in b['tile_ids'] and 'wallpaper' in b['tile_ids']
           and b['grab_strip_present'] and b['panel_open_anim']
           and c['write_effective'] and c['wallpaper_threads_seen']
           and not out['D']['shell_page_errors'])

@@ -589,3 +589,71 @@ html[data-shade-theme='light'] .qs-edit-item.qs-edit-dragging {
 html[data-shade-theme='light'] .qs-edit-entry:hover {
   background: rgba(26, 27, 32, 0.05);
 }
+
+/* ---------- fast-face 快速启动面（#23 fast-path Phase 1 · v1.21） ----------
+ * 壳层第一帧渲染：壁纸渐变（静态 Monet 深色调，零取色依赖）+ DOM 时钟 +
+ * 后台初始化提示；attach 成功后 .ff-out 淡出（480ms emphasized 曲线）。
+ * z 序：在 iframe 与 qs-root 之上（遮蔽 VM boot 链），淡出即 remove 零残留。 */
+#fast-face {
+  position: fixed;
+  inset: 0;
+  z-index: 60;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 14px;
+  color: #e8eaf0;
+  background:
+    radial-gradient(120% 90% at 18% 8%, rgba(120, 82, 178, 0.55) 0%, rgba(120, 82, 178, 0) 58%),
+    radial-gradient(140% 110% at 88% 92%, rgba(31, 68, 118, 0.6) 0%, rgba(31, 68, 118, 0) 62%),
+    linear-gradient(168deg, #14151c 0%, #1b1d27 46%, #101218 100%);
+  font-family: 'Roboto Flex', 'Roboto', system-ui, -apple-system, 'Segoe UI', sans-serif;
+  opacity: 1;
+  transition: opacity 480ms cubic-bezier(0.05, 0.7, 0.1, 1);
+  user-select: none;
+}
+#fast-face.ff-out { opacity: 0; }
+
+.ff-clock {
+  font-size: clamp(64px, 18vw, 148px);
+  font-weight: 300;
+  font-variation-settings: 'opsz' 45, 'wdth' 100;
+  letter-spacing: 0.01em;
+  font-variant-numeric: tabular-nums;
+  line-height: 1;
+  color: #f2f4fa;
+  text-shadow: 0 2px 28px rgba(0, 0, 0, 0.45);
+}
+.ff-date {
+  font-size: clamp(15px, 3.4vw, 22px);
+  font-weight: 400;
+  color: rgba(232, 234, 240, 0.82);
+  letter-spacing: 0.06em;
+}
+.ff-boot {
+  position: absolute;
+  bottom: calc(8% + 34px);
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  font-size: 12.5px;
+  color: rgba(232, 234, 240, 0.6);
+  letter-spacing: 0.04em;
+}
+.ff-dot {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background: #ff4c4c;
+  animation: ff-pulse 1.6s cubic-bezier(0.4, 0, 0.2, 1) infinite;
+}
+@keyframes ff-pulse {
+  0% { opacity: 1; transform: scale(1); }
+  50% { opacity: 0.35; transform: scale(0.72); }
+  100% { opacity: 1; transform: scale(1); }
+}
+@media (prefers-reduced-motion: reduce) {
+  #fast-face { transition-duration: 1ms; }
+  .ff-dot { animation: none; }
+}

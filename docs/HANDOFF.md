@@ -4,7 +4,7 @@
 
 # Pixel XXL · HANDOFF 结构化快照
 
-- **generated**: 2026-11-10 06:00+08:00（R140 窗收窗覆写 · Job 2933110 · 本窗 = ② L3 通知面接入第一批（#18 任务 4 · 方案先登记后动工）；R139 = ② motion.qs.fade-* L3 Header 过渡轮；R138 = ② QS 展开编辑页；R137 = ② QS 磁贴收尾与深化第一批）
+- **generated**: 2026-11-13 13:5x+08:00（R141 窗覆写 · 本实例（用户直派接手）· 本窗 = #23 fast-path Phase 1：fast-face 快速启动面（用户 2026-11-13 定锚「迁移根本目的=取消每次重建的 VM 串行初始化」）；R140 = ② L3 通知面接入第一批；R139 = ② motion.qs.fade-* L3 Header 过渡轮；R138 = ② QS 展开编辑页；R137 = ② QS 磁贴收尾与深化第一批）
 - **⚠️ 本窗五度撞号实录（Job 2933040 本系列）**：同窗并行实例与本实例连续同号交叉——
   对侧连发 v1.04 资产包（36ec911）/v1.05 分片+CDN（17dbbd0）/v1.06 IDB+竞速（f904330），
   本方 v1.04 反馈层（4a7343c，tag 已推）/v1.05 合流（f7ed235+a9a1db1）/v1.06 三缺陷修复
@@ -440,7 +440,7 @@ TurboWarp 单文件打包产物（57.4MB）→ **忠实多文件 Web 移植**（
 - **免认证 WebFetch 摘要有漏报风险**（R135 实测）：issues 列表摘要漏报 #2 新评论与
   schedule run——事实性断言（增量核查/状态判定）用认证 API + python 解析。
 
-## 下窗续点（R141）
+## 下窗续点（R142）
 
 0. **开窗入口已切换**：置顶议题 #2（SOP·铁律）+ #30 读完再动手闸门 + 本文件 +
    git log --oneline -5；认领登记按 #2 §一4（认领 + 预计版本号，后到者跳号 #3）；
@@ -448,25 +448,28 @@ TurboWarp 单文件打包产物（57.4MB）→ **忠实多文件 Web 移植**（
    `git reset --hard origin/main` 对齐远端再核树（R140 本地一度停在 v1.10 快照 +
    海量脏文件，fetch 增量 + hard reset 修复）；git 协议慢时 tarball API（api.github.com
    /tarball/<sha>，只读核验用）；
-1. **② L3 通知面第二批（R140 已交第一批：媒体卡全生命周期 + 空态 + 清除全部 +
+1. **#23 fast-path Phase 2 候选**（R141 已交 Phase 1：fast-face 快速面 + 交叉淡出 +
+   ?fast=0 关断）：桌面图标栅格/状态栏 DOM 化 → shell 独立可交互 → VM 按需唤醒；
+   动工前 #23 登记批次方案（#18 同律）；
+2. **② L3 通知面第二批（R140 已交第一批：媒体卡全生命周期 + 空态 + 清除全部 +
    swipe 通道就位）**，候选面（动工前在 #18 登记批次方案）：
    - 可消除事件源扩展（swipe 通道本批已就位暂空——后续批次接源零结构改动）；
    - 锁屏通知联动（#17 关联，锁屏页通知列表评估）；
    - heads-up 横幅（范围大，独立批次评估后再动）；
    - SPEC 附注二留空项维持（待用户侧 sources jar 渠道）；
-2. **③ app 开/关动画接 vendored 内核**：**对侧 2933040 动画工作面，继续避开**——
+3. **③ app 开/关动画接 vendored 内核**：**对侧 2933040 动画工作面，继续避开**——
    除非对侧 #1 明示转交；API 形状 = shell-src/src/motion/ 出口；
-3. **锚点治理议题跟踪**：android-17.0.0_r1 可达性恢复时（镜像补全/用户侧 sources
+4. **锚点治理议题跟踪**：android-17.0.0_r1 可达性恢复时（镜像补全/用户侧 sources
    jar），按 SPEC 附注一纪律逐项回核 aosp: 值，有差异即修订 SPEC 并披露；
-4. **SPEC 附注二留空项补考**：SpringForce 劲度/阻尼（sources jar）· Launcher3 栅格
+5. **SPEC 附注二留空项补考**：SpringForce 劲度/阻尼（sources jar）· Launcher3 栅格
    px（#13 对照稿）· QS 磁贴网格尺寸（#18 对照稿，语料内无，维持留空）——随议题
    动工实拉；
-5. 用户真机验收（60Hz 顺滑/120Hz 零变化 + /shell/ 面板两段手势 + 折叠行 +
+6. 用户真机验收（60Hz 顺滑/120Hz 零变化 + /shell/ 面板两段手势 + 折叠行 +
    长按详情 + 编辑页拖动重排 + header 双态过渡 + **媒体通知卡全生命周期（新增：
    打开 music APP 播放→下拉一段看媒体卡，换曲/停播实变化）**）；
-6. **#4 CI 收尾**：持续观察 schedule boot-probe 与 shell-gates 时长漂移；
+7. **#4 CI 收尾**：持续观察 schedule boot-probe 与 shell-gates 时长漂移；
    regression-headless 入 CI 仍缓行；
-7. **#31 方针持续执行**：测试发现的问题即修即录；无议题时自行批量立议题
+8. **#31 方针持续执行**：测试发现的问题即修即录；无议题时自行批量立议题
    （填充内容类优先级最低）。
 
 ## 版本号登记表（#3 领号制 · 与 git tags 实测同步）
@@ -488,6 +491,7 @@ TurboWarp 单文件打包产物（57.4MB）→ **忠实多文件 Web 移植**（
 | v1.18 | Job 2933110（R138） | ② QS 展开编辑页（#18 对照稿余项：tile-order 纯函数模块 + 编辑覆层整卡拖动重排 + 折叠行跟随磁贴序 + 状态机跨 rebuild 保留 + hidden×flex 缺陷修复 + vitest 59 例 + 探针 D10） | 未 tag（shell-src 新壳面 + shell/ 产物 + scripts 探针，零根入口触碰；sw VERSION 保持 v1.11） |
 | v1.19 | Job 2933110（R139） | ② motion.qs.fade-* L3 Header 过渡轮（帧 14/58 经语料标定点位移轴消费 + header 双态实例 grid 叠放 + 「1s 变形时间轴」定谳 + start→complete 语义修正 + vitest 68 例 + 探针 D11） | 未 tag（shell-src 新壳面 + shell/ 产物 + scripts 探针，零根入口触碰；sw VERSION 保持 v1.11） |
 | v1.20 | Job 2933110（R140） | ② L3 通知面接入第一批（#18 任务 4：notifications.ts 状态机 + 通知卡真结构 + 媒体卡 MediaStyle 同构位（数据源防发明实证 music播放状态/当前播放music）+ 空态 + 清除全部 + swipe 消除通道就位 + ongoing 语义 + vitest 78 例 + 探针 D12） | 未 tag（shell-src 新壳面 + shell/ 产物 + scripts 探针，零根入口触碰；sw VERSION 保持 v1.11） |
+| v1.21 | 本实例（R141 · 用户直派接手） | #23 fast-path Phase 1：fast-face 快速启动面（用户 2026-11-13 定锚：迁移根本目的=取消每次重建的 VM 串行初始化）—— fast-face.ts（壁纸渐变+DOM 时钟 1s tick+后台初始化提示，零 VM 依赖）+ attach 成功 480ms emphasized 交叉淡出 + ?fast=0 关断 + vitest 92 例（含 fast-face 14）+ shell-verify 探针修三处存量断裂（__shell→__PIXEL_SHELL 握手名/tile_count 6→锚关键磁贴/心跳文案锚「桥接就绪」）+ 新增 fast_face_seen/handover 断言 | 未 tag（shell-src 新壳面 + shell/ 产物 + scripts 探针，零根入口触碰；sw VERSION 保持 v1.11；同 v1.16~v1.20 先例） |
 
 ## 议题索引（2026-11-08 · 新立 29 个议题 #2~#30（含 #30 读完再动手闸门），已回读核对 + #2 已置顶）
 

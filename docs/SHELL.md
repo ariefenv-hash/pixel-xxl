@@ -17,11 +17,16 @@
 - 红线继承：core/app 逐字节、根 index.html 骨架零改动、素材 md5 寻址、
   待裁决项不动（docs/HANDOFF.md）。
 
-## 2. 架构：iframe 原样嵌根入口
+## 2. 架构：iframe 原样嵌根入口 + fast-face 快速启动面（v1.21）
 
 ```
 shell/index.html
 ├── <iframe id="runtime" src="../index.html">   ← 根入口 100% 原样（启动序列零复制）
+├── <div id="fast-face">                        ← 快速启动面（v1.21 · #23 fast-path）
+│     └── 壁纸渐变 + DOM 时钟(1s tick) + 后台初始化提示
+│        壳层第一帧即渲染，遮蔽 iframe 里的 VM boot 链；
+│        attach 成功 → 480ms emphasized 淡出 → iframe 桌面接管。
+│        ?fast=0 关断（回归/对照通道），默认启用。
 ├── <div id="qs-root">                          ← 壳层覆盖层（pointer-events: none）
 │     └── QsPanel（面板 + 拉出条，可交互子元素 pointer-events: auto）
 └── <div id="bridge-status">                    ← 桥接状态胶囊（纯文本，pointer-events: none）
@@ -31,9 +36,16 @@ shell/index.html
   根入口存在一份；新壳不重写任何运行时行为，根入口演进零同步成本；
 - **事件分层**：`#qs-root` 不拦截事件，未接管的指针事件穿透给 iframe 内
   Canvas（stage 交互不受壳层存在影响）；仅拉出条/磁贴自身 `pointer-events: auto`；
+- **fast-face 生命周期**（`src/shell/fast-face.ts`）：`createFastFace(document.body)`
+  于 main.ts 装配序首帧同步创建（零 VM 依赖——不 import bridge、不读 runtime）；
+  `tryAttach` 成功分支调 `dismiss()`（幂等，状态机 active→dismissing→dismissed，
+  非法迁移返回 null fail loud）；`transitionend` 主通道 + 560ms 定时兜底双保险
+  （探针 swiftshader 环境禁动画时靠定时）；DOM 淡出即 `remove()` 零残留。
+  用户定锚（2026-11-13）：迁移根本目的 = 取消每次重建的 VM 串行初始化等待，
+  vite 壳第一帧的 DOM 可见性是技术栈优势的第一落点；
 - **URL 参数透传**：壳层把 `location.search` 原样拼进 iframe src——
   `?nofb=1` 回归豁免通道在 iframe 内生效（壳层自身无反馈层，
-  双版像素对比基线不受污染）。
+  双版像素对比基线不受污染）。`?fast=0` 由壳层自身消费（不透传语义冲突：壳层先解析）。
 
 ## 3. 桥接协议（src/bridge/）
 

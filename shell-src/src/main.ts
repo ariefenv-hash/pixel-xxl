@@ -14,6 +14,7 @@
 import './style.css';
 import { bindFrame, VMBridge, getVm, getPackSource, readRuntimeSnapshot } from './bridge/runtime';
 import { QsPanel } from './shell/qs-panel';
+import { createFastFace, isFastFaceEnabled, type FastFaceHandle } from './shell/fast-face';
 
 interface WindowShell {
   __PIXEL_SHELL?: { panel: QsPanel; bridge: VMBridge; attachProblems: string[] };
@@ -26,6 +27,15 @@ if (!frame || !qsRoot || !statusElRaw) throw new Error('壳层骨架缺失（#ru
 const statusEl: HTMLElement = statusElRaw;
 
 bindFrame(frame);
+
+/* ---------- fast-face 快速启动面（#23 fast-path Phase 1 · v1.21） ----------
+ * 用户定锚：取消每次重建的 VM 串行初始化等待。壳层第一帧即渲染 DOM 快速面
+ * （壁纸渐变 + DOM 时钟 + 后台初始化提示），iframe 的 VM boot 链全程被遮蔽；
+ * attach 成功后 dismiss() 交叉淡出，iframe 桌面接管。?fast=0 关断（默认开）。 */
+let fastFace: FastFaceHandle | null = null;
+if (isFastFaceEnabled(window.location.search)) {
+  fastFace = createFastFace(document.body);
+}
 
 function setStatus(text: string, level: 'ok' | 'err'): void {
   statusEl.textContent = text;
@@ -64,6 +74,8 @@ function tryAttach(): void {
     return;
   }
   panel = new QsPanel(bridge, qsRoot as HTMLElement);
+  // fast-face 交叉淡出（v1.21）：attach 成功 = iframe 桌面已就绪可接管，快速面离场
+  if (fastFace && !fastFace.isDismissed()) fastFace.dismiss();
   setStatus('桥接就绪（变量目录 94 项对账一致）· 磁贴写通道已启用', 'ok');
   // 探针/自动化出口（scripts/shell-probe.py 旧约定握手名 __PIXEL_SHELL；
   //  shell-verify.py 兼容消费；只读引用，无破坏面）
