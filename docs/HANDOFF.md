@@ -2,6 +2,20 @@
 
 > generated: 2026-11-14 · 本窗 = 从 Scratch 运行时整体切换到纯 Web 重写（#35）
 
+## 〇、已发布状态（2026-11-14 收窗）
+
+| 项 | 值 |
+| --- | --- |
+| 版本 | **v2.0.0**（tag 已落远端，主线跃迁，v1.2x 路线作废） |
+| commit | `866b928`（整仓重写）→ `24285e2`（gate 别名修复）→ `3c2ae78`（桌面图标去重 + 文档对齐） |
+| 线上 | <https://ariefenv-hash.github.io/pixel-xxl/>（Pages `build_type=workflow`） |
+| CI | 每次 push 跑 `gates`（typecheck / build / playwright / perf-gate）+ `deploy` |
+| 交接 | 议题 **#35**（兼 CI 红灯登记处）· 交付记录 议题 #34 |
+| 实测 | 可交互 399 ms · FCP 288 ms · 首传 50.7 KB · 长任务 0 · 页面错误 0 |
+
+`npm run gate` 可直接在本地复跑同一套门禁（需 `pip install playwright && playwright install chromium`）；
+门禁不通过退出码 1，不要绕过，改预算要同时改 `src/core/perf.ts`、`scripts/perf-gate.py`、`docs/PERF.md` 三处。
+
 ## 一、这一窗发生了什么
 
 v1 是「Scratch（TurboWarp）工程的拆分移植」：能跑，但初始化要 60~120 秒（低端机 144 秒）。
