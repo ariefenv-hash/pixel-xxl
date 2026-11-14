@@ -134,10 +134,14 @@ function paint(
   px: number,
   scrimMax: number
 ): void {
-  const vx = lerp(g.icon.x, 0, px);
-  const vy = lerp(g.icon.y, 0, pm);
+  // 尺寸走主曲线，中心点走 X/Y 曲线（QSTM 的 scale+position 语义在矩形上的等价物）。
+  // 若直接插值 left/top，宽度落后于位置时窗口会「贴着左边走」，右侧露出大片空白。
   const vw = lerp(g.icon.w, g.baseW, pm);
   const vh = lerp(g.icon.h, g.baseH, pm);
+  const cx = lerp(g.icon.x + g.icon.w / 2, g.baseW / 2, px);
+  const cy = lerp(g.icon.y + g.icon.h / 2, g.baseH / 2, pm);
+  const vx = cx - vw / 2;
+  const vy = cy - vh / 2;
   const sx = vw / g.baseW;
   const sy = vh / g.baseH;
   // 圆角在屏幕像素域插值，再换回局部像素（起点 = 正圆）
@@ -146,8 +150,12 @@ function paint(
   win.style.borderRadius = `${(rScreen / sx).toFixed(2)}px`;
   win.style.setProperty('--launch-content', smoothstep(0.55, 1, pm).toFixed(3));
   layer.scrim.style.opacity = (scrimMax * pm).toFixed(3);
-  layer.ghost.style.opacity = (1 - smoothstep(0.02, 0.55, pm)).toFixed(3);
-  layer.ghost.style.transform = `scale(${(1 + 0.18 * pm).toFixed(3)})`;
+  // 图标克隆体跟着窗口中心走（而不是钉在原来那一格），否则中途会变成「卡片里飘着一个
+  // 偏上的图标」。淡化也提前收尾，别让人看到它停在半空。
+  layer.ghost.style.opacity = (1 - smoothstep(0.02, 0.42, pm)).toFixed(3);
+  const gdx = cx - (g.icon.x + g.icon.w / 2);
+  const gdy = cy - (g.icon.y + g.icon.h / 2);
+  layer.ghost.style.transform = `translate3d(${gdx.toFixed(2)}px, ${gdy.toFixed(2)}px, 0) scale(${(1 + 0.18 * pm).toFixed(3)})`;
   // 窗口起点用图标色铺满，再淡出交给真实内容 —— 「图标变成窗口」的读感靠这一层
   win.style.setProperty('--launch-tint-a', (1 - smoothstep(0.28, 0.62, pm)).toFixed(3));
 }

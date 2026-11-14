@@ -45,13 +45,18 @@ p=1   全屏（420×910，圆角 24）
 窗口始终按全屏尺寸布局，靠 transform 把它投影到目标矩形：
 
 ```
-Vx(p) = lerp(icon.x, 0, x(p))          x(p) 走 app_open_x
-Vy(p) = lerp(icon.y, 0, m(p))          m(p) 走 emphasized
-Vw(p) = lerp(icon.w, W, m(p))
+Vw(p) = lerp(icon.w, W, m(p))          m(p) 走 emphasized（尺寸）
 Vh(p) = lerp(icon.h, H, m(p))
+cx(p) = lerp(iconCx, W/2, x(p))        x(p) 走 app_open_x（中心点）
+cy(p) = lerp(iconCy, H/2, m(p))
+Vx = cx − Vw/2,  Vy = cy − Vh/2
 sx = Vw/W, sy = Vh/H                   ← 非等比
 r_local = lerp(iconR, winR, m(p)) / sx
 ```
+
+**为什么插值中心点而不是左上角**：直接插值 `left/top` 时，宽度落后于位置，窗口会
+「贴着左边走」、右侧露一大片空白。QSTM 的做法是 scale 与 position 两条独立通道 ——
+矩形上对应的写法就是「尺寸一条曲线、中心点一条曲线」。
 
 **为什么用非等比缩放（而不是 QSTM 的等比 + 裁切）**：起点矩形必须精确等于图标那个
 正方形，否则你看到的是「从图标位置长出一个竖着的胶囊」，而不是「图标在长大」。
