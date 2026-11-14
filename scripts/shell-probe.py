@@ -113,7 +113,10 @@ def main():
             )
 
             # ---------- A. 壳层载入 ----------
-            resp = page.goto("%s/shell/index.html" % base, wait_until="domcontentloaded")
+            # v1.23 #33：?boot=0 关断绿旗代点——D1-D12 场景语义保持 VM 静默
+            #（v1.16~v1.22 探针基线口径：广播链路启动线程、无绿旗满载干扰）。
+            # 自动开机链路由 scripts/shell-verify.py 场景 E 专项冒烟。
+            resp = page.goto("%s/shell/index.html?boot=0" % base, wait_until="domcontentloaded")
             a_ok = resp is not None and resp.status == 200
             a_ok &= page.evaluate("!!document.getElementById('runtime')")
             # 握手对象出现在桥接就绪之后（main.ts 兜底），此处等待

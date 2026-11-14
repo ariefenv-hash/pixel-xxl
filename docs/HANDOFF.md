@@ -4,7 +4,7 @@
 
 # Pixel XXL · HANDOFF 结构化快照
 
-- **generated**: 2026-11-13 13:5x+08:00（R141 窗覆写 · 本实例（用户直派接手）· 本窗 = #23 fast-path Phase 1：fast-face 快速启动面（用户 2026-11-13 定锚「迁移根本目的=取消每次重建的 VM 串行初始化」）；R140 = ② L3 通知面接入第一批；R139 = ② motion.qs.fade-* L3 Header 过渡轮；R138 = ② QS 展开编辑页；R137 = ② QS 磁贴收尾与深化第一批）
+- **generated**: 2026-11-14 1x:xx+08:00（R143 窗覆写 · 用户直派会话（初始化治理）· 本窗 = #33 fast-path Phase 2 首批：绿旗自动开机 + fast-face 伴随遮蔽（用户直派诉求「初始化速度一直没有头绪」——#33 议题把病根拆成感知/计算/状态三层，本窗交付感知层切片）；R142 = v1.22 梅林 #12 Monet 批次一（领号 6752774196 系，若已交付见 git log）；R141 = #23 fast-path Phase 1 fast-face；R140 = ② L3 通知面接入第一批；R139 = ② motion.qs.fade-* L3 Header 过渡轮）
 - **⚠️ 本窗五度撞号实录（Job 2933040 本系列）**：同窗并行实例与本实例连续同号交叉——
   对侧连发 v1.04 资产包（36ec911）/v1.05 分片+CDN（17dbbd0）/v1.06 IDB+竞速（f904330），
   本方 v1.04 反馈层（4a7343c，tag 已推）/v1.05 合流（f7ed235+a9a1db1）/v1.06 三缺陷修复
@@ -134,6 +134,54 @@ TurboWarp 单文件打包产物（57.4MB）→ **忠实多文件 Web 移植**（
 - **状态**：SPEC 为 v1.0-draft 待 #8 评审冻结——冻结前不作为实现依据（#6 验收
   口径：评审通过后在交接议题登记「设计冻结」）。
   → **R134 已复核冻结，见下节。**
+
+## 本窗交付（v1.23 #33 fast-path Phase 2 首批 · R143 · 用户直派会话）
+
+- **立项与领号**：#33 议题（初始化链路治理三层框架：感知层伴随遮蔽/计算层 #22/状态层
+  计算缓存热启动）创建后回读核对（VERIFY PASS）；#3 领号 v1.23（id 6869974722）+
+  #33 认领帖（6869975096）先于动工；与 v1.22（梅林 #12 Monet：shell-src/src/shell/monet/
+  + monet.spec + docs/reference）工作面正交，③ 动画面（2933040）继续避开。
+- **病根修正（#33 §一③）**：v1.21 fast-face 在 attach 即淡出是 handover 时点缺陷——
+  attach ≠ 桌面可用（淡出后用户看到的是「点击绿旗」启动屏，初始化死等一次手动点击，
+  然后是 iframe 黑反馈层）。本窗把遮蔽延伸到空窗结束：
+  ① **绿旗自动开机**（auto-boot.ts 新）：启动屏出现后壳层代点绿旗——DOM 级 `.click()`
+  模拟（零运行时 API 触碰；先例 v1.10 fps 尾部覆写，本切片连根入口字节都不动）；
+  `?boot=0` 关断（与 `?fast=0` 对称，双零 = 完整恢复 v1.20 行为）；autoplay 政策风险
+  （非受信手势，AudioContext 可能挂起至首次真实交互）已在 #33 §四1 披露；
+  ② **fast-face 伴随态**：状态机扩展 active →（attach）→ companion →（handover 判定）
+  → dismissing → dismissed；attach 只转 companion 不淡出，data-phase 外显（探锚）；
+  ③ **实时进度**（boot-progress.ts 新纯函数）：active 态装载段四态文案（__packState，
+  镜像根入口 v1.06 loading-note 口径）+ companion 态渲染段「正在渲染桌面 X%…」
+  （工程变量「渲染的进度/渲染数」优先、runtime 阶段阶梯兜底——镜像 v1.06
+  #boot-feedback 口径）+ .ff-bar 细进度条；数据源全部只读零红线
+  （readStageVarValue 新增于 bridge/runtime.ts，v1.06 readVar 同口径）；
+  ④ **handover 判定**：iframe `#boot-feedback` hidden（v1.06 五通道收层的稳定外显信号，
+  不重新发明点亮检测）→ 淡出；nofb 模式（无反馈层）硬封顶 200s 兜底。
+- **探针演进**：shell-verify.py 场景 E 新增（默认参数二访：绿旗代点隐藏 → attach →
+  companion → 实时进度文案断言；不等 handover——软渲染分钟级，判定纯函数 vitest
+  handoverVerdict 覆盖）+ A 场景改 `?probe=1&boot=0`（本场景 VM 静默基线保持，
+  fast_face_handover 断言 → fast_face_companion）+ `--timeout` 参数（受限沙箱放宽通道，
+  R141 pack-verify --group 同律）；shell-probe.py URL 加 `?boot=0`（D1-D12 场景
+  VM 静默语义保持——自动开机链路由 shell-verify E 专项冒烟）。
+- **测试（铁律三）**：tsc 零错 + vitest **118/118**（+26：fast-face 状态机 attach/
+  companion 迁移 4 + boot-progress 16 新文件 + auto-boot 6 新文件；renderPct null
+  语义修正——Number(null)=0 会把「变量缺失」误判为 0%）+ vite build 产物落 shell/
+  （新 hash 对 index-DiaCztdy.css/index-DtSG57LG.js，旧对 CJKuiRmr/DV8aJ7yQ 删）
+  + check-inline-js 4/4（index.html 零触碰）。**本地受限实证（比 R141 更严苛）**：
+  本沙箱 Chromium WebGL 全失（三种参数实测 NO-WEBGL，root entry 连
+  scaffolding/getProjectData 都起不来），shell-verify/shell-probe/pack-verify
+  全链路在本地**不可能**跑通——处置 = shell-verify 纳入 CI shell-gates job
+  （新增执行通道 + 红绿退出码 sys.exit）+ pack-verify 五场景维持 CI runner
+  判定（R141 --group 先例同律，缺口披露不隐瞒）。
+- **零根入口触碰声明**：diff = shell-src 七件（fast-face/boot-progress 新/auto-boot 新/
+  main/runtime/style.css）+ shell 产物三件（index.html + 新 hash 对，旧对删）+
+  scripts 两件（shell-verify E 场景 + --timeout + 红绿退出码 / shell-probe ?boot=0）
+  + CI 一件（regression.yml shell-gates 增 shell-verify 步骤——E 场景执行通道）
+  + docs（SHELL.md §2/§6.3/§7/§9 + HANDOFF）。sw VERSION 保持 v1.11（shell 页面
+  不注册 SW）；L0 红线零触碰（core/app/index.html/project.json/素材零 diff）；
+  新 self: 值集中登记 SHELL.md §6.3（封顶 200s/代点轮询 400ms/进度条过渡 0.9s）。
+- **下窗续点**：#33 Phase 2 后续（状态栏/桌面图标 DOM 化 = 独立可交互面）与 Phase 3
+  （计算缓存热启动——cropURL 皮肤/调色板按素材 md5 键入 IndexedDB，须专项评估轮）。
 
 ## 本窗交付（v1.20 ② L3 通知面接入第一批 · R140）
 
@@ -413,6 +461,16 @@ TurboWarp 单文件打包产物（57.4MB）→ **忠实多文件 Web 移植**（
 
 ## 已知坑
 
+- **本沙箱 Chromium WebGL 全失（R143 实测）**：三种启动参数组合
+  （--use-gl=swiftshader / --use-angle=swiftshader / 缺省）均 `NO-WEBGL`——
+  root entry 的 turbowarp-core 强制 WebGL，抛「Could not get WebGL context」
+  连锁导致 `scaffolding is not defined` + `getProjectData is not defined`，
+  **任何完整链路浏览器探针（shell-verify A/E、shell-probe、pack-verify 五场景）
+  在本环境不可能跑通**（比 R141 记载的「swiftshader 单 boot>10min」更严苛的
+  实证：不是慢，是根本起不来）。处置：本地门禁 = tsc + vitest + build +
+  check-inline-js；全链路判定 = CI runner（runner WebGL 可用，v1.12 起
+  shell-gates 全绿实证）；shell-verify 已入 shell-gates job（v1.23）补上
+  E 场景执行通道 + 红绿退出码；
 - **app 的 setFramerate(120) 晚于 window.vm 可见**——任何壳层帧率控制必须装
   FRAMERATE_CHANGED 夺回守卫，否则被静默覆盖（v1.10 四通道探针实证）；
 - headless swiftshader 下画面恒黑（qiaoqiaoMica 软渲染降级缺陷，ANALYSIS §7 /
@@ -440,7 +498,7 @@ TurboWarp 单文件打包产物（57.4MB）→ **忠实多文件 Web 移植**（
 - **免认证 WebFetch 摘要有漏报风险**（R135 实测）：issues 列表摘要漏报 #2 新评论与
   schedule run——事实性断言（增量核查/状态判定）用认证 API + python 解析。
 
-## 下窗续点（R142）
+## 下窗续点（R144）
 
 0. **开窗入口已切换**：置顶议题 #2（SOP·铁律）+ #30 读完再动手闸门 + 本文件 +
    git log --oneline -5；认领登记按 #2 §一4（认领 + 预计版本号，后到者跳号 #3）；
@@ -448,9 +506,11 @@ TurboWarp 单文件打包产物（57.4MB）→ **忠实多文件 Web 移植**（
    `git reset --hard origin/main` 对齐远端再核树（R140 本地一度停在 v1.10 快照 +
    海量脏文件，fetch 增量 + hard reset 修复）；git 协议慢时 tarball API（api.github.com
    /tarball/<sha>，只读核验用）；
-1. **#23 fast-path Phase 2 候选**（R141 已交 Phase 1：fast-face 快速面 + 交叉淡出 +
-   ?fast=0 关断）：桌面图标栅格/状态栏 DOM 化 → shell 独立可交互 → VM 按需唤醒；
-   动工前 #23 登记批次方案（#18 同律）；
+1. **#33 fast-path Phase 2 后续批次**（R143 已交首批：绿旗自动开机 + companion 伴随
+   遮蔽 + 实时进度 + handover 镜像五通道）：状态栏/桌面图标栅格 DOM 化（SPEC token
+   消费 + #13 对照稿）→ shell 独立可交互面 → VM 按需唤醒；动工前 #33 登记批次方案；
+   Phase 3（计算缓存热启动：cropURL 皮肤/调色板按素材 md5 键入 IndexedDB）须专项
+   评估轮（拦截点选型：尾部块 wrap / 扩展 post-install memoize）；
 2. **② L3 通知面第二批（R140 已交第一批：媒体卡全生命周期 + 空态 + 清除全部 +
    swipe 通道就位）**，候选面（动工前在 #18 登记批次方案）：
    - 可消除事件源扩展（swipe 通道本批已就位暂空——后续批次接源零结构改动）；
@@ -492,6 +552,8 @@ TurboWarp 单文件打包产物（57.4MB）→ **忠实多文件 Web 移植**（
 | v1.19 | Job 2933110（R139） | ② motion.qs.fade-* L3 Header 过渡轮（帧 14/58 经语料标定点位移轴消费 + header 双态实例 grid 叠放 + 「1s 变形时间轴」定谳 + start→complete 语义修正 + vitest 68 例 + 探针 D11） | 未 tag（shell-src 新壳面 + shell/ 产物 + scripts 探针，零根入口触碰；sw VERSION 保持 v1.11） |
 | v1.20 | Job 2933110（R140） | ② L3 通知面接入第一批（#18 任务 4：notifications.ts 状态机 + 通知卡真结构 + 媒体卡 MediaStyle 同构位（数据源防发明实证 music播放状态/当前播放music）+ 空态 + 清除全部 + swipe 消除通道就位 + ongoing 语义 + vitest 78 例 + 探针 D12） | 未 tag（shell-src 新壳面 + shell/ 产物 + scripts 探针，零根入口触碰；sw VERSION 保持 v1.11） |
 | v1.21 | 本实例（R141 · 用户直派接手） | #23 fast-path Phase 1：fast-face 快速启动面（用户 2026-11-13 定锚：迁移根本目的=取消每次重建的 VM 串行初始化）—— fast-face.ts（壁纸渐变+DOM 时钟 1s tick+后台初始化提示，零 VM 依赖）+ attach 成功 480ms emphasized 交叉淡出 + ?fast=0 关断 + vitest 92 例（含 fast-face 14）+ shell-verify 探针修三处存量断裂（__shell→__PIXEL_SHELL 握手名/tile_count 6→锚关键磁贴/心跳文案锚「桥接就绪」）+ 新增 fast_face_seen/handover 断言 | 未 tag（shell-src 新壳面 + shell/ 产物 + scripts 探针，零根入口触碰；sw VERSION 保持 v1.11；同 v1.16~v1.20 先例） |
+| v1.22 | 梅林（R142 · 用户直派会话 · 领号 6752774196 前序） | #12 Monet 取色真移植批次一（色彩科学层；交付状态以 git log / #3 收窗登记为准） | 见 #3 |
+| v1.23 | 用户直派会话（R143 · 初始化治理 · 领号 6869974722） | #33 fast-path Phase 2 首批：绿旗自动开机（DOM 级代点，?boot=0 关断）+ fast-face companion 伴随态（修正 v1.21 attach 即淡出的 handover 时点缺陷）+ 实时进度双源接线（__packState/渲染的进度 只读）+ handover 判定镜像 v1.06 五通道（#boot-feedback hidden + 200s 封顶）+ vitest 118 例 + shell-verify 场景 E + shell-probe ?boot=0 | 未 tag（shell-src 新壳面 + shell/ 产物 + scripts 探针，零根入口触碰；sw VERSION 保持 v1.11；同 v1.16~v1.21 先例） |
 
 ## 议题索引（2026-11-08 · 新立 29 个议题 #2~#30（含 #30 读完再动手闸门），已回读核对 + #2 已置顶）
 

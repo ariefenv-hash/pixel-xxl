@@ -139,13 +139,19 @@ jobs:
           set -o pipefail
           python3 scripts/shell-probe.py 2>&1 | tee /tmp/shell-run.log
 
-      - name: 证据 artifact（shell-probe）
+      - name: shell-verify 骨架/伴随态/写通道 + E 自动开机链路（v1.23 #33）
+        run: |
+          set -o pipefail
+          python3 scripts/shell-verify.py 2>&1 | tee /tmp/shell-verify-run.log
+
+      - name: 证据 artifact（shell-probe + shell-verify）
         if: always()
         uses: actions/upload-artifact@v4
         with:
           name: shell-probe-evidence
           path: |
             /tmp/shell-run.log
+            /tmp/shell-verify-run.log
             docs/shell-evidence.json
           retention-days: 30
 

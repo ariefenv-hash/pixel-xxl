@@ -590,9 +590,10 @@ html[data-shade-theme='light'] .qs-edit-entry:hover {
   background: rgba(26, 27, 32, 0.05);
 }
 
-/* ---------- fast-face 快速启动面（#23 fast-path Phase 1 · v1.21） ----------
+/* ---------- fast-face 快速启动面（#23 fast-path Phase 1 · v1.21；Phase 2 · v1.23） ----------
  * 壳层第一帧渲染：壁纸渐变（静态 Monet 深色调，零取色依赖）+ DOM 时钟 +
- * 后台初始化提示；attach 成功后 .ff-out 淡出（480ms emphasized 曲线）。
+ * 实时进度（装载/渲染段双数据源）+ 细进度条；attach 转伴随态继续遮蔽空窗，
+ * handover 判定命中后 .ff-out 淡出（480ms emphasized 曲线）。
  * z 序：在 iframe 与 qs-root 之上（遮蔽 VM boot 链），淡出即 remove 零残留。 */
 #fast-face {
   position: fixed;
@@ -648,6 +649,24 @@ html[data-shade-theme='light'] .qs-edit-entry:hover {
   background: #ff4c4c;
   animation: ff-pulse 1.6s cubic-bezier(0.4, 0, 0.2, 1) infinite;
 }
+
+/* ff-bar 细进度条（#33 Phase 2 · v1.23）：伴随态实时进度（渲染段变量驱动；
+ * 装载段/未知进度 = 0% 半透明占位，不闪烁不冒充） */
+.ff-bar {
+  width: min(180px, 42vw);
+  height: 2px;
+  border-radius: 1px;
+  background: rgba(232, 234, 240, 0.14);
+  overflow: hidden;
+}
+.ff-bar-fill {
+  height: 100%;
+  width: 0%;
+  background: #ff4c4c;
+  border-radius: 1px;
+  transition: width 0.9s linear;
+}
+
 @keyframes ff-pulse {
   0% { opacity: 1; transform: scale(1); }
   50% { opacity: 0.35; transform: scale(0.72); }

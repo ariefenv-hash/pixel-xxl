@@ -17,16 +17,21 @@
 - 红线继承：core/app 逐字节、根 index.html 骨架零改动、素材 md5 寻址、
   待裁决项不动（docs/HANDOFF.md）。
 
-## 2. 架构：iframe 原样嵌根入口 + fast-face 快速启动面（v1.21）
+## 2. 架构：iframe 原样嵌根入口 + fast-face 快速启动面（v1.21；Phase 2 伴随遮蔽 v1.23）
 
 ```
 shell/index.html
 ├── <iframe id="runtime" src="../index.html">   ← 根入口 100% 原样（启动序列零复制）
-├── <div id="fast-face">                        ← 快速启动面（v1.21 · #23 fast-path）
-│     └── 壁纸渐变 + DOM 时钟(1s tick) + 后台初始化提示
+├── <div id="fast-face" data-phase=…>           ← 快速启动面（v1.21 · #23 fast-path；
+│     └─ 壁纸渐变 + DOM 时钟(1s tick) + 实时进度文案 + 细进度条     v1.23 伴随遮蔽 · #33）
 │        壳层第一帧即渲染，遮蔽 iframe 里的 VM boot 链；
-│        attach 成功 → 480ms emphasized 淡出 → iframe 桌面接管。
-│        ?fast=0 关断（回归/对照通道），默认启用。
+│        attach 成功 → companion 伴随态继续遮蔽空窗（v1.21 的
+│        「attach 即淡出」时点缺陷修正——attach ≠ 桌面可用）；
+│        handover 判定命中（镜像 v1.06 五通道）→ 480ms 淡出 →
+│        iframe 桌面接管。?fast=0 关断（回归/对照通道），默认启用。
+├── 绿旗自动开机（auto-boot.ts，v1.23 #33）      ← 启动屏出现后代点绿旗
+│     └─ DOM 级 .click()（零运行时 API 触碰），?boot=0 关断；
+│        ?fast=0&boot=0 = 完整恢复 v1.20 行为（回归通道）。
 ├── <div id="qs-root">                          ← 壳层覆盖层（pointer-events: none）
 │     └── QsPanel（面板 + 拉出条，可交互子元素 pointer-events: auto）
 └── <div id="bridge-status">                    ← 桥接状态胶囊（纯文本，pointer-events: none）
@@ -38,11 +43,24 @@ shell/index.html
   Canvas（stage 交互不受壳层存在影响）；仅拉出条/磁贴自身 `pointer-events: auto`；
 - **fast-face 生命周期**（`src/shell/fast-face.ts`）：`createFastFace(document.body)`
   于 main.ts 装配序首帧同步创建（零 VM 依赖——不 import bridge、不读 runtime）；
-  `tryAttach` 成功分支调 `dismiss()`（幂等，状态机 active→dismissing→dismissed，
-  非法迁移返回 null fail loud）；`transitionend` 主通道 + 560ms 定时兜底双保险
-  （探针 swiftshader 环境禁动画时靠定时）；DOM 淡出即 `remove()` 零残留。
+  v1.23 状态机（#33 Phase 2）：`active →（attach）→ companion →（handover 判定）
+  → dismissing → fade-done → dismissed`（幂等 + 非法迁移返回 null fail loud；
+  active 直 dismiss 降级通道保留）；`transitionend` 主通道 + 560ms 定时兜底双保险
+  （探针 swiftshader 环境禁动画时靠定时）；DOM 淡出即 `remove()` 零残留；
+  `data-phase` 外显（探针断言锚）。
   用户定锚（2026-11-13）：迁移根本目的 = 取消每次重建的 VM 串行初始化等待，
   vite 壳第一帧的 DOM 可见性是技术栈优势的第一落点；
+- **伴随态驱动**（main.ts 1s 轮询 + `boot-progress.ts` 纯函数）：active 态显示
+  装载段进度（`__packState()` 四态口径，镜像根入口 v1.06 loading-note）；
+  companion 态显示渲染段进度（工程变量「渲染的进度/渲染数」→「正在渲染桌面
+  X%…」，变量优先、runtime 阶段阶梯兜底——镜像 v1.06 #boot-feedback 口径，
+  全部只读零红线）。handover 判定 = iframe `#boot-feedback` hidden（v1.06 五通道
+  收层的稳定外显信号，不重新发明点亮检测）+ 硬封顶 200s 兜底（nofb 模式无反馈层）；
+- **绿旗自动开机**（`auto-boot.ts`，v1.23 #33）：启动屏出现后壳层代点绿旗——
+  **DOM 级模拟点击**（同源 iframe 文档内 `#launch.click()`，语义=用户代理点击，
+  零运行时 API 触碰；先例：v1.10 fps 尾部块覆写运行时行为，本切片连根入口
+  字节都不动）。已知披露：代点为非受信手势（isTrusted=false），AudioContext
+  可能挂起至用户首次真实交互（浏览器 autoplay 政策）——`?boot=0` 逃生门在位；
 - **URL 参数透传**：壳层把 `location.search` 原样拼进 iframe src——
   `?nofb=1` 回归豁免通道在 iframe 内生效（壳层自身无反馈层，
   双版像素对比基线不受污染）。`?fast=0` 由壳层自身消费（不透传语义冲突：壳层先解析）。
@@ -211,6 +229,7 @@ refs=0 的变量 = 「声明但未使用」（用户「空壳」观察的第一�
 | 编辑页卡尺寸 min(86vw,340px) / max-height 76vh | style.css .qs-edit-card | self:（R138） |
 | 磁贴序会话级不落盘 | qs-panel.ts this.order | self:（与 tile-states states Map 同律：工程 reload 不残留；AOSP 经 Settings 持久化，本壳无设置页不落盘） |
 | 亮色主题变量组 | style.css | self: |
+| 伴随态 handover 硬封顶 200s / 代点轮询 400ms / 进度条过渡 0.9s | boot-progress.ts / main.ts / style.css | self:（R143，镜像 v1.06 五通道语义的封顶余量；语料无对应 token） |
 | scrim/content/公式/0.1066/1÷500/14/58 | shade-tokens.ts | **SPEC token 引用**（aosp: 出处行内标注） |
 
 ### 6.4 QS 展开编辑页（tile-order.ts + qs-panel 编辑覆层，#18 对照稿余项 · R138）
@@ -256,11 +275,14 @@ refs=0 的变量 = 「声明但未使用」（用户「空壳」观察的第一�
   的宿主面与 md3 同律；
 - **app 开/关动画换装路线**：动画攻坚实例把 OPEN_PARAMS/CLOSE_PARAMS 与
   IIOAnimator 接到根入口运行时层时，API 形状即此处形状（零翻译成本）；
-- 契约测试：`npm test`（vitest，78 例 = spring 5 + interruptible 5 +
+- 契约测试：`npm test`（vitest，118 例 = spring 5 + interruptible 5 +
   shade-tokens 15（SPEC token 曲线程序化断言）+ tile-states 8（含 R137
   锁定语义修正 2 例）+ quick-row 6（折叠行/详情纯函数）+ tile-order 20
   （R138）+ qs-header 9（header 双态过渡纯函数，R139）+ notifications 10
-  （通知状态机：upsert 保位/移除/ongoing 保护/CLEAR ALL/媒体卡字段，R140））；
+  （通知状态机：upsert 保位/移除/ongoing 保护/CLEAR ALL/媒体卡字段，R140）
+  + fast-face 18（时钟/关断通道/attach-companion-dismiss 状态机/常量，R141+R143）
+  + boot-progress 16（装载四态/渲染阶梯/handover 判定/变量换算，R143）
+  + auto-boot 6（?boot=0 关断通道，R143））；
 
 ## 8. 已知边界与坑
 
@@ -284,7 +306,7 @@ refs=0 的变量 = 「声明但未使用」（用户「空壳」观察的第一�
 ```bash
 cd shell-src
 npm install        # vite + typescript + vitest
-npm test           # vendored 内核契约测试（10 例）
+npm test           # 契约测试（118 例，清单见 §7）
 npx tsc --noEmit   # 类型闸门
 npx vite build     # 产物 → ../shell/（Pages 双入口之二）
 ```
@@ -292,7 +314,13 @@ npx vite build     # 产物 → ../shell/（Pages 双入口之二）
 - 新壳探针：`python3 scripts/shell-probe.py`（A 壳层骨架与桥接挂载 /
   B iframe 根入口加载与 vm 就绪 / C 磁贴动作写通道真实生效 /
   D shade 两段 + 三态磁贴 + token 曲线实值 + 锁屏 unavailable 分支（D6）
-  + 折叠行同步（D7）+ 长按详情闭环（D8）+ 滚动窗（D9），五通道 VERDICT）；
+  + 折叠行同步（D7）+ 长按详情闭环（D8）+ 滚动窗（D9），五通道 VERDICT；
+  v1.23 起 URL 带 `?boot=0`——D 场景保持 VM 静默基线口径，自动开机链路由
+  shell-verify 场景 E 专项验证）；
+- 新壳探针（v1.23 扩）：`python3 scripts/shell-verify.py`（A 骨架/透传/attach
+  + fast-face companion 断言 / B QS 面板 / C 写通道（VM 静默）/
+  E fast-path 自动开机链路：绿旗代点隐藏 + companion + 实时进度文案；
+  不等 handover——软渲染分钟级，判定纯函数由 vitest handoverVerdict 覆盖）；
 - L0 回归不变：`python3 scripts/pack-verify.py` 五场景（新壳不改根，
   理论零影响，发版前后各跑一遍留证）；
 - 双版像素对比基线（regression-headless.py）只在 L0 路径强制（#23 任务 4）。

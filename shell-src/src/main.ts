@@ -12,9 +12,13 @@
  */
 
 import './style.css';
-import { bindFrame, VMBridge, getVm, getPackSource, readRuntimeSnapshot } from './bridge/runtime';
+import {
+  bindFrame, VMBridge, getVm, getPackSource, getPackState, readRuntimeSnapshot, readStageVarValue,
+} from './bridge/runtime';
 import { QsPanel } from './shell/qs-panel';
 import { createFastFace, isFastFaceEnabled, type FastFaceHandle } from './shell/fast-face';
+import { isAutoBootEnabled, clickLaunchScreen, readFeedbackLayerHidden } from './shell/auto-boot';
+import { packPhaseText, renderPhaseText, renderPct, handoverVerdict } from './shell/boot-progress';
 
 interface WindowShell {
   __PIXEL_SHELL?: { panel: QsPanel; bridge: VMBridge; attachProblems: string[] };
@@ -28,13 +32,35 @@ const statusEl: HTMLElement = statusElRaw;
 
 bindFrame(frame);
 
-/* ---------- fast-face 快速启动面（#23 fast-path Phase 1 · v1.21） ----------
+/* ---------- fast-face 快速启动面（#23 fast-path Phase 1 · v1.21；Phase 2 · v1.23） ----------
  * 用户定锚：取消每次重建的 VM 串行初始化等待。壳层第一帧即渲染 DOM 快速面
- * （壁纸渐变 + DOM 时钟 + 后台初始化提示），iframe 的 VM boot 链全程被遮蔽；
- * attach 成功后 dismiss() 交叉淡出，iframe 桌面接管。?fast=0 关断（默认开）。 */
+ * （壁纸渐变 + DOM 时钟 + 实时进度），iframe 的 VM boot 链全程被遮蔽。
+ * v1.21 缺陷修正（#33）：attach ≠ 桌面可用（attach 后淡出 → 用户看到绿旗屏）——
+ * 现 attach 成功仅转入 companion 伴随态继续遮蔽空窗，handover 判定镜像 v1.06
+ * 五通道（iframe #boot-feedback hidden → 交接；硬封顶 200s 兜底）。
+ * ?fast=0 关断快速面（默认开）。 */
 let fastFace: FastFaceHandle | null = null;
 if (isFastFaceEnabled(window.location.search)) {
   fastFace = createFastFace(document.body);
+}
+
+/* ---------- 绿旗自动开机（#33 Phase 2 · v1.23） ----------
+ * 病根：装载完成后停在「点击绿旗」启动屏死等手动点击。壳层在启动屏出现后
+ * 代点（DOM 级 .click()，零运行时 API 触碰；音频 autoplay 风险披露见 #33 §四1）。
+ * ?boot=0 关断（与 ?fast=0 对称；双零 = 完整恢复 v1.20 行为）。 */
+if (isAutoBootEnabled(window.location.search)) {
+  let bootClicked = false;
+  const bootTimer = window.setInterval(() => {
+    if (bootClicked) return;
+    const r = clickLaunchScreen(frame);
+    if (r === 'clicked') {
+      bootClicked = true;
+      window.clearInterval(bootTimer);
+    } else if (r === 'gone') {
+      bootClicked = true; // 外部（用户手动/回归通道）已启动：不再代点
+      window.clearInterval(bootTimer);
+    }
+  }, 400);
 }
 
 function setStatus(text: string, level: 'ok' | 'err'): void {
@@ -74,13 +100,44 @@ function tryAttach(): void {
     return;
   }
   panel = new QsPanel(bridge, qsRoot as HTMLElement);
-  // fast-face 交叉淡出（v1.21）：attach 成功 = iframe 桌面已就绪可接管，快速面离场
-  if (fastFace && !fastFace.isDismissed()) fastFace.dismiss();
+  // fast-face 伴随态（v1.23 #33）：attach 成功 ≠ 桌面可用——转 companion 继续遮蔽，
+  // handover 由下方 1s 轮询按镜像 v1.06 五通道判定（不再 attach 即淡出）。
+  if (fastFace && !fastFace.isDismissed() && fastFace.getPhase() === 'active') {
+    fastFace.enterCompanion();
+    companionSince = Date.now();
+  }
   setStatus('桥接就绪（变量目录 94 项对账一致）· 磁贴写通道已启用', 'ok');
   // 探针/自动化出口（scripts/shell-probe.py 旧约定握手名 __PIXEL_SHELL；
   //  shell-verify.py 兼容消费；只读引用，无破坏面）
   (window as WindowShell).__PIXEL_SHELL = { panel, bridge, attachProblems: [] };
 }
+
+/* ---------- fast-face 伴随态驱动（#33 · v1.23）：实时进度 + handover 判定 ----------
+ * 数据源全部只读：装载段 __packState()（loader 挂载）；渲染段工程变量
+ * 「渲染的进度/渲染数」（v1.06 readVar 同口径）。handover 判定消费 iframe
+ * #boot-feedback 的 hidden 状态（v1.06 五通道收层的稳定外显信号）。 */
+let companionSince = 0;
+
+window.setInterval(() => {
+  if (!fastFace || fastFace.isDismissed() || fastFace.getPhase() === 'dismissing') return;
+  if (fastFace.getPhase() === 'active') {
+    // 装载段（绿旗前）：镜像根入口 v1.06 loading-note 四态口径
+    fastFace.setBootProgress(packPhaseText(getPackState()));
+    return;
+  }
+  // companion（绿旗后）：渲染段阶梯文案（变量优先）+ handover 判定
+  const pct = renderPct(readStageVarValue('渲染的进度'), readStageVarValue('渲染数'));
+  const snap = readRuntimeSnapshot();
+  const stage = !snap.vmReady ? 'no-vm'
+    : snap.targets === 0 ? 'no-targets'
+      : snap.targets < 3 ? 'loading-targets'
+        : snap.threads > 0 ? 'running' : 'not-running';
+  fastFace.setBootProgress(renderPhaseText({ pct, stage }), pct);
+  const elapsedSec = companionSince ? (Date.now() - companionSince) / 1000 : 0;
+  if (handoverVerdict({ feedbackHidden: readFeedbackLayerHidden(frame), elapsedSec }) === 'dismiss') {
+    fastFace.dismiss();
+  }
+}, 1000);
 
 window.setInterval(tryAttach, 500);
 tryAttach();

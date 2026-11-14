@@ -106,6 +106,30 @@ export function getPackSource(): string | null {
   }
 }
 
+/** 只读采集：按名读舞台全局变量值（v1.06 #boot-feedback readVar 同口径，零红线）。 */
+export function readStageVarValue(name: string): string | number | boolean | null {
+  const vm = getVm();
+  if (!vm || !vm.runtime) return null;
+  try {
+    const stage = vm.runtime.getTargetForStage?.() ?? null;
+    const vars = stage?.variables;
+    if (!vars) return null;
+    for (const k of Object.keys(vars)) {
+      const v = vars[k];
+      if (v && v.name === name) {
+        const val = v.value;
+        if (typeof val === 'string' || typeof val === 'number' || typeof val === 'boolean') {
+          return val;
+        }
+        return null;
+      }
+    }
+  } catch {
+    /* 未就绪：静默 */
+  }
+  return null;
+}
+
 export function readRuntimeSnapshot(): RuntimeSnapshot {
   const vm = getVm();
   if (!vm || !vm.runtime) return { vmReady: false, targets: 0, threads: 0 };
