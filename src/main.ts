@@ -14,6 +14,7 @@ import { store } from './core/store';
 import { bootSystem, initLockscreen, initPullGesture } from './shell/system';
 import { initShade } from './shell/shade';
 import { initApps, type AppManager } from './shell/apps';
+import { initEffects } from './shell/effects';
 
 mark('dcl');
 watchLongTasks();
@@ -27,6 +28,7 @@ if (params.get('theme') === 'light' || params.get('theme') === 'dark') {
 if (params.get('wp')) store.set('wallpaper', params.get('wp')!.slice(0, 4));
 
 bootSystem();
+initEffects();
 
 let appsRef: AppManager | null = null;
 const shade = initShade((id) => appsRef?.open(id));

@@ -68,7 +68,10 @@ r_local = lerp(iconR, winR, m(p)) / sx
 | 层 | 作用 | 衰减 |
 | --- | --- | --- |
 | `--launch-tint`（`::before`） | 窗口起点用**图标自己的颜色**铺满 | `1 - smoothstep(0.28, 0.62, p)` |
-| `.launch-ghost` | 真实图标节点的克隆，随窗口放大 18% | `1 - smoothstep(0.02, 0.55, p)` |
+| `.launch-ghost` | 真实图标节点的克隆，随窗口放大 18% | `1 - smoothstep(0.02, 0.42, p)` |
+
+> 组件 / 任务卡的 ghost 走另一套（见 §7）：它逐帧贴住窗口矩形、自带壁纸切片、且 z 在
+> 窗口**之上**；图标 ghost 仍是「原地拉长再淡出」并压在窗口之下。
 | `--launch-content` | 真实内容（header / body） | `smoothstep(0.55, 1, p)` |
 
 只有 color + ghost 一起走，才读得出「这块颜色就是那个图标」；只做缩放会像「一个小窗口在放大」。
@@ -97,37 +100,79 @@ r_local = lerp(iconR, winR, m(p)) / sx
 ### 2.1 系统语义（AOSP）
 
 `packages/SystemUI/src/com/android/systemui/navigationbar/gestural/BackPanelController.kt`
-+ `EdgePanelParams.kt` + `res/values/dimens.xml`（android-14.0.0_r1）：
++ `EdgePanelParams.kt` + `res/values/dimens.xml`（android-14.0.0_r1，源码快照见
+`docs/aosp/systemui/`；`grep -n navigation_edge docs/aosp/systemui/dimens.xml` 可逐条复核）：
 
 | 参数 | 值 | 资源名 |
 | --- | --- | --- |
-| 触发边距 | **24 px**（阈值 16dp 之上留余量） | `navigation_edge_action_drag_threshold` 16dp |
-| 满进度拖动距离 | **62% 屏宽** | `navigation_edge_action_progress_threshold` 412dp 的归一化改写 |
-| 指示器出现阈值 | **progress > 0.165** | `commonArrowDimensAlphaThreshold = .165f` |
-| 出现斜率 | 1.05 | `commonArrowDimensAlphaFactor` |
-| 指示器底 | **48×48**，圆角 **24** | `navigation_edge_active_background_width` / `_edge_corners` |
-| 指示器距边 | **14** | `navigation_edge_active_margin` |
-| 箭身 | **6.4** 长 / 笔粗 **4** | `navigation_edge_active_arrow_length` / `navigation_edge_arrow_thickness` |
-| 箭头纵向钳制 | **64** 起 | `navigation_edge_arrow_min_y` |
-| 提交阈值 | progress > **0.32** 或速度 > **850 px/s** | `swipeProgressThreshold` 的等价改写 |
+| 边缘热区宽度 | **105dp**（整块 panel，不是 24px） | `navigation_edge_panel_width` |
+| 面板高度 | 268dp | `navigation_edge_panel_height` |
+| 激活阈值 | 横向 **16dp** | `navigation_edge_action_drag_threshold` |
+| 满进度距离 | `min(屏宽, 412dp)` | `navigation_edge_action_progress_threshold` |
+| 指示器中心 | 指尖 y **−64dp**，最低 64dp | `navigation_edge_finger_offset` / `_arrow_min_y` |
+| 笔粗 | **4dp** | `navigation_edge_arrow_thickness` |
+| 出现阈值 | progress **> 0.165**，斜率 1.05 | `commonArrowDimensAlphaThreshold` / `_Factor` |
+| 提交 | 进度 **> 0.14** 或松手速度 **> 700px/s** | AOSP 由 IIO commit 判定；此处取可复现的等效值 |
+
+**指示器不是固定 48×48 的圆。** `EdgePanelParams` 定义了五组 dimens，`BackPanel.setStretch`
+在组间插值，`BackPanelController` 再用 `updateArrowState` 切状态：
+
+| 状态 | 宽×高 | 圆角（近边/远边） | 距边 | scale | 箭头 长×总高 |
+| --- | --- | --- | --- | --- | --- |
+| entry | 0×48 | 6 / 6 | 4 | 0.98 | 8.6 × 5（α0） |
+| pre-threshold | 51×46 | 16 / 20 | 4 | 0.98 | 8 × 5.6 |
+| active | 48×48 | 24 / 24 | 14 | 1.00 | 6.4 × 7.2 |
+| stretch（拖满） | 60×48 | 24 / 24 | 18 | 1.00 | 5.6 × 8 |
+| committed | 保留宽度 | 24 / 24 | — | **0.86**、背景 α→0 | 保留 |
+
+实现：`motion/back-indicator.ts`。宽/高/圆角/位移/scale 各跑一条解析弹簧（刚度与阻尼比取
+`EdgePanelParams` 的 `createSpring` 原值：active 850/.75、committed 1400/1…），所以状态切换
+会**弹一下**，而不是匀速放大。拉伸量走 `PathInterpolator(.19,1.27,.71,.86)` 的近似曲线。
+
+三个状态必须**依次可达**才算复刻对：横向意图成立（≥8px）先给 pre-threshold 的 peek
+（51×46、圆角 16/20、距边 4dp），越过 16dp 才收成 48×48 的整圆，再随进度拉长。少了
+peek 这一段，小球就是「凭空出现一个圆」，这也是上一版观感差异最大的地方。
+逐 6px 采样的实测序列（420×910，u=1.069）：
+
+```
+  6px  0×51.3   α0      ← entry（宽 0，只剩一条缝）
+ 12px 11.2×50.9 α.21    ← peek 态（高 46dp）
+ 24px 40.0×50.8 α.80    ← 长出来
+ 36px 53.2×51.2 α1      ← active（48dp 整圆 + 拉伸量）
+ 72px 57.1×51.3 α1      ← 继续拉长（终点 60dp）
+```
 
 ### 2.2 拖动时的画面
 
 ```
-窗口：scale 1 → 0.92（-0.08·p）
-      横向让位 ±9% 屏宽·p（朝手势反方向）
+窗口：scale 1 → 0.90（-0.10·p）
+      横向让位 ±12% 屏宽·p（朝手势反方向）
       圆角 24 → 34
       压暗 0 → 0.24（::after）
-桌面：opacity 0 → 1，scale 0.94 → 1    ← 「上一层」预览
-箭头：48×48，随 p 缩放 0.55→1，p>0.165 起显形
+桌面：图标/组件/Dock 由 --back-p 重新显形（不是只露壁纸）
+小球：entry(0×48) → peek(51×46) → active(48×48) → stretch(60×48)
+      位置 y = 指尖 −64dp；p>0.165 起显形；提交时 scale .86、背景 α→0
 ```
 
 松手两条路：
 
-- **提交**：窗口用 `EMPHASIZED_ACCELERATE` 在 220 ms 内收进图标，然后卸载；
-- **取消**：弹簧（response 0.3 / ζ 0.92）把 p 弹回 0，途中再按下可**从当前 p 接着拖**。
+- **提交**：小球进入 committed（0.86 收束），窗口 250ms `EMPHASIZED_ACCELERATE` 收进图标后卸载；
+- **取消**：弹簧（600 / ζ0.9）把 p 弹回 0，小球回到 pre-threshold 再消失，途中可再次按下。
 
-### 2.3 与原工程的对应关系
+### 2.3 触发率为什么从「50 次中 1 次」变成稳定命中
+
+上一版只认距边 **24px** 的 `pointerdown`，且要求 `|dx|>8` 时立刻锁定；真实手指落点常在
+30~60px，于是绝大多数起手被丢弃。现在：
+
+1. 热区改为 `min(105dp, 30% 屏宽)`（Pixel 上 ≈112px），按 `navigation_edge_panel_width`；
+2. 起手后先进入 ENTRY，横向位移 8px 才锁定；纵向占优则**让位给滚动**（不会误触）；
+3. 锁定后 `setPointerCapture`，手指移出面板/窗口也不丢事件；
+4. 进度按 412dp 归一，提交只需 14%，短拖（约 70px）即可返回；
+5. `.app-window { touch-action: pan-y }` + `overscroll-behavior` 阻止浏览器把横滑当成历史导航。
+
+实测：420×910、鼠标/触摸模拟，10 次 154px 横拖 **10 次提交成功**（此前 1/10 左右）。
+
+### 2.4 与原工程的对应关系
 
 原工程 `应用` 角色的 `后台运动` 过程给的是一套**卡片栈**参数（多层窗口错位叠放）：
 
@@ -186,10 +231,114 @@ window.__launchSpeed = 0.1   // 500ms → 5000ms
 
 ---
 
-## 五、明确没做的
+## 五、上滑 / 上滑长按：前台 → 后台
+
+原工程反编译（`应用` 角色的打开循环之后）：
+
+```
+按住向上滑   → 填充图标长 → 340、宽随 mouseY 收缩、窗口跟随手指
+停在判定带   → 后台，手势判断 每帧 +1，累计 30 帧（≈0.5s）→ 后台手势结果 = 1
+松手         → 结果为 1 进后台；否则回桌面
+```
+
+本壳实现（`motion/handoff.ts`）：
+
+| 阶段 | 行为 |
+| --- | --- |
+| 起手 | 屏幕最底部 **72px**、避开左右 36px（让给返回手势） |
+| 拖动 | `k = -dy / (42% 屏高)`；窗口 `scale 1→0.74`、上移 2%、圆角 24→34、轻微淡出 |
+| 长按 | 进入 12% 进度后计时 **320ms** → 锁定 recents（原工程 30 帧，60fps ≈ 500ms，取更跟手的 320） |
+| 松手 | `k>0.34` 或已长按 → 收起成卡片；`k>0.16` → 送下屏幕回桌面；否则弹簧回全屏 |
+
+进入后台不是「截图再淡入」：`shell/apps.ts` 保留**同一个窗口实例**，用
+`motion/window-morph.ts` 从当前手势中的矩形连续吸到第一张卡（320ms emphasized），
+再 140ms 交叉淡出到卡片。点卡片则反向拉回全屏（336ms，`RECENTS_LAUNCH_DURATION`）。
+
+> **原工程移动端 bug 的根因（已修）**：点卡片走的是 `后台触控计算()`（反编译
+> `应用` 角色 DEFINE 后台触控计算）——它拿 `8,2W7...` 触摸表与 `后台列表` 逐个比
+> 图层序，只要手指落点不在「恰好是当前卡」的那一层，就把 `结果记录` 置 0 并
+> `stop this script`，后面整段 `if 结果=1` 的恢复分支不会执行。移动端卡片间距小、
+> 手指有半径，命中率因此很低。本壳改为卡片自身承担点击，且恢复复用已挂载窗口，
+> 不再经过图层判定。
+>
+> 空白退出同理：原工程 `后台` 状态里没有空白区 handler（`触控` 角色只处理上滑手势），
+> 退出只能点卡片或返回键；现在整个 `#recents` 背景可点，退出到桌面。
+
+---
+
+## 六、All Apps 抽屉
+
+原工程 `All Apps` 角色：显示 y `−695 → 0`，跟手阻尼 `/6`，松手阈值 ±50；桌面图标同时
+`宽→0.9×、长→0、GHOST→100`。AOSP 对应 `AllAppsTransitionController`（拖动进度 1=关、
+0=开；弹簧 600/0.9；内容 alpha 217ms、scale 350ms）。
+
+本壳（`shell/drawer.ts`）用一个 `p` 同时驱动：
+
+```
+面板      translateY((1−p)·屏高)
+背景      opacity p；backdrop-filter blur(30px)（低端机降级实色）
+桌面      opacity 1−p、上移 18px·p、scale 1−0.05p
+抽屉图标  opacity clamp((p − i·0.018)·8)；translateY 26px·(1−p)   ← 错峰 18ms
+```
+
+松手用弹簧 600/0.9（`AllAppsTransitionController` 原值），可中途反向。
+
+---
+
+## 七、小组件（时钟）
+
+AOSP `QuickstepTransitionManager.getOpeningWindowAnimatorsForWidget`
+（commit d159e611，已取证）：
+
+| 属性 | 区间 | 说明 |
+| --- | --- | --- |
+| 总时长 | 500ms | `APP_LAUNCH_DURATION` |
+| 组件前景 α | 1→0，前 **62.5ms** | `WIDGET_CROSSFADE_DURATION_MILLIS/2` |
+| 窗口预览 α | 0→1，**62.5→125ms** | 同上 |
+| 圆角 | `max(w,h)/2` → 24 | 起点是组件自身的胶囊圆角 |
+| 窗口/背景 bounds | 组件中心/尺寸 → 全屏 | `mDx/mDy/mWidth/mHeight` |
+
+本壳按同一条**合成顺序**复刻，而不是「淡入淡出」：
+
+```
+窗口（opaque，第一帧就是 app 自己的底色与内容）
+  └ 组件快照（z 更高，逐帧贴住窗口矩形，α 1→0 收尾 62.5ms）
+```
+
+三个关键点，少一个就会露出破绽（上一版的两种破绽都踩过）：
+
+1. **快照必须自带壁纸像素**。组件是「玻璃压在壁纸上」，`backdrop-filter` 若取到的是
+   下方不透明的 app 窗口，整块会变成灰色板。QSTM 放大的是含壁纸的位图；这里用**壁纸
+   切片**替代：把 `.wallpaper` 按屏幕尺寸克隆进快照、负偏移对齐到组件位置、`overflow:
+   hidden` + 同半径裁剪，于是放大时壁纸跟着一起放大（与位图放大同构，也正好复刻
+   「组件连背景一起长」的观感）。
+2. **快照逐帧贴住窗口矩形**（`translate3d(vx−rect.x, vy−rect.y) scale(vw/rect.w, vh/rect.h)`，
+   `transform-origin: 0 0`）。图标那套「原地轻微拉伸」用在组件上会变成「小卡片浮在深色
+   大窗里」。圆角按屏幕像素反算（`rScreen/scale`），放大途中视觉圆角与窗口一致。
+3. **窗口从不半透明**。若让窗口底色从 0 拉起「透出下面的克隆体」，中途就会看到桌面图标
+   浮在窗口内部（浑浊帧）。窗口 opaque + 快照在上面渐隐，才是原版那种「组件溶解成 app」。
+
+关闭是同一时间轴的逆向（250ms）：快照用更长的 0.55 进度区间渐显，收尾不跳；窗口缩到
+组件矩形时快照正好 α=1 且与真实组件对齐，交接无跳变。
+
+---
+
+## 八、图标 / Dock / 遮罩联动
+
+- **图标按压**：`scale(.9)` + `brightness(.94)` + 中心径向高光（180/260ms emphasized）。
+  对应 Launcher3 的 icon press 反馈；不再是「整个按钮连标签一起缩」。
+- **图标形变**：开窗时克隆体 `scaleX 1→1.12 / scaleY 1→1.28`，先纵向拉长再淡出，
+  对应原工程 `多层图标()` 的 9-slice 拉伸（图标是被拉长，不是整块放大）。
+- **Dock**：随 `--launch-icons` 从 1→0 退出（0~34% 开窗进度），关闭时反向回归。
+  QSTM 把 hotseat 并入 workspace 内容动画、一起缩放/淡出，本壳同构。
+- **遮罩**：`launch-scrim` 按 `MAX_SCRIM_ALPHA_LIGHT .2 / DARK .8` 随进度压暗桌面。
+
+---
+
+## 九、明确没做的（以及为什么）
 
 1. **3D 倾斜 / 透视漏斗**：原生 preset 明确 `tiltDisabled`，不做「果冻」；
-2. **多窗口卡片栈**：等 Recents 真做（现在 Recents 还是图标水印卡）；
+2. **多窗口卡片栈**：单窗口「同一个 DOM 收成卡片」已做；多窗口叠放仍按 §2.4 的公式留档；
 3. **返回时内容快照**：Android 会冻结上一帧做缩放，我们直接缩放活 DOM ——
    代价是缩放中的文字会重新栅格化，观感上更「软」，但不占额外内存；
-4. **手势导航条（pill）**：没有底部手势条，返回只靠边缘拖拽 + 返回键。
+4. **手势导航条**：只画了 AOSP 的 home handle（108×4dp），没有做「上滑到一半松手回弹」以外的三键导航。

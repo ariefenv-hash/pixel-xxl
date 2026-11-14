@@ -5,10 +5,10 @@ Android 17 桌面的网页实现：桌面、状态栏、锁屏、通知中心、
 
 | 指标（CI 实测：4G 1.6Mbps/RTT150ms，CPU 4× 节流） | 值 | 预算 |
 | --- | --- | --- |
-| 可交互 | **418 ms** | < 1000 ms |
-| 首屏内容（FCP） | **284 ms** | < 1500 ms |
-| 首次传输（gzip） | **56.1 KB** | < 200 KB |
-| 长任务 | **0 个** | — |
+| 可交互 | **526 ms** | < 1000 ms |
+| 首屏内容（FCP） | **324 ms** | < 1500 ms |
+| 首次传输（gzip） | **63.4 KB** | < 200 KB |
+| 长任务 | **1 个（~109 ms，首屏解析）** | — |
 
 线上：[ariefenv-hash.github.io/pixel-xxl](https://ariefenv-hash.github.io/pixel-xxl/)
 
@@ -27,7 +27,10 @@ Android 17 桌面的网页实现：桌面、状态栏、锁屏、通知中心、
 | `width/height/top/left` 动画 | 只动 `transform` / `opacity`，走合成层 |
 | 桌面端也开毛玻璃 | 按 `deviceMemory` / 核心数降级，低端关 `backdrop-filter` |
 | 开窗 = 淡入 + 缩放 | **容器变换**：窗口从图标的那个正方形长到全屏（500ms / emphasized，关 250ms） |
-| 返回 = 直接切页 | **预测式返回**：边缘拖拽跟手，窗口缩小让位、桌面显形、箭头指示，松手才提交 |
+| 返回 = 直接切页 | **预测式返回**：105dp 边缘面板起手，小球按 AOSP 五态形变（0×48→51×46→48×48→60×48→0.86），松手才提交 |
+| 上滑 = 回桌面 | **上滑长按进后台**：窗口跟手缩小，320ms 判定，松手吸成卡片；点卡片用同一实例拉回全屏 |
+| 应用列表 = 另一页 | **All Apps 抽屉**：跟手 + 弹簧、毛玻璃、桌面图标退场、14 个图标错峰淡入 |
+| 点小组件 = 直接跳转 | **组件容器变换**：按 QSTM 的 500/125ms 时间轴，组件本身长大成窗口 |
 
 完整清单与实测见 [`docs/PERF.md`](docs/PERF.md)，架构见 [`docs/ARCHITECTURE.md`](docs/ARCHITECTURE.md)。
 动效参数（每个数值的 AOSP 出处）见 [`docs/MOTION-SPEC.md`](docs/MOTION-SPEC.md) —— 慢放检视：`window.__launchSpeed = 0.1`。
@@ -48,9 +51,11 @@ index.html            单入口：内联 SVG sprite + 桌面 DOM + 关键 CSS �
 src/
   core/               状态、注册表、性能探针、DOM 工具（零框架）
   shell/              壁纸/状态栏/锁屏 · 通知中心+控制中心 · app 窗口/Recents
+                      抽屉 · 小组件 · 扩展能力（玻璃高光 / UI 音效）
   apps/               14 个应用（5 个真功能 + 9 个占位）
-  motion/             driver（唯一 rAF 宿主）· launch（容器变换）· predictive（预测式返回）
-                      vendor/ = md3 内核原样内嵌（spring / 定时轴 / AOSP 曲线 / 打断协议）
+  motion/             driver（唯一 rAF 宿主）· launch（图标/组件容器变换）
+                      predictive + back-indicator（预测式返回）· handoff（上滑/长按进后台）
+                      window-morph（全屏 ↔ 卡片）· vendor/ = md3 内核原样内嵌
   styles/             tokens（设计令牌）· palettes（构建期生成）· shell · apps
 scripts/
   hct.mjs             HCT 色彩空间（CAM16 + L*），构建期用

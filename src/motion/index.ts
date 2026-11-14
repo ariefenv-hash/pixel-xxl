@@ -44,6 +44,8 @@ export {
   EMPHASIZED_ACCELERATE,
   FAST_OUT_SLOW_IN,
   DECELERATE_1_5,
+  cubicBezier,
+  pathInterpolator,
 } from './vendor/aosp/interpolators.js';
 // @ts-ignore
 export { InterruptibleInOutAnimator, IIOAnimator, DIRECTION } from './vendor/aosp/interruptible-in-out-animator.js';
