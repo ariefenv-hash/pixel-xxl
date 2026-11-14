@@ -10,7 +10,7 @@
     "build": "npm run typecheck && vite build",
     "preview": "vite preview --port 4173",
     "palettes": "node scripts/build-palettes.mjs",
-    "gate": "node scripts/perf-gate.mjs"
+    "gate": "python3 scripts/perf-gate.py"
   },
   "devDependencies": {
     "typescript": "^5.6.3",
