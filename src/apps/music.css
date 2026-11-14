@@ -1,0 +1,183 @@
+.mus {
+  display: flex;
+  flex-direction: column;
+  height: 100%;
+  min-height: 0;
+  padding: 16px 24px calc(20px + env(safe-area-inset-bottom));
+  gap: 16px;
+  background:
+    radial-gradient(120% 60% at 50% 0%, color-mix(in srgb, var(--color-primary) 14%, transparent), transparent 70%),
+    var(--color-surface);
+  overflow-y: auto;
+  overscroll-behavior: contain;
+}
+
+.mus__art {
+  flex: none;
+  width: min(100%, 260px);
+  aspect-ratio: 1;
+  margin: 12px auto 4px;
+  border-radius: 26px;
+  box-shadow: 0 22px 50px -22px rgba(0, 0, 0, 0.6);
+  position: relative;
+  overflow: hidden;
+  transition: transform var(--dur-medium4) var(--ease-emphasized);
+}
+
+.mus__art[data-playing='1'] {
+  transform: scale(1.02);
+}
+
+.mus__art::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background: radial-gradient(60% 40% at 30% 20%, rgba(255, 255, 255, 0.28), transparent 70%);
+}
+
+.mus__meta {
+  text-align: center;
+}
+
+.mus__title {
+  font-size: 21px;
+  font-weight: 600;
+  color: var(--color-on-surface);
+  letter-spacing: -0.01em;
+}
+
+.mus__artist {
+  margin-top: 4px;
+  font-size: 12.5px;
+  color: var(--color-on-surface-variant);
+}
+
+.mus__progress {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.mus__bar {
+  position: relative;
+  height: 26px;
+  display: flex;
+  align-items: center;
+  cursor: pointer;
+  touch-action: none;
+}
+
+.mus__bar::before {
+  content: '';
+  position: absolute;
+  inset: 11px 0;
+  border-radius: 2px;
+  background: color-mix(in srgb, var(--color-on-surface) 14%, transparent);
+}
+
+.mus__fill {
+  position: relative;
+  height: 4px;
+  width: 100%;
+  border-radius: 2px;
+  background: var(--color-primary);
+  transform: scaleX(0);
+  transform-origin: left center;
+  /* 播放中不加过渡：timeupdate 频率约 4Hz，加了反而抖 */
+}
+
+.mus__times {
+  display: flex;
+  justify-content: space-between;
+  font-size: 11px;
+  font-variant-numeric: tabular-nums;
+  color: var(--color-on-surface-variant);
+}
+
+.mus__controls {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 28px;
+  padding: 4px 0;
+}
+
+.mus__btn {
+  width: 52px;
+  height: 52px;
+  border-radius: 50%;
+  display: grid;
+  place-items: center;
+  color: var(--color-on-surface);
+  transition: transform var(--dur-short3) var(--ease-standard);
+}
+
+.mus__btn:active {
+  transform: scale(0.9);
+}
+
+.mus__btn--play {
+  width: 68px;
+  height: 68px;
+  background: var(--color-primary);
+  color: var(--color-on-primary);
+  box-shadow: 0 12px 28px -12px color-mix(in srgb, var(--color-primary) 80%, transparent);
+}
+
+.mus__btn--play svg {
+  width: 30px;
+  height: 30px;
+}
+
+.mus__list {
+  display: flex;
+  flex-direction: column;
+  border-radius: 20px;
+  background: var(--color-surface-container-low);
+  overflow: hidden;
+  margin-top: auto;
+}
+
+.mus__row {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  padding: 12px 16px;
+  text-align: left;
+  transition: background var(--dur-short2) var(--ease-standard);
+}
+
+.mus__row + .mus__row {
+  border-top: 1px solid color-mix(in srgb, var(--color-outline-variant) 30%, transparent);
+}
+
+.mus__row[data-active='1'] {
+  background: color-mix(in srgb, var(--color-primary) 12%, transparent);
+}
+
+.mus__row-title {
+  font-size: 14px;
+  font-weight: 500;
+  color: var(--color-on-surface);
+}
+
+.mus__row[data-active='1'] .mus__row-title {
+  color: var(--color-primary);
+}
+
+.mus__row-sub {
+  font-size: 11.5px;
+  color: var(--color-on-surface-variant);
+}
+
+/* 封面水印：无专辑图时给一个视觉锚点，避免纯色块显得空 */
+.mus__watermark {
+  position: absolute;
+  right: -14px;
+  bottom: -14px;
+  width: 150px;
+  height: 150px;
+  opacity: 0.18;
+  color: #fff;
+  z-index: 2;
+}

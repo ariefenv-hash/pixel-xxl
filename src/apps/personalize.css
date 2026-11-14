@@ -1,0 +1,134 @@
+.pers {
+  padding: 8px 0 32px;
+}
+
+.pers__section {
+  padding: 0 16px;
+  margin-top: 20px;
+}
+
+.pers__walls {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 10px;
+}
+
+.wall {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  border-radius: 18px;
+  padding: 5px;
+  background: transparent;
+  transition:
+    background var(--dur-short3) var(--ease-standard),
+    transform var(--dur-short3) var(--ease-standard);
+}
+
+.wall:active {
+  transform: scale(0.96);
+}
+
+.wall[data-active='1'] {
+  background: var(--color-secondary-container);
+}
+
+.wall__thumb {
+  display: block;
+  width: 100%;
+  aspect-ratio: 9 / 16;
+  border-radius: 14px;
+  background-size: cover;
+  background-position: center;
+  box-shadow: 0 4px 12px -6px rgba(0, 0, 0, 0.5);
+}
+
+.wall__name {
+  font-size: 11.5px;
+  text-align: center;
+  color: var(--color-on-surface-variant);
+  padding-bottom: 3px;
+}
+
+.wall[data-active='1'] .wall__name {
+  color: var(--color-on-secondary-container);
+  font-weight: 500;
+}
+
+.wall__check {
+  position: absolute;
+  top: 10px;
+  right: 10px;
+  width: 22px;
+  height: 22px;
+  border-radius: 50%;
+  display: grid;
+  place-items: center;
+  background: var(--color-primary);
+  color: var(--color-on-primary);
+  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.35);
+}
+
+.wall__check svg {
+  width: 14px;
+  height: 14px;
+}
+
+.pers__row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 14px;
+  padding: 14px 18px;
+}
+
+.pers__row-label {
+  font-size: 14px;
+  font-weight: 500;
+  color: var(--color-on-surface);
+}
+
+.pers__swatches {
+  display: flex;
+  flex-direction: column;
+}
+
+.swatch {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 12px 18px;
+}
+
+.swatch + .swatch {
+  border-top: 1px solid color-mix(in srgb, var(--color-outline-variant) 30%, transparent);
+}
+
+.swatch__dot {
+  width: 26px;
+  height: 26px;
+  border-radius: 50%;
+  flex: none;
+  box-shadow: inset 0 0 0 1px color-mix(in srgb, var(--color-outline-variant) 60%, transparent);
+}
+
+.swatch__label {
+  font-size: 13px;
+  color: var(--color-on-surface);
+}
+
+.swatch__hex {
+  margin-left: auto;
+  font-family: var(--font-mono);
+  font-size: 11.5px;
+  color: var(--color-on-surface-variant);
+}
+
+.pers__note {
+  margin: 12px 4px 0;
+  font-size: 12px;
+  line-height: 1.65;
+  color: var(--color-on-surface-variant);
+  opacity: 0.9;
+}

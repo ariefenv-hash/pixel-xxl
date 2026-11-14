@@ -1,0 +1,249 @@
+/* ==========================================================================
+   apps.css — app 通用组件（列表 / 开关 / 卡片 / 分段控件）
+   各 app 的专属版式在 src/apps/*.css 里，随 app chunk 异步加载。
+   ========================================================================== */
+
+.page {
+  padding: 8px 0 28px;
+}
+
+.page__section {
+  padding: 0 16px;
+  margin-top: 18px;
+}
+
+.section-title {
+  font-size: 12px;
+  font-weight: 600;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: var(--color-primary);
+  margin: 0 0 8px 4px;
+}
+
+.card {
+  border-radius: 22px;
+  background: var(--color-surface-container-low);
+  overflow: hidden;
+}
+
+.card + .card {
+  margin-top: 10px;
+}
+
+/* --------------------------------- 列表 --------------------------------- */
+
+.list {
+  display: flex;
+  flex-direction: column;
+}
+
+.row {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  padding: 14px 18px;
+  min-height: 56px;
+  text-align: left;
+  width: 100%;
+  transition: background var(--dur-short2) var(--ease-standard);
+}
+
+.row:active {
+  background: color-mix(in srgb, var(--color-on-surface) 6%, transparent);
+}
+
+.row + .row {
+  border-top: 1px solid color-mix(in srgb, var(--color-outline-variant) 34%, transparent);
+}
+
+.row__icon {
+  width: 36px;
+  height: 36px;
+  flex: none;
+  border-radius: 50%;
+  display: grid;
+  place-items: center;
+  background: var(--color-secondary-container);
+  color: var(--color-on-secondary-container);
+}
+
+.row__icon svg {
+  width: 19px;
+  height: 19px;
+}
+
+.row__text {
+  flex: 1;
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.row__title {
+  font-size: 14px;
+  font-weight: 500;
+  color: var(--color-on-surface);
+}
+
+.row__sub {
+  font-size: 12px;
+  color: var(--color-on-surface-variant);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.row__value {
+  font-size: 13px;
+  color: var(--color-on-surface-variant);
+  flex: none;
+}
+
+.row__chevron {
+  width: 18px;
+  height: 18px;
+  color: var(--color-on-surface-variant);
+  opacity: 0.7;
+  flex: none;
+}
+
+/* --------------------------------- 开关 --------------------------------- */
+
+.switch {
+  position: relative;
+  width: 46px;
+  height: 28px;
+  flex: none;
+  border-radius: 15px;
+  background: var(--color-surface-container-highest);
+  border: 2px solid var(--color-outline);
+  transition:
+    background var(--dur-short4) var(--ease-standard),
+    border-color var(--dur-short4) var(--ease-standard);
+}
+
+.switch::after {
+  content: '';
+  position: absolute;
+  left: 4px;
+  top: 50%;
+  width: 14px;
+  height: 14px;
+  margin-top: -7px;
+  border-radius: 50%;
+  background: var(--color-outline);
+  transition:
+    transform var(--dur-medium1) var(--ease-emphasized),
+    width var(--dur-short4) var(--ease-standard),
+    height var(--dur-short4) var(--ease-standard),
+    margin var(--dur-short4) var(--ease-standard),
+    background var(--dur-short4) var(--ease-standard);
+}
+
+.switch[data-on='1'] {
+  background: var(--color-primary);
+  border-color: var(--color-primary);
+}
+
+.switch[data-on='1']::after {
+  transform: translateX(18px);
+  width: 20px;
+  height: 20px;
+  margin-top: -10px;
+  background: var(--color-on-primary);
+}
+
+/* -------------------------------- 分段控件 -------------------------------- */
+
+.segmented {
+  display: flex;
+  padding: 3px;
+  gap: 3px;
+  border-radius: 20px;
+  background: var(--color-surface-container-high);
+}
+
+.segmented__item {
+  flex: 1;
+  padding: 9px 12px;
+  border-radius: 17px;
+  font-size: 13px;
+  color: var(--color-on-surface-variant);
+  transition:
+    background var(--dur-short3) var(--ease-standard),
+    color var(--dur-short3) var(--ease-standard);
+}
+
+.segmented__item[data-active='1'] {
+  background: var(--color-primary);
+  color: var(--color-on-primary);
+  font-weight: 500;
+}
+
+/* -------------------------------- 空态 -------------------------------- */
+
+.empty {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 12px;
+  padding: 64px 32px;
+  text-align: center;
+  color: var(--color-on-surface-variant);
+}
+
+.empty svg {
+  width: 46px;
+  height: 46px;
+  opacity: 0.45;
+}
+
+.empty__title {
+  font-size: 16px;
+  font-weight: 500;
+  color: var(--color-on-surface);
+}
+
+.empty__text {
+  font-size: 13px;
+  line-height: 1.6;
+  max-width: 260px;
+}
+
+/* ------------------------------- 主按钮 ------------------------------- */
+
+.filled-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  padding: 12px 22px;
+  border-radius: 22px;
+  font-size: 14px;
+  font-weight: 500;
+  background: var(--color-primary);
+  color: var(--color-on-primary);
+  transition:
+    transform var(--dur-short3) var(--ease-standard),
+    box-shadow var(--dur-short3) var(--ease-standard);
+}
+
+.filled-btn:active {
+  transform: scale(0.97);
+}
+
+.tonal-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  padding: 12px 22px;
+  border-radius: 22px;
+  font-size: 14px;
+  font-weight: 500;
+  background: var(--color-secondary-container);
+  color: var(--color-on-secondary-container);
+}

@@ -1,0 +1,87 @@
+.ph {
+  padding: 32px 24px 40px;
+  display: flex;
+  flex-direction: column;
+  gap: 22px;
+}
+
+.ph__hero {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  text-align: center;
+  gap: 10px;
+  padding: 18px 0 4px;
+}
+
+.ph__icon {
+  width: 76px;
+  height: 76px;
+  border-radius: 50%;
+  display: grid;
+  place-items: center;
+  background: var(--color-primary-container);
+  color: var(--color-on-primary-container);
+  box-shadow: 0 10px 26px -12px color-mix(in srgb, var(--color-primary) 60%, transparent);
+}
+
+.ph__icon svg {
+  width: 38px;
+  height: 38px;
+}
+
+.ph__title {
+  margin: 0;
+  font-size: 22px;
+  font-weight: 600;
+  letter-spacing: -0.01em;
+  color: var(--color-on-surface);
+}
+
+.ph__desc {
+  margin: 0;
+  font-size: 13.5px;
+  line-height: 1.65;
+  color: var(--color-on-surface-variant);
+  max-width: 300px;
+}
+
+.ph__card {
+  padding: 18px 20px;
+  border-radius: 22px;
+  background: var(--color-surface-container-low);
+}
+
+.ph__card-title {
+  margin: 0 0 10px;
+  font-size: 12px;
+  font-weight: 600;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: var(--color-primary);
+}
+
+.ph__list {
+  margin: 0;
+  padding-left: 18px;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  font-size: 13.5px;
+  line-height: 1.55;
+  color: var(--color-on-surface);
+}
+
+.ph__list li::marker {
+  color: var(--color-primary);
+}
+
+.ph__note {
+  margin: 0;
+  font-size: 12px;
+  line-height: 1.6;
+  color: var(--color-on-surface-variant);
+  opacity: 0.9;
+  padding-top: 6px;
+  border-top: 1px solid color-mix(in srgb, var(--color-outline-variant) 40%, transparent);
+}

@@ -1,0 +1,123 @@
+/* ==========================================================================
+   tokens.css — 设计令牌单一真源（v2）
+   —— 出处纪律（承接 #7 / DESIGN-SPEC.md v1.0）：
+        aosp:     AOSP 源码值（SystemUI / Launcher3 / core/res）
+        material: Material 3 规范曲线与时长（AOSP Interpolators/Durations 同构）
+        self:     工程自创或未考证值，集中在此分区，不得伪装成 aosp
+   颜色角色由构建期生成的 palettes.css 注入（--color-*），此处只给兜底值。
+   ========================================================================== */
+
+:root {
+  /* ---------- 1. 尺寸：系统栏 ---------- */
+  --status-bar-height: 28px; /* self: 状态栏内容区，AOSP 由 status_bar_height 派生 */
+  --nav-bar-height: 0px; /* self: 手势导航无导航栏占位 */
+  --corner-radius-screen: 42px; /* self: 设备展示圆角（页面壳，非系统值） */
+
+  /* ---------- 2. 尺寸：桌面栅格（Launcher3 workspace 同构） ---------- */
+  --workspace-columns: 5; /* aosp: launcher3 InvariantDeviceProfile.numColumns (Pixel 5x5) */
+  --workspace-rows: 5; /* aosp: launcher3 InvariantDeviceProfile.numRows (Pixel 5x5) */
+  --workspace-cell-width: 72px; /* self: 由容器宽 / columns 计算，此处为设计基准 */
+  --workspace-cell-height: 92px;
+  --workspace-icon-size: 56px; /* aosp: launcher3 dynamic_grid_icon_size 近似 */
+  --workspace-icon-radius: 50%; /* aosp: AdaptiveIconDrawable 圆形遮罩 */
+  --workspace-label-size: 12px;
+  --workspace-label-gap: 6px;
+  --workspace-page-padding-top: 8px;
+  --workspace-page-padding-bottom: 88px; /* self: 给页码点与 Dock 留位 */
+
+  /* ---------- 3. 尺寸：Dock ---------- */
+  --dock-height: 96px; /* self */
+  --dock-icon-size: 56px;
+  --dock-radius: 28px; /* aosp: SystemUI qs_corner_radius 同族 */
+  --dock-padding: 12px;
+
+  /* ---------- 4. 尺寸：通知（2025 通知改版，ing 自 systemui core/res） ---------- */
+  --notif-corner-radius: 28px; /* aosp: notification_corner_radius = 28dp */
+  --notif-divider-height: 2px; /* aosp: notification_divider_height = 2dp */
+  --notif-min-height: 64px; /* aosp: notification_min_height_legacy = 64dp */
+  --notif-icon-circle: 40px; /* aosp: notification_2025_icon_circle_size = 40dp */
+  --notif-content-margin-start: 72px; /* aosp: notification_2025_content_margin_start */
+  --notif-content-margin-end: 60px;
+  --notif-title-size: 14px; /* aosp: notification_title_text_size = 14sp */
+  --notif-text-size: 14px;
+  --notif-subtext-size: 12px;
+  --notif-action-radius: 18px; /* aosp: notification_action_button_radius = 18dp */
+  --notif-action-height: 48px; /* aosp: notification_2025_action_list_height */
+
+  /* ---------- 5. 尺寸：QS 磁贴（shade_dimens.xml） ---------- */
+  --qs-corner-radius: 28px; /* aosp: qs_corner_radius = 28dp */
+  --tile-height: 72px; /* aosp: common_tile_default_tile_height = 72dp */
+  --tile-active-radius: 24px; /* aosp: common_tile_default_active_tile_corner_radius */
+  --tile-inactive-radius: 50px; /* aosp: common_tile_default_inactive_tile_corner_radius */
+  --tile-icon-size: 32px; /* aosp: common_tile_default_icon_size = 32dp */
+  --tile-gap: 6px; /* aosp: CommonTile.kt TileArrangementPadding */
+  --qs-padding: 8px; /* aosp: qs_tile_margin_horizontal = 8dp */
+  --brightness-track-height: 40px; /* aosp: overlay_qs_layout_brightness_track_height */
+  --brightness-thumb-width: 4px; /* aosp: overlay_qs_layout_brightness_thumb_width */
+  --brightness-thumb-height: 52px;
+
+  /* ---------- 6. 尺寸：app 窗口 ---------- */
+  --app-radius: 24px; /* self: 窗口圆角（Android 17 预测式返回的卡片形） */
+  --app-header-height: 56px; /* aosp: action_bar_height / Toolbar 48~56dp */
+
+  /* ---------- 7. 动效：Material 3 曲线（AOSP Interpolators 同构） ---------- */
+  --ease-standard: cubic-bezier(0.2, 0, 0, 1); /* material: Interpolators.STANDARD */
+  --ease-standard-accel: cubic-bezier(0.3, 0, 1, 1); /* material: STANDARD_ACCELERATE */
+  --ease-standard-decel: cubic-bezier(0, 0, 0, 1); /* material: STANDARD_DECELERATE */
+  --ease-emphasized: cubic-bezier(0.05, 0.7, 0.1, 1); /* material: EMPHASIZED (PathInterpolator 0.05,0.7,0.1,1) */
+  --ease-emphasized-accel: cubic-bezier(0.3, 0, 0.8, 0.15); /* material: EMPHASIZED_ACCELERATE */
+  --ease-emphasized-decel: cubic-bezier(0.05, 0.7, 0.1, 1); /* material: EMPHASIZED_DECELERATE */
+
+  --dur-short1: 50ms; /* material: Durations.SHORT1 */
+  --dur-short2: 100ms; /* material: SHORT2 */
+  --dur-short3: 150ms; /* material: SHORT3 */
+  --dur-short4: 200ms; /* material: SHORT4 */
+  --dur-medium1: 250ms; /* material: MEDIUM1 */
+  --dur-medium2: 300ms; /* material: MEDIUM2 */
+  --dur-medium3: 350ms; /* material: MEDIUM3 */
+  --dur-medium4: 400ms; /* material: MEDIUM4 */
+  --dur-long1: 450ms; /* material: LONG1 */
+  --dur-long2: 500ms; /* material: LONG2 */
+
+  /* ---------- 8. 字体 ---------- */
+  /* 零 web font：系统字体栈，首屏无字体请求、无 FOUT */
+  --font-sans: "Roboto", "Noto Sans SC", "PingFang SC", "Helvetica Neue", system-ui, sans-serif;
+  --font-mono: "Roboto Mono", ui-monospace, "SF Mono", Menlo, monospace;
+
+  /* ---------- 9. 层级 ---------- */
+  --z-wallpaper: 0;
+  --z-desktop: 10;
+  --z-app: 20;
+  --z-recents: 30;
+  --z-shade: 40;
+  --z-statusbar: 50;
+  --z-lockscreen: 60;
+  --z-toast: 70;
+
+  /* ---------- 10. 颜色兜底（palettes.css 未就绪时的浅色基线） ---------- */
+  --color-primary: #3f5f90;
+  --color-on-primary: #ffffff;
+  --color-primary-container: #d6e3ff;
+  --color-on-primary-container: #001b3d;
+  --color-secondary: #555f71;
+  --color-on-secondary: #ffffff;
+  --color-secondary-container: #d9e3f8;
+  --color-on-secondary-container: #121c2b;
+  --color-surface: #f8f9ff;
+  --color-surface-dim: #d8dae0;
+  --color-surface-container-lowest: #ffffff;
+  --color-surface-container-low: #f2f3f9;
+  --color-surface-container: #eceef4;
+  --color-surface-container-high: #e6e8ee;
+  --color-surface-container-highest: #e1e2e8;
+  --color-on-surface: #191c20;
+  --color-on-surface-variant: #44474e;
+  --color-outline: #74777f;
+  --color-outline-variant: #c4c6d0;
+  --color-inverse-surface: #2e3036;
+  --color-inverse-on-surface: #eff0f7;
+  --color-error: #ba1a1a;
+  --color-on-error: #ffffff;
+  --color-scrim: rgba(0, 0, 0, 0.32);
+  --color-wallpaper-veil: rgba(248, 249, 255, 0.86);
+}

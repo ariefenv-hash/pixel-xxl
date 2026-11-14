@@ -1,0 +1,19 @@
+{
+  "name": "pixel-xxl",
+  "private": true,
+  "version": "2.0.0",
+  "type": "module",
+  "description": "Android 17 桌面 · 纯 Web 实现（零框架 / 零运行时计算 / 构建期烘焙）",
+  "scripts": {
+    "dev": "vite",
+    "typecheck": "tsc --noEmit",
+    "build": "npm run typecheck && vite build",
+    "preview": "vite preview --port 4173",
+    "palettes": "node scripts/build-palettes.mjs",
+    "gate": "node scripts/perf-gate.mjs"
+  },
+  "devDependencies": {
+    "typescript": "^5.6.3",
+    "vite": "^6.0.7"
+  }
+}
