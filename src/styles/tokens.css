@@ -57,7 +57,7 @@
   --brightness-thumb-height: 52px;
 
   /* ---------- 6. 尺寸：app 窗口 ---------- */
-  --app-radius: 24px; /* self: 窗口圆角（Android 17 预测式返回的卡片形） */
+  --app-radius: 0px; /* orig: 原版 App 窗口 = 324×720 直角满幅（设置-APP 等原画均为满幅矩形），#36 */
   --app-header-height: 56px; /* aosp: action_bar_height / Toolbar 48~56dp */
 
   /* ---------- 7. 动效：Material 3 曲线（AOSP Interpolators 同构） ---------- */

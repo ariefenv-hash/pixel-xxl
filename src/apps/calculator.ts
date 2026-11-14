@@ -118,26 +118,22 @@ export function formatResult(v: number): string {
 /* -------------------------------- 界面 -------------------------------- */
 
 const KEYS = [
-  ['clear', 'C', 'fn'],
-  ['paren', '( )', 'fn'],
-  ['pct', '%', 'fn'],
-  ['÷', '÷', 'op'],
-  ['7', '7', 'num'],
-  ['8', '8', 'num'],
-  ['9', '9', 'num'],
-  ['×', '×', 'op'],
-  ['4', '4', 'num'],
-  ['5', '5', 'num'],
-  ['6', '6', 'num'],
-  ['−', '−', 'op'],
   ['1', '1', 'num'],
   ['2', '2', 'num'],
   ['3', '3', 'num'],
   ['+', '+', 'op'],
-  ['sign', '±', 'fn'],
+  ['4', '4', 'num'],
+  ['5', '5', 'num'],
+  ['6', '6', 'num'],
+  ['−', '−', 'op'],
+  ['7', '7', 'num'],
+  ['8', '8', 'num'],
+  ['9', '9', 'num'],
+  ['=', '=', 'eq'],
   ['0', '0', 'num'],
   ['.', '.', 'num'],
-  ['=', '=', 'eq'],
+  ['del', '⌫', 'del'],
+  ['', '', 'void'],
 ] as const;
 
 export const mount: AppModule['mount'] = (root, ctx) => {
@@ -160,13 +156,40 @@ export const mount: AppModule['mount'] = (root, ctx) => {
   const resultEl = wrap.querySelector<HTMLElement>('#calcResult')!;
   const pad = wrap.querySelector<HTMLElement>('#calcKeypad')!;
 
+  // 原版 4×4 布局（计算器 APP 克隆实录，#36）：= 在第 4 列跨 3、4 两行，第 4 行第 4 格为空
   pad.replaceChildren(
     ...KEYS.map(([key, label, kind]) => {
-      const b = el('button', { class: `calc__key calc__key--${kind}`, type: 'button', 'data-key': key });
+      const b = el('button', {
+        class: `calc__key calc__key--${kind}`,
+        type: 'button',
+        'data-key': key,
+      });
+      if (kind === 'void') {
+        b.disabled = true;
+        b.setAttribute('aria-hidden', 'true');
+        return b;
+      }
       b.textContent = label;
+      if (kind === 'eq') { b.style.gridRow = '3 / 5'; b.style.gridColumn = '4'; }
       return b;
     })
   );
+  // 长按 ⌫ 清空（原版删除键语义的触屏等价）
+  let delTimer = 0;
+  pad.addEventListener('pointerdown', (e) => {
+    const t = (e.target as HTMLElement).closest('[data-key="del"]');
+    if (!t) return;
+    delTimer = window.setTimeout(() => {
+      expr = '';
+      result = '0';
+      justEvaluated = false;
+      paint();
+    }, 550);
+  });
+  const clearDel = () => window.clearTimeout(delTimer);
+  pad.addEventListener('pointerup', clearDel);
+  pad.addEventListener('pointerleave', clearDel);
+  pad.addEventListener('pointercancel', clearDel);
 
   const paint = () => {
     // 表达式里的 − 统一成 - 供解析，显示时保留

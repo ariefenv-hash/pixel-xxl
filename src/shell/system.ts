@@ -270,6 +270,76 @@ export function initPullGesture(open: (which: 'shade' | 'qs', from: number) => v
 
 /* -------------------------------- 启动序 -------------------------------- */
 
+/* 开机动画 + 引导页（原版序列 1:1，#36）：
+   角色2 驱动 G+星尘 ≈174 tick（60fps ≈ 2.9s）→ 中文引导 5 页（next 胶囊，原版 (95,-320)）
+   → 图标飞入（飞入动画状态）。?noboot=1 直达桌面（性能门禁 / 回归对照通道）。 */
+export function initBoot(): void {
+  const boot = $('#boot');
+  const guide = $('#guide');
+  if (!boot || !guide) return;
+  if (new URLSearchParams(location.search).has('noboot')) {
+    boot.remove();
+    guide.remove();
+    return;
+  }
+
+  const pages = Array.from(guide.querySelectorAll('.guide__page'));
+  const pagesWrap = $('#desktopPages');
+  let page = 0;
+  let closed = false;
+
+  const flyIn = () => {
+    if (!pagesWrap) return;
+    pagesWrap.dataset.fly = '1';
+    window.setTimeout(() => {
+      pagesWrap.dataset.fly = '0';
+    }, 950);
+  };
+  const openGuide = () => {
+    boot.remove();
+    guide.hidden = false;
+  };
+  const finish = () => {
+    if (closed) return;
+    closed = true;
+    guide.hidden = true;
+    if (document.body.contains(boot)) boot.remove();
+    flyIn();
+  };
+  const show = (i: number) => {
+    page = i;
+    pages.forEach((p, j) => p.classList.toggle('is-on', j === i));
+  };
+  const next = () => {
+    if (page < pages.length - 1) show(page + 1);
+    else finish();
+  };
+
+  // 开机段：点击任意处跳过（原版语义：点击可中断启动动画）
+  boot.addEventListener(
+    'click',
+    () => {
+      boot.classList.add('is-done');
+      window.setTimeout(() => {
+        openGuide();
+        show(0);
+      }, 220);
+    },
+    { once: true }
+  );
+  window.setTimeout(() => {
+    if (!document.body.contains(boot) || closed) return;
+    boot.classList.add('is-done');
+    window.setTimeout(() => {
+      openGuide();
+      show(0);
+    }, 220);
+  }, 2900);
+
+  $('#guideNext')?.addEventListener('click', next);
+  $('#guideSkip')?.addEventListener('click', finish);
+}
+
 export function bootSystem(): void {
   const wallpaper = store.get('wallpaper');
   store.get('theme');

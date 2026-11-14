@@ -1,5 +1,5 @@
 <!doctype html>
-<html lang="zh-CN" data-theme="dark" data-wallpaper="w3">
+<html lang="zh-CN" data-theme="dark" data-wallpaper="w2">
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no,viewport-fit=cover" />
@@ -8,7 +8,7 @@
     <meta name="description" content="Android 17 桌面的纯 Web 实现：零框架、构建期烘焙、首屏 1 秒内可交互。" />
 
     <!-- 壁纸 LQIP 预加载：554B，先铺色再换真图，零白屏 -->
-    <link rel="preload" as="image" href="./public/wallpapers/w3-blur.webp" fetchpriority="high" />
+    <link rel="preload" as="image" href="./public/wallpapers/w2-blur.webp" fetchpriority="high" />
     <link rel="stylesheet" href="./src/styles/main.css" />
   </head>
 
@@ -85,93 +85,94 @@
       <div class="device" id="device">
         <div class="screen" id="screen">
           <!-- 壁纸：LQIP 先铺，JS 就绪后换高清 -->
-          <div class="wallpaper" id="wallpaper" data-wallpaper="w3"></div>
+          <div class="wallpaper" id="wallpaper" data-wallpaper="w2"></div>
           <div class="wallpaper__scrim" id="wallpaperScrim"></div>
 
-          <!-- ========== 桌面 ========== -->
+          <!-- ========== 桌面（视觉 1:1 原版 Scratch 工程，真源 #36 / release v1.00 1111.html） ========== -->
+          <!-- 原版桌面 = 壁纸 + 4+4+1 无标签图标 + 贝壳纹模拟钟组件 + 第二页 bilibili + 手势条；
+               无状态栏、无 Dock、无图标文字。页内坐标 = 原 stage 324×720 绝对映射：
+               left=(x+162)/324, top=(360-y)/720（出处：应用 角色脚本 !f，#36 已录）。 -->
           <section class="desktop" id="desktop" aria-label="桌面">
-            <!-- 小组件：原工程「时钟」是 2×2 模拟表盘 + 一个数字世界钟，点开走组件专属时间轴 -->
-            <div class="desktop__widgets" id="desktopWidgets">
-              <button class="widget widget--clock" data-app="clock" type="button" aria-label="时钟小组件">
-                <div class="widget__face" aria-hidden="true">
-                  <span class="clock-hand clock-hand--hour" id="wHour"></span>
-                  <span class="clock-hand clock-hand--minute" id="wMinute"></span>
-                  <span class="clock-hand clock-hand--second" id="wSecond"></span>
-                  <span class="clock-pin"></span>
-                </div>
-                <div class="widget__meta">
-                  <span class="widget__date" id="wDate">11月14日 周六</span>
-                  <span class="widget__city">本地时间</span>
-                </div>
-              </button>
+            <div class="desktop__pages" id="desktopPages" data-fly="0">
+              <div class="desktop__page" data-page="0">
+                <!-- 时钟组件：clook 贝壳纹表盘 (-80,170) size 200%；点击进时钟 app（原版同规则） -->
+                <button class="widget" data-app="clock" type="button" aria-label="时钟组件" style="--sx:-80; --sy:170;">
+                  <span class="widget__face" aria-hidden="true">
+                    <img class="widget__badge" src="orig/0f187c66db62a59cc6dcefb67f2074b4.svg" alt="" decoding="async" />
+                    <span class="clock-hand clock-hand--hour" id="wHour"></span>
+                    <span class="clock-hand clock-hand--minute" id="wMinute"></span>
+                    <span class="clock-hand clock-hand--second" id="wSecond"></span>
+                    <span class="clock-pin"></span>
+                  </span>
+                </button>
 
-              <button class="widget widget--world" data-app="clock" type="button" aria-label="世界时钟小组件">
-                <span class="widget__bigtime" id="wWorldTime">15:51</span>
-                <div class="widget__cities">
-                  <span><i>北京</i><b data-offset="0">15:51</b></span>
-                  <span><i>伦敦</i><b data-offset="-8">07:51</b></span>
-                  <span><i>纽约</i><b data-offset="-13">02:51</b></span>
-                </div>
-              </button>
+                <button class="icon" data-app="settings" type="button" style="--frac:0.421; --sx:-120; --sy:60;">
+                  <span class="icon__tile"><img class="icon__img" src="orig/933742aa4dd7e593fa7d10df0a188b29.svg" alt="" loading="eager" decoding="async" /></span>
+                </button>
+                <button class="icon" data-app="photos" type="button" style="--frac:0.425; --sx:-40; --sy:60;">
+                  <span class="icon__tile"><img class="icon__img" src="orig/5a8c27cafbef7398627d3c09850f0a1e.svg" alt="" loading="eager" decoding="async" /></span>
+                </button>
+                <button class="icon" data-app="store" type="button" style="--frac:0.425; --sx:40; --sy:60;">
+                  <span class="icon__tile"><img class="icon__img" src="orig/0327e783b1a4095cbd4ae4421954b225.svg" alt="" loading="eager" decoding="async" /></span>
+                </button>
+                <button class="icon" data-app="notifications" type="button" style="--frac:0.425; --sx:120; --sy:60;">
+                  <span class="icon__tile"><img class="icon__img" src="orig/4e90f41e3eec781949a83acbe5d499a3.svg" alt="" loading="eager" decoding="async" /></span>
+                </button>
+                <button class="icon" data-app="video" type="button" style="--frac:0.425; --sx:-120; --sy:-10;">
+                  <span class="icon__tile"><img class="icon__img" src="orig/309586b00e1d1f36921e72a7595962f2.svg" alt="" loading="eager" decoding="async" /></span>
+                </button>
+                <button class="icon" data-app="phone" type="button" style="--frac:0.421; --sx:-40; --sy:-10;">
+                  <span class="icon__tile"><img class="icon__img" src="orig/0fc456be662e9a1d172cc75468144624.svg" alt="" loading="eager" decoding="async" /></span>
+                </button>
+                <button class="icon" data-app="theme" type="button" style="--frac:0.967; --sx:40; --sy:-10;">
+                  <span class="icon__tile"><img class="icon__img" src="orig/f96ba7b81a5f7db033b7cf5f49556b28.svg" alt="" loading="eager" decoding="async" /></span>
+                </button>
+                <button class="icon" data-app="music" type="button" style="--frac:1; --sx:120; --sy:-10;">
+                  <span class="icon__tile"><img class="icon__img" src="orig/04c02d0eb9f0bd906f1c9782e36bee7f.svg" alt="" loading="eager" decoding="async" /></span>
+                </button>
+                <button class="icon" data-app="calculator" type="button" style="--frac:1; --sx:-120; --sy:-80;">
+                  <span class="icon__tile"><img class="icon__img" src="orig/0479d231b8187c441ef63485d7e41352.svg" alt="" loading="eager" decoding="async" /></span>
+                </button>
+              </div>
+              <div class="desktop__page" data-page="1">
+                <!-- 第二页：bilibili（原版页2 (204,60) → 页内局部坐标 (-120,60)，#36 已录） -->
+                <button class="icon" data-app="bilibili" type="button" style="--frac:1; --sx:-120; --sy:60;">
+                  <span class="icon__tile"><img class="icon__img" src="orig/446b6739af5c1600ac64f6b364d7b2a3.svg" alt="" loading="eager" decoding="async" /></span>
+                </button>
+              </div>
             </div>
+          </section>
 
-            <div class="desktop__grid" id="desktopGrid">
-              <button class="icon" data-app="settings" type="button">
-                <span class="icon__tile"><svg class="icon__svg"><use href="#ic-settings" /></svg></span>
-                <span class="icon__label">设置</span>
-              </button>
-              <button class="icon" data-app="photos" type="button">
-                <span class="icon__tile"><svg class="icon__svg"><use href="#ic-photos" /></svg></span>
-                <span class="icon__label">相册</span>
-              </button>
-              <button class="icon" data-app="store" type="button">
-                <span class="icon__tile"><svg class="icon__svg"><use href="#ic-store" /></svg></span>
-                <span class="icon__label">商店</span>
-              </button>
-              <button class="icon" data-app="notifications" type="button">
-                <span class="icon__tile"><svg class="icon__svg"><use href="#ic-notifications" /></svg></span>
-                <span class="icon__label">通知</span>
-              </button>
-              <button class="icon" data-app="video" type="button">
-                <span class="icon__tile"><svg class="icon__svg"><use href="#ic-video" /></svg></span>
-                <span class="icon__label">视频</span>
-              </button>
-              <button class="icon" data-app="bilibili" type="button">
-                <span class="icon__tile"><svg class="icon__svg"><use href="#ic-bilibili" /></svg></span>
-                <span class="icon__label">bilibili</span>
-              </button>
-              <button class="icon" data-app="theme" type="button">
-                <span class="icon__tile"><svg class="icon__svg"><use href="#ic-palette" /></svg></span>
-                <span class="icon__label">个性化</span>
-              </button>
-              <button class="icon" data-app="music" type="button">
-                <span class="icon__tile"><svg class="icon__svg"><use href="#ic-music" /></svg></span>
-                <span class="icon__label">音乐</span>
-              </button>
-              <button class="icon" data-app="calculator" type="button">
-                <span class="icon__tile"><svg class="icon__svg"><use href="#ic-calculator" /></svg></span>
-                <span class="icon__label">计算器</span>
-              </button>
-              <button class="icon" data-app="clock" type="button">
-                <span class="icon__tile"><svg class="icon__svg"><use href="#ic-clock" /></svg></span>
-                <span class="icon__label">时钟</span>
-              </button>
+          <!-- ========== 开机动画 + 引导页（原版序列：G+星尘 ≈174 tick → 中文引导 5 页 → 图标飞入） ========== -->
+          <section class="boot" id="boot" aria-label="开机动画">
+            <div class="boot__logo">
+              <img src="orig/0449692d3428d41af89d50aa56c06f66.png" alt="" decoding="async" />
             </div>
-
-            <nav class="dock" id="dock" aria-label="Dock">
-              <button class="dock__icon" data-app="phone" type="button" aria-label="电话">
-                <svg class="icon__svg"><use href="#ic-phone" /></svg>
-              </button>
-              <button class="dock__icon" data-app="message" type="button" aria-label="信息">
-                <svg class="icon__svg"><use href="#ic-message" /></svg>
-              </button>
-              <button class="dock__icon" data-app="browser" type="button" aria-label="Chrome">
-                <svg class="icon__svg"><use href="#ic-browser" /></svg>
-              </button>
-              <button class="dock__icon" data-app="camera" type="button" aria-label="相机">
-                <svg class="icon__svg"><use href="#ic-camera" /></svg>
-              </button>
-            </nav>
+            <i class="boot__spark boot__spark--a"></i>
+            <i class="boot__spark boot__spark--b"></i>
+            <i class="boot__spark boot__spark--c"></i>
+            <i class="boot__spark boot__spark--d"></i>
+            <i class="boot__spark boot__spark--e"></i>
+          </section>
+          <section class="guide" id="guide" hidden aria-label="开机引导">
+            <div class="guide__page is-on" data-page="0">
+              <p class="guide__title guide__title--serif">Welcome to<br />your Pixel</p>
+            </div>
+            <div class="guide__page" data-page="1">
+              <svg class="guide__globe" viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="9.2" fill="none" stroke="currentColor" stroke-width="1.4"/><ellipse cx="12" cy="12" rx="4.2" ry="9.2" fill="none" stroke="currentColor" stroke-width="1.2"/><path d="M3 12h18M4.6 7h14.8M4.6 17h14.8" fill="none" stroke="currentColor" stroke-width="1.2"/></svg>
+              <p class="guide__title">中国大陆</p>
+            </div>
+            <div class="guide__page" data-page="2">
+              <p class="guide__title">设置日期和时间。</p>
+            </div>
+            <div class="guide__page" data-page="3">
+              <p class="guide__title">从另外的设备传输数据<br />到该设备上。</p>
+            </div>
+            <div class="guide__page" data-page="4">
+              <p class="guide__title">北京时间</p>
+            </div>
+            <button class="guide__next" id="guideNext" type="button">next</button>
+            <button class="guide__skip" id="guideSkip" type="button">跳过</button>
           </section>
 
           <!-- ========== All Apps 抽屉 ========== -->
@@ -294,22 +295,6 @@
               <span>上滑解锁</span>
             </div>
           </section>
-
-          <!-- ========== 状态栏 ========== -->
-          <div class="statusbar" id="statusbar">
-            <div class="statusbar__left">
-              <span class="statusbar__time" id="statusTime">09:41</span>
-              <span class="statusbar__notif" id="statusNotif">
-                <svg><use href="#ic-notifications" /></svg>
-              </span>
-            </div>
-            <div class="statusbar__right">
-              <svg class="statusbar__icon" id="sbBt" hidden><use href="#ic-bluetooth" /></svg>
-              <svg class="statusbar__icon"><use href="#ic-signal" /></svg>
-              <svg class="statusbar__icon" id="sbWifi"><use href="#ic-wifi" /></svg>
-              <span class="statusbar__battery" id="sbBattery"><i></i></span>
-            </div>
-          </div>
 
           <div class="toast" id="toast" role="status"></div>
         </div>

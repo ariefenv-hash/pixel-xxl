@@ -109,7 +109,7 @@ def run(dist: str, port: int = 8096) -> dict:
             page.on("pageerror", lambda e: errors.append(str(e)[:160]))
 
             t0 = time.time()
-            page.goto(f"http://127.0.0.1:{port}/index.html", wait_until="load", timeout=90000)
+            page.goto(f"http://127.0.0.1:{port}/index.html?noboot=1", wait_until="load", timeout=90000)
             load_ms = (time.time() - t0) * 1000
 
             # 等首屏报告落地（main.ts 在 load 后写 __perf）
@@ -119,7 +119,7 @@ def run(dist: str, port: int = 8096) -> dict:
             # 桌面是否真的可见（壁纸 + 图标栅格有尺寸）
             visible = page.evaluate(
                 """() => {
-                  const grid = document.getElementById('desktopGrid');
+                  const grid = document.getElementById('desktopPages');
                   const icons = grid ? grid.querySelectorAll('.icon').length : 0;
                   const wp = document.getElementById('wallpaper');
                   const bg = wp ? getComputedStyle(wp).backgroundImage : '';

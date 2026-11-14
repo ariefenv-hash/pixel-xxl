@@ -11,7 +11,7 @@ import './styles/main.css';
 import { $ } from './core/dom';
 import { mark, reportToConsole, watchLongTasks } from './core/perf';
 import { store } from './core/store';
-import { bootSystem, initLockscreen, initPullGesture } from './shell/system';
+import { bootSystem, initBoot, initLockscreen, initPullGesture } from './shell/system';
 import { initShade } from './shell/shade';
 import { initApps, type AppManager } from './shell/apps';
 import { initEffects } from './shell/effects';
@@ -46,6 +46,9 @@ if (params.get('lock') !== '1') {
   if (lockEl) lockEl.hidden = true;
 }
 void lock;
+
+// 开机动画 + 引导页（原版序列；?noboot=1 直达桌面，性能门禁通道）
+initBoot();
 
 mark('interactive');
 

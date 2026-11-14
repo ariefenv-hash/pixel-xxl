@@ -149,18 +149,20 @@ export const APPS: Record<string, AppDef> = {
   },
 };
 
-/** 桌面图标顺序：对齐旧工程的图标排布（设置/相册/商店/通知/视频/电话/bilibili/个性化/music/计算器/时钟） */
-export const DESKTOP_ORDER = [
+/** 桌面图标顺序 = 原版脚本 !f 实录（#36）：页一 4+4+1，页二 bilibili；时钟为组件非图标。
+ *  DOM 已按原版坐标静态内联（index.html desktop 区段），此表仅作文档真源。 */
+export const DESKTOP_PAGE1 = [
   'settings',
   'photos',
   'store',
   'notifications',
   'video',
-  'bilibili',
+  'phone',
   'theme',
   'music',
   'calculator',
-  'clock',
-];
+] as const;
 
-export const DOCK_ORDER = ['phone', 'message', 'browser', 'camera'];
+export const DESKTOP_PAGE2 = ['bilibili'] as const;
+
+/** 原版桌面无 Dock（v2 曾自创，已移除，见 #36）。信息/浏览器/相机仅在 All Apps 抽屉。 */

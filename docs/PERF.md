@@ -46,7 +46,7 @@
 → `vite.config.ts:inlineCriticalCss()`
 
 **2. 桌面 DOM 直出**
-图标栅格、状态栏、Dock、面板骨架全部写在 `index.html` 里，**不依赖 JS 生成**。
+图标栅格、时钟组件、面板骨架全部写在 `index.html` 里，**不依赖 JS 生成**（v2.3 起桌面 = 原版 4+4+1 网格 + 组件 + 第二页；原版无状态栏/Dock，#36）。
 JS 只做事件绑定，因此「首帧有画面」与「JS 是否就绪」解耦。
 → `index.html` 的 `.desktop__grid` / `.statusbar` / `.shade` / `.qs`
 

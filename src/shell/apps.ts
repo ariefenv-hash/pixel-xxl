@@ -319,8 +319,7 @@ export function initApps(shade: ShadeApi): AppManager {
   /* ------------------------------ 桌面绑定 ------------------------------ */
 
   function bindDesktop(): void {
-    const grid = $('#desktopGrid')!;
-    const dock = $('#dock')!;
+    const pages = $('#desktopPages')!;
 
     const handler = (e: Event) => {
       const btn = (e.target as HTMLElement).closest<HTMLElement>('[data-app]');
@@ -328,9 +327,8 @@ export function initApps(shade: ShadeApi): AppManager {
       const id = btn.dataset.app!;
       open(id, btn);
     };
-    grid.addEventListener('click', handler);
-    dock.addEventListener('click', handler);
-    $('#desktopWidgets')?.addEventListener('click', handler);
+    // 原版桌面无 Dock：页一图标 + 页二 bilibili + 时钟组件都在分页容器里，一个委托全接
+    pages.addEventListener('click', handler);
   }
 
   /* --------------------------- 任务视图空白 --------------------------- */

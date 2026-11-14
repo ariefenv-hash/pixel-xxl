@@ -37,7 +37,7 @@ const KEY = 'px2:state';
 
 const DEFAULTS: ShellState = {
   booted: false,
-  wallpaper: 'w3',
+  wallpaper: 'w2',
   theme: 'dark',
   brightness: 72,
   volume: 45,
