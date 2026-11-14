@@ -176,6 +176,10 @@ def main():
             # ---------- E) fast-path Phase 2 自动开机链路（v1.23 #33 · 默认参数） ----------
             # 默认 URL（boot 默认开）：绿旗代点 → attach → companion → 实时进度文案。
             # 不等 handover（软渲染分钟级；判定纯函数 vitest 覆盖）。
+            # 断言口径（v1.23 探针返工修正）：复合终态轮询（launch 代点 hidden + bridge ok
+            # 一次性命中）——分步等待在快/慢环境交叉时序下有假阴性窗口（首版 CI run
+            # 43549558524 实证：E 卡 30s 分步超时而本地 DOM 级代点链路验证通过）；
+            # 失败时 dump 现场（fast-face phase / launch 状态 / bridge 文案 / vm 快照）供诊断。
             out['E'] = {}
             try:
                 page2 = browser.new_page(viewport={'width': 1280, 'height': 900})
@@ -185,37 +189,50 @@ def main():
                 out['E']['fast_face_seen'] = page2.evaluate(
                     "() => !!document.getElementById('fast-face')"
                     " && !!document.querySelector('#fast-face .ff-clock')")
-                # 绿旗代点：先等启动屏出现（装载完成），再等被壳层自动点击隐藏
-                #（不再死等手动绿旗；代点轮询 400ms，装载后秒级完成）
+                # 复合终态：绿旗被代点隐藏（不再死等手动绿旗）+ attach ok
                 page2.wait_for_function(
                     "() => { try { const f=document.getElementById('runtime');"
-                    " return f && f.contentDocument && f.contentDocument.getElementById('launch')"
-                    " && !f.contentDocument.getElementById('launch').hasAttribute('hidden'); }"
-                    " catch(e) { return false; } }", timeout=load_timeout_ms)
-                page2.wait_for_function(
-                    "() => { try { const f=document.getElementById('runtime');"
-                    " return f && f.contentDocument && f.contentDocument.getElementById('launch')"
-                    " && f.contentDocument.getElementById('launch').hasAttribute('hidden'); }"
-                    " catch(e) { return false; } }", timeout=30000)
+                    " const d = f && f.contentDocument;"
+                    " const launch = d && d.getElementById('launch');"
+                    " const s = document.getElementById('bridge-status');"
+                    " return !!launch && launch.hasAttribute('hidden')"
+                    " && !!s && !s.hidden && s.dataset.level === 'ok'; }"
+                    " catch(e) { return false; } }", timeout=load_timeout_ms + 60000)
                 out['E']['auto_boot_launch_hidden'] = True
-                # attach → companion 伴随态
-                page2.wait_for_function(
-                    "() => { const s = document.getElementById('bridge-status');"
-                    " return s && !s.hidden && s.dataset.level === 'ok'; }", timeout=30000)
                 page2.wait_for_timeout(1200)
                 out['E']['fast_face_companion'] = page2.evaluate(
                     "() => { const el = document.getElementById('fast-face');"
                     " return !!el && el.dataset.phase === 'companion'; }")
                 # 实时进度文案：渲染段变量（「正在渲染桌面 X%」）或阶梯兜底文案出现
-                page2.wait_for_function(
-                    "() => { const t = document.querySelector('#fast-face .ff-boot-text');"
-                    " return t && /渲染|装载|启动|编译|等待|准备/.test(t.textContent); }", timeout=180000)
-                out['E']['live_progress_text'] = page2.evaluate(
-                    "() => document.querySelector('#fast-face .ff-boot-text').textContent")
+                try:
+                    page2.wait_for_function(
+                        "() => { const t = document.querySelector('#fast-face .ff-boot-text');"
+                        " return t && /渲染|装载|启动|编译|等待|准备/.test(t.textContent); }",
+                        timeout=180000)
+                    out['E']['live_progress_text'] = page2.evaluate(
+                        "() => document.querySelector('#fast-face .ff-boot-text').textContent")
+                except Exception:
+                    out['E']['live_progress_text'] = None  # 复合终态已过，文案未及采样——记录不硬断
                 out['E']['shell_page_errors'] = e_errors[:6]
                 page2.close()
             except Exception as e:
                 out['E']['error'] = str(e)[:200]
+                try:
+                    out['E']['diagnostics'] = page2.evaluate(
+                        "() => { const el = document.getElementById('fast-face');"
+                        " let launch = null, note = null;"
+                        " try { const d = document.getElementById('runtime').contentDocument;"
+                        " const l = d && d.getElementById('launch');"
+                        " launch = l ? l.hasAttribute('hidden') : 'no-el';"
+                        " const n = d && d.getElementById('loading-note');"
+                        " note = n ? n.textContent : null; } catch (err) { launch = 'ERR'; }"
+                        " const s = document.getElementById('bridge-status');"
+                        " return JSON.stringify({"
+                        " phase: el ? el.dataset.phase : 'removed',"
+                        " launch_hidden: launch, loading_note: note,"
+                        " bridge: s && !s.hidden ? s.textContent : null }); }")
+                except Exception as e2:
+                    out['E']['diagnostics'] = 'dump-fail: ' + str(e2)[:120]
 
             browser.close()
     finally:
