@@ -156,7 +156,6 @@ export const DESKTOP_ORDER = [
   'store',
   'notifications',
   'video',
-  'phone',
   'bilibili',
   'theme',
   'music',

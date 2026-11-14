@@ -1,12 +1,12 @@
 # Pixel XXL · Android 17 桌面（纯 Web）
 
 Android 17 桌面的网页实现：桌面、状态栏、锁屏、通知中心、控制中心、最近任务，以及
-11 个应用。**没有 Scratch 运行时，没有框架，没有 Web Font。**
+14 个应用。**没有 Scratch 运行时，没有框架，没有 Web Font。**
 
-| 指标（中端机 4G 冷启，4x CPU 节流实测） | 值 | 预算 |
+| 指标（CI 实测：4G 1.6Mbps/RTT150ms，CPU 4× 节流） | 值 | 预算 |
 | --- | --- | --- |
-| 可交互 | **394 ms** | < 1000 ms |
-| 首屏内容（FCP） | **280 ms** | < 1500 ms |
+| 可交互 | **399 ms** | < 1000 ms |
+| 首屏内容（FCP） | **288 ms** | < 1500 ms |
 | 首次传输（gzip） | **50.7 KB** | < 200 KB |
 | 长任务 | **0 个** | — |
 
@@ -45,7 +45,7 @@ index.html            单入口：内联 SVG sprite + 桌面 DOM + 关键 CSS �
 src/
   core/               状态、注册表、性能探针、DOM 工具（零框架）
   shell/              壁纸/状态栏/锁屏 · 通知中心+控制中心 · app 窗口/Recents
-  apps/               11 个应用（4 个真功能 + 7 个占位）
+  apps/               14 个应用（5 个真功能 + 9 个占位）
   styles/             tokens（设计令牌）· palettes（构建期生成）· shell · apps
 scripts/
   hct.mjs             HCT 色彩空间（CAM16 + L*），构建期用
@@ -59,8 +59,9 @@ docs/                 设计规范、架构、性能账、历史移植记录
 
 | 参数 | 作用 |
 | --- | --- |
-| `?theme=light` / `?dark` | 强制明暗 |
+| `?theme=light` / `?theme=dark` | 强制明暗 |
 | `?wp=w1`…`?wp=w5` | 指定壁纸 |
+| `?perf=low` | 强制低端降级模式（关毛玻璃） |
 | `?lock=1` | 走完整锁屏流程（默认直接进桌面） |
 
 `window.__perf` 暴露首屏各节点耗时；设置 → 首屏性能 里也能直接看到。
