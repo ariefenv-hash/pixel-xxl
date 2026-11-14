@@ -275,14 +275,14 @@ refs=0 的变量 = 「声明但未使用」（用户「空壳」观察的第一�
   的宿主面与 md3 同律；
 - **app 开/关动画换装路线**：动画攻坚实例把 OPEN_PARAMS/CLOSE_PARAMS 与
   IIOAnimator 接到根入口运行时层时，API 形状即此处形状（零翻译成本）；
-- 契约测试：`npm test`（vitest，118 例 = spring 5 + interruptible 5 +
+- 契约测试：`npm test`（vitest，126 例 = spring 5 + interruptible 5 +
   shade-tokens 15（SPEC token 曲线程序化断言）+ tile-states 8（含 R137
   锁定语义修正 2 例）+ quick-row 6（折叠行/详情纯函数）+ tile-order 20
   （R138）+ qs-header 9（header 双态过渡纯函数，R139）+ notifications 10
   （通知状态机：upsert 保位/移除/ongoing 保护/CLEAR ALL/媒体卡字段，R140）
   + fast-face 18（时钟/关断通道/attach-companion-dismiss 状态机/常量，R141+R143）
   + boot-progress 16（装载四态/渲染阶梯/handover 判定/变量换算，R143）
-  + auto-boot 6（?boot=0 关断通道，R143））；
+  + auto-boot 14（关断通道 6 + 代点决策 4 + 收层信号换算 4——v1.23 返工修正语义，R143））；
 
 ## 8. 已知边界与坑
 
@@ -306,7 +306,7 @@ refs=0 的变量 = 「声明但未使用」（用户「空壳」观察的第一�
 ```bash
 cd shell-src
 npm install        # vite + typescript + vitest
-npm test           # 契约测试（118 例，清单见 §7）
+npm test           # 契约测试（126 例，清单见 §7）
 npx tsc --noEmit   # 类型闸门
 npx vite build     # 产物 → ../shell/（Pages 双入口之二）
 ```

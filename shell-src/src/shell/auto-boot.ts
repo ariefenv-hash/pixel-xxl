@@ -12,11 +12,13 @@
  * 已知披露（#33 §四1）：代点为非受信手势（isTrusted=false），AudioContext 可能
  * 挂起至用户首次真实交互（浏览器 autoplay 政策）——TurboWarp 运行时通常自恢复。
  *
- * 本模块同时承载伴随态一路只读信号采集：
- *  - readFeedbackLayerHidden：iframe 内 #boot-feedback 是否 hidden（v1.06 五通道
- *    收层的稳定外显信号，fast-face 交接判定消费——不重新发明点亮检测）；
- *  渲染进度变量采集（「渲染的进度/渲染数」，v1.06 readVar 同口径只读零红线）
- *  在 bridge/runtime.ts 的 readStageVarValue（读通道零限制面）。
+ * 状态语义（v1.23 返工修正 · CI run 43550590925 现场 dump 实证）：
+ *  - #launch 初始即带 hidden 属性（装载前）——「hidden」≠「已启动」：代点决策
+ *    必须区分「曾可见后隐藏」（外部已启动，停止）与「从未可见」（装载中，继续）；
+ *  - #boot-feedback 从页面加载起就带 hidden 挂在 DOM（未激活态，绿旗点击后才
+ *    显示）——「hidden」≠「已收层」：收层信号 = 曾采样到激活态（active）之后
+ *    再次 hidden。两处语义修正纯函数化（autoBootAction/feedbackHiddenSignal），
+ *    vitest 直测。
  */
 
 /** 关断参数名（?boot=0 时绿旗代点不装，回退手动点击） */
@@ -32,33 +34,89 @@ export function isAutoBootEnabled(search: string): boolean {
   return !(m && decodeURIComponent(m[1]).trim().toLowerCase() === '0');
 }
 
-/** 代点结果：clicked=已点击；not-visible=启动屏未出现（继续轮询）；gone=已隐藏（曾被点击/外部隐藏） */
-export type AutoBootResult = 'clicked' | 'not-visible' | 'gone';
+/* ---------------- 绿旗代点：状态采集 + 决策纯函数 ---------------- */
 
-/** DOM 采集：代点绿旗。幂等安全（启动屏 hidden 后不再点击），任何异常静默降级。 */
-export function clickLaunchScreen(frame: HTMLIFrameElement): AutoBootResult {
-  let launch: HTMLElement | null = null;
+/** #launch 三态（只读采集）：missing=元素不存在/跨源；hidden=带 hidden 属性；visible=可点 */
+export type LaunchState = 'missing' | 'hidden' | 'visible';
+
+/** DOM 采集：iframe 内 #launch 三态。任何异常 → missing（继续轮询）。 */
+export function readLaunchState(frame: HTMLIFrameElement): LaunchState {
   try {
-    launch = frame.contentDocument?.getElementById('launch') ?? null;
+    const launch = frame.contentDocument?.getElementById('launch');
+    if (!launch) return 'missing';
+    return launch.hasAttribute('hidden') ? 'hidden' : 'visible';
   } catch {
-    return 'not-visible'; // 跨源/未就绪：继续轮询
+    return 'missing';
   }
-  if (!launch) return 'not-visible';
-  if (launch.hasAttribute('hidden')) return 'gone';
-  launch.click();
-  return 'clicked';
+}
+
+/** DOM 采集：visible 时代点点击（launch.click()）；非 visible 不点（幂等安全）。 */
+export function clickLaunchScreen(frame: HTMLIFrameElement): 'clicked' | 'not-visible' {
+  try {
+    const launch = frame.contentDocument?.getElementById('launch');
+    if (!launch || launch.hasAttribute('hidden')) return 'not-visible';
+    launch.click();
+    return 'clicked';
+  } catch {
+    return 'not-visible';
+  }
+}
+
+/** 代点决策输入（轮询快照 + 是否曾采样到 visible） */
+export interface AutoBootStep {
+  launch: LaunchState;
+  /** 本轮会话内是否曾采样到 #launch visible（区分「装载前 hidden」与「启动后 hidden」） */
+  seenVisible: boolean;
 }
 
 /**
- * 只读采集：iframe 内 #boot-feedback 是否已 hidden。
- * 返回 null = 反馈层不存在（?nofb=1 模式 / 尚未创建 / 读取异常）。
+ * 纯函数：代点决策。
+ * - visible → 'click'（该点了；点击成功后调用方停表）；
+ * - hidden 且曾可见 → 'stop-external'（用户手动/外部通道已启动：不再代点，
+ *   防止对已隐藏的 launch 二次 click 触发 scaffolding.start() 重启线程）；
+ * - hidden 且从未可见 → 'wait'（装载中，继续轮询——**v1.23 返工修正**：
+ *   首版把装载前 hidden 误判为外部已启动，代点被永久短路，CI dump 实证
+ *   launch_hidden=false 无人点击）；
+ * - missing → 'wait'。
  */
-export function readFeedbackLayerHidden(frame: HTMLIFrameElement): boolean | null {
+export function autoBootAction(s: AutoBootStep): 'click' | 'wait' | 'stop-external' {
+  if (s.launch === 'visible') return 'click';
+  if (s.launch === 'hidden' && s.seenVisible) return 'stop-external';
+  return 'wait';
+}
+
+/* ---------------- 伴随态反馈层信号：状态采集 + 换算纯函数 ---------------- */
+
+/** #boot-feedback 三态（只读采集）：missing=无反馈层（nofb 模式/未创建）；hidden=带 hidden；active=显示中 */
+export type FeedbackLayerState = 'missing' | 'hidden' | 'active';
+
+/** DOM 采集：iframe 内 #boot-feedback 三态。任何异常 → missing。 */
+export function readFeedbackLayerState(frame: HTMLIFrameElement): FeedbackLayerState {
   try {
-    const fb = frame.contentDocument?.getElementById('boot-feedback') ?? null;
-    if (!fb) return null;
-    return fb.hasAttribute('hidden');
+    const fb = frame.contentDocument?.getElementById('boot-feedback');
+    if (!fb) return 'missing';
+    return fb.hasAttribute('hidden') ? 'hidden' : 'active';
   } catch {
-    return null;
+    return 'missing';
   }
+}
+
+/**
+ * 纯函数：反馈层状态 → handoverVerdict 的 feedbackHidden 信号。
+ * - active → false（收层未发生，hold）；
+ * - hidden 且曾采样到 active → true（**已收层**——v1.06 五通道任一命中后的
+ *   稳定终态，fast-face 该交接）；
+ * - hidden 且从未激活 → null（**未激活态**：#boot-feedback 从页面加载起就带
+ *   hidden 挂在 DOM，绿旗点击后才显示——**v1.23 返工修正**：首版把「未激活」
+ *   误读为「已收层」，attach 后 1s 即误 dismiss，CI dump 实证 phase=removed；
+ *   null 交由 handoverVerdict 走硬封顶兜底）；
+ * - missing → null（nofb 模式：封顶兜底）。
+ */
+export function feedbackHiddenSignal(
+  state: FeedbackLayerState,
+  activeSeen: boolean,
+): boolean | null {
+  if (state === 'active') return false;
+  if (state === 'hidden' && activeSeen) return true;
+  return null;
 }

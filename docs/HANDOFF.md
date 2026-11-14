@@ -163,16 +163,28 @@ TurboWarp 单文件打包产物（57.4MB）→ **忠实多文件 Web 移植**（
   fast_face_handover 断言 → fast_face_companion）+ `--timeout` 参数（受限沙箱放宽通道，
   R141 pack-verify --group 同律）；shell-probe.py URL 加 `?boot=0`（D1-D12 场景
   VM 静默语义保持——自动开机链路由 shell-verify E 专项冒烟）。
-- **测试（铁律三）**：tsc 零错 + vitest **118/118**（+26：fast-face 状态机 attach/
-  companion 迁移 4 + boot-progress 16 新文件 + auto-boot 6 新文件；renderPct null
-  语义修正——Number(null)=0 会把「变量缺失」误判为 0%）+ vite build 产物落 shell/
-  （新 hash 对 index-DiaCztdy.css/index-DtSG57LG.js，旧对 CJKuiRmr/DV8aJ7yQ 删）
-  + check-inline-js 4/4（index.html 零触碰）。**本地受限实证（比 R141 更严苛）**：
-  本沙箱 Chromium WebGL 全失（三种参数实测 NO-WEBGL，root entry 连
-  scaffolding/getProjectData 都起不来），shell-verify/shell-probe/pack-verify
-  全链路在本地**不可能**跑通——处置 = shell-verify 纳入 CI shell-gates job
-  （新增执行通道 + 红绿退出码 sys.exit）+ pack-verify 五场景维持 CI runner
-  判定（R141 --group 先例同律，缺口披露不隐瞒）。
+- **测试（铁律三）**：tsc 零错 + vitest **126/126**（+34：fast-face 状态机 4 +
+  boot-progress 16 新文件 + auto-boot 14（关断通道 6 + 代点决策 4 + 收层信号换算 4）；
+  renderPct null 语义修正——Number(null)=0 会把「变量缺失」误判为 0%）+
+  vite build 产物落 shell/（新 hash 对 index-DiaCztdy.css/index-UfNgmbY-.js，
+  旧对 CJKuiRmr/DV8aJ7yQ/DtSG57LG 删）+ check-inline-js 4/4（index.html 零触碰）。
+  **本地受限实证（比 R141 更严苛）**：本沙箱 Chromium WebGL 全失（三种参数实测
+  NO-WEBGL，root entry 连 scaffolding/getProjectData 都起不来），shell-verify/
+  shell-probe/pack-verify 全链路在本地**不可能**跑通——处置 = shell-verify 纳入
+  CI shell-gates job（新增执行通道 + 红绿退出码 sys.exit）+ pack-verify 五场景
+  维持 CI runner 判定（R141 --group 先例同律，缺口披露不隐瞒）。
+  **代点/伴随态 DOM 级本地验证通道（WebGL 失效下的替代门禁）**：shell 页 +
+  模拟 #launch 真点击——首版验证 AUTO_BOOT_CLICK=true；返工版验证三断言
+  （装载前 hidden 不误判 / 可见后 0.3s 点击 / 2s 后点击数=1 防二次 start）。
+- **v1.23 探针返工 + 两处产品语义缺陷修正（#31 即修即录，CI run 43549558524 +
+  43550590925 现场 dump 实证）**：① 代点 'gone' 误判——#launch 装载前即 hidden，
+  首版把它当「外部已启动」短路代点（dump: launch_hidden=false 无人点击）→
+  修正 = autoBootAction 决策纯函数（hidden+曾可见 才 stop-external；hidden+从未
+  可见 = wait 继续轮询）；② handover 信号误读——#boot-feedback 从页面加载起就带
+  hidden 挂 DOM（未激活态），首版把「未激活」当「已收层」attach 后 1s 误 dismiss
+  （dump: phase=removed）→ 修正 = feedbackHiddenSignal 换算纯函数（hidden+曾激活
+  才 true；未激活 → null 走封顶兜底）；两纯函数 vitest 8 例直测；E 场景改复合
+  终态断言 + 失败现场 dump（phase/launch/loading_note/bridge 四路快照）。
 - **零根入口触碰声明**：diff = shell-src 七件（fast-face/boot-progress 新/auto-boot 新/
   main/runtime/style.css）+ shell 产物三件（index.html + 新 hash 对，旧对删）+
   scripts 两件（shell-verify E 场景 + --timeout + 红绿退出码 / shell-probe ?boot=0）
@@ -553,7 +565,7 @@ TurboWarp 单文件打包产物（57.4MB）→ **忠实多文件 Web 移植**（
 | v1.20 | Job 2933110（R140） | ② L3 通知面接入第一批（#18 任务 4：notifications.ts 状态机 + 通知卡真结构 + 媒体卡 MediaStyle 同构位（数据源防发明实证 music播放状态/当前播放music）+ 空态 + 清除全部 + swipe 消除通道就位 + ongoing 语义 + vitest 78 例 + 探针 D12） | 未 tag（shell-src 新壳面 + shell/ 产物 + scripts 探针，零根入口触碰；sw VERSION 保持 v1.11） |
 | v1.21 | 本实例（R141 · 用户直派接手） | #23 fast-path Phase 1：fast-face 快速启动面（用户 2026-11-13 定锚：迁移根本目的=取消每次重建的 VM 串行初始化）—— fast-face.ts（壁纸渐变+DOM 时钟 1s tick+后台初始化提示，零 VM 依赖）+ attach 成功 480ms emphasized 交叉淡出 + ?fast=0 关断 + vitest 92 例（含 fast-face 14）+ shell-verify 探针修三处存量断裂（__shell→__PIXEL_SHELL 握手名/tile_count 6→锚关键磁贴/心跳文案锚「桥接就绪」）+ 新增 fast_face_seen/handover 断言 | 未 tag（shell-src 新壳面 + shell/ 产物 + scripts 探针，零根入口触碰；sw VERSION 保持 v1.11；同 v1.16~v1.20 先例） |
 | v1.22 | 梅林（R142 · 用户直派会话 · 领号 6752774196 前序） | #12 Monet 取色真移植批次一（色彩科学层；交付状态以 git log / #3 收窗登记为准） | 见 #3 |
-| v1.23 | 用户直派会话（R143 · 初始化治理 · 领号 6869974722） | #33 fast-path Phase 2 首批：绿旗自动开机（DOM 级代点，?boot=0 关断）+ fast-face companion 伴随态（修正 v1.21 attach 即淡出的 handover 时点缺陷）+ 实时进度双源接线（__packState/渲染的进度 只读）+ handover 判定镜像 v1.06 五通道（#boot-feedback hidden + 200s 封顶）+ vitest 118 例 + shell-verify 场景 E + shell-probe ?boot=0 | 未 tag（shell-src 新壳面 + shell/ 产物 + scripts 探针，零根入口触碰；sw VERSION 保持 v1.11；同 v1.16~v1.21 先例） |
+| v1.23 | 用户直派会话（R143 · 初始化治理 · 领号 6869974722） | #33 fast-path Phase 2 首批：绿旗自动开机（DOM 级代点，?boot=0 关断）+ fast-face companion 伴随态（修正 v1.21 attach 即淡出的 handover 时点缺陷）+ 实时进度双源接线（__packState/渲染的进度 只读）+ handover 判定镜像 v1.06 五通道（#boot-feedback hidden + 200s 封顶）+ vitest 126 例 + shell-verify 场景 E（复合终态+现场 dump）+ shell-probe ?boot=0 + 两处语义缺陷返工修正（代点 gone 误判 / handover 未激活误读，CI dump 实证） | 未 tag（shell-src 新壳面 + shell/ 产物 + scripts 探针，零根入口触碰；sw VERSION 保持 v1.11；同 v1.16~v1.21 先例） |
 
 ## 议题索引（2026-11-08 · 新立 29 个议题 #2~#30（含 #30 读完再动手闸门），已回读核对 + #2 已置顶）
 

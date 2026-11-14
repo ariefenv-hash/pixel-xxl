@@ -17,7 +17,10 @@ import {
 } from './bridge/runtime';
 import { QsPanel } from './shell/qs-panel';
 import { createFastFace, isFastFaceEnabled, type FastFaceHandle } from './shell/fast-face';
-import { isAutoBootEnabled, clickLaunchScreen, readFeedbackLayerHidden } from './shell/auto-boot';
+import {
+  isAutoBootEnabled, readLaunchState, clickLaunchScreen, autoBootAction,
+  readFeedbackLayerState, feedbackHiddenSignal,
+} from './shell/auto-boot';
 import { packPhaseText, renderPhaseText, renderPct, handoverVerdict } from './shell/boot-progress';
 
 interface WindowShell {
@@ -47,18 +50,19 @@ if (isFastFaceEnabled(window.location.search)) {
 /* ---------- 绿旗自动开机（#33 Phase 2 · v1.23） ----------
  * 病根：装载完成后停在「点击绿旗」启动屏死等手动点击。壳层在启动屏出现后
  * 代点（DOM 级 .click()，零运行时 API 触碰；音频 autoplay 风险披露见 #33 §四1）。
- * ?boot=0 关断（与 ?fast=0 对称；双零 = 完整恢复 v1.20 行为）。 */
+ * ?boot=0 关断（与 ?fast=0 对称；双零 = 完整恢复 v1.20 行为）。
+ * 状态语义（v1.23 返工修正）：#launch 装载前即 hidden——只有「曾可见后隐藏」
+ * 才算外部已启动（停表防二次 start）；装载中 hidden 继续轮询（决策纯函数
+ * autoBootAction，auto-boot.ts）。 */
 if (isAutoBootEnabled(window.location.search)) {
-  let bootClicked = false;
+  let seenVisible = false;
   const bootTimer = window.setInterval(() => {
-    if (bootClicked) return;
-    const r = clickLaunchScreen(frame);
-    if (r === 'clicked') {
-      bootClicked = true;
-      window.clearInterval(bootTimer);
-    } else if (r === 'gone') {
-      bootClicked = true; // 外部（用户手动/回归通道）已启动：不再代点
-      window.clearInterval(bootTimer);
+    const action = autoBootAction({ launch: readLaunchState(frame), seenVisible });
+    if (action === 'click') {
+      seenVisible = true;
+      if (clickLaunchScreen(frame) === 'clicked') window.clearInterval(bootTimer);
+    } else if (action === 'stop-external') {
+      window.clearInterval(bootTimer); // 用户手动/回归通道已启动：不再代点
     }
   }, 400);
 }
@@ -114,9 +118,12 @@ function tryAttach(): void {
 
 /* ---------- fast-face 伴随态驱动（#33 · v1.23）：实时进度 + handover 判定 ----------
  * 数据源全部只读：装载段 __packState()（loader 挂载）；渲染段工程变量
- * 「渲染的进度/渲染数」（v1.06 readVar 同口径）。handover 判定消费 iframe
- * #boot-feedback 的 hidden 状态（v1.06 五通道收层的稳定外显信号）。 */
+ * 「渲染的进度/渲染数」（v1.06 readVar 同口径）。handover 信号 = #boot-feedback
+ * 「曾激活后再次 hidden」（v1.06 五通道收层稳定终态）——v1.23 返工修正：
+ * 反馈层从页面加载起就带 hidden 挂在 DOM（未激活态），首版误读为「已收层」
+ * 导致 attach 后 1s 误 dismiss（CI dump 实证）；换算纯函数 feedbackHiddenSignal。 */
 let companionSince = 0;
+let feedbackActiveSeen = false;
 
 window.setInterval(() => {
   if (!fastFace || fastFace.isDismissed() || fastFace.getPhase() === 'dismissing') return;
@@ -133,8 +140,11 @@ window.setInterval(() => {
       : snap.targets < 3 ? 'loading-targets'
         : snap.threads > 0 ? 'running' : 'not-running';
   fastFace.setBootProgress(renderPhaseText({ pct, stage }), pct);
+  const fState = readFeedbackLayerState(frame);
+  if (fState === 'active') feedbackActiveSeen = true;
+  const feedbackHidden = feedbackHiddenSignal(fState, feedbackActiveSeen);
   const elapsedSec = companionSince ? (Date.now() - companionSince) / 1000 : 0;
-  if (handoverVerdict({ feedbackHidden: readFeedbackLayerHidden(frame), elapsedSec }) === 'dismiss') {
+  if (handoverVerdict({ feedbackHidden, elapsedSec }) === 'dismiss') {
     fastFace.dismiss();
   }
 }, 1000);

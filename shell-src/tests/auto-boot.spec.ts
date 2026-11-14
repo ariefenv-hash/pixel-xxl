@@ -1,12 +1,14 @@
 /**
  * auto-boot.spec.ts — 绿旗自动开机纯函数契约（#33 Phase 2 · v1.23）
  *
- * 覆盖：isAutoBootEnabled 参数关断通道（与 isFastFaceEnabled 同构）。
- * DOM 面（clickLaunchScreen/readFeedbackLayerHidden 的 iframe 采集）由
- * scripts/shell-verify.py 场景 E 冒烟（同源 iframe 真链路）。
+ * 覆盖：isAutoBootEnabled 参数关断通道 + autoBootAction 代点决策状态机 +
+ * feedbackHiddenSignal 收层信号换算（v1.23 返工修正的两组语义，CI dump 实证：
+ * 装载前 hidden ≠ 已启动；未激活反馈层 ≠ 已收层）。
+ * DOM 面（readLaunchState/clickLaunchScreen/readFeedbackLayerState 的 iframe
+ * 采集）由 scripts/shell-verify.py 场景 E 冒烟（同源 iframe 真链路）。
  */
 import { describe, expect, it } from 'vitest';
-import { isAutoBootEnabled } from '../src/shell/auto-boot';
+import { isAutoBootEnabled, autoBootAction, feedbackHiddenSignal } from '../src/shell/auto-boot';
 
 describe('isAutoBootEnabled（?boot=0 关断通道）', () => {
   it('空 search 默认启用', () => {
@@ -31,5 +33,38 @@ describe('isAutoBootEnabled（?boot=0 关断通道）', () => {
     expect(isAutoBootEnabled('?boot=%200')).toBe(false);
     expect(isAutoBootEnabled('?boot=0 ')).toBe(false);
     expect(isAutoBootEnabled('?BOOT=0'.toLowerCase())).toBe(false);
+  });
+});
+
+describe('autoBootAction（代点决策状态机 · v1.23 返工修正）', () => {
+  it('visible → click（该点了）', () => {
+    expect(autoBootAction({ launch: 'visible', seenVisible: false })).toBe('click');
+  });
+  it('hidden 且曾可见 → stop-external（外部已启动，防二次 start 重启线程）', () => {
+    expect(autoBootAction({ launch: 'hidden', seenVisible: true })).toBe('stop-external');
+  });
+  it('hidden 且从未可见 → wait（装载中——首版误判为已启动致代点短路，返工修正）', () => {
+    expect(autoBootAction({ launch: 'hidden', seenVisible: false })).toBe('wait');
+  });
+  it('missing（跨源/未就绪）→ wait（继续轮询）', () => {
+    expect(autoBootAction({ launch: 'missing', seenVisible: false })).toBe('wait');
+    expect(autoBootAction({ launch: 'missing', seenVisible: true })).toBe('wait');
+  });
+});
+
+describe('feedbackHiddenSignal（收层信号换算 · v1.23 返工修正）', () => {
+  it('active → false（收层未发生，hold）', () => {
+    expect(feedbackHiddenSignal('active', false)).toBe(false);
+    expect(feedbackHiddenSignal('active', true)).toBe(false);
+  });
+  it('hidden 且曾激活 → true（v1.06 五通道收层终态 → 交接）', () => {
+    expect(feedbackHiddenSignal('hidden', true)).toBe(true);
+  });
+  it('hidden 且从未激活 → null（未激活态：反馈层随页面挂 DOM，非收层——封顶兜底）', () => {
+    expect(feedbackHiddenSignal('hidden', false)).toBeNull();
+  });
+  it('missing（nofb 模式）→ null（封顶兜底）', () => {
+    expect(feedbackHiddenSignal('missing', false)).toBeNull();
+    expect(feedbackHiddenSignal('missing', true)).toBeNull();
   });
 });
