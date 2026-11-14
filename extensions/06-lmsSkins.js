@@ -508,6 +508,27 @@
     }
 
     async _createURLSkin(URL, rotationCenter) {
+      // v1.25 皮肤句柄直传（#34 P1'）：消费 cropURL.putSkinHandle 产出的
+      // skin://<seq>，直接用 canvas → ImageBitmap → createBitmapSkin，
+      // 绕开 "PNG 编码 → base64 → Image.decode" 往返（省 42.9ms/张）。
+      // 非 skin:// 的 URL（http/data/blob/asset）走原路径，行为不变。
+      if (typeof URL === "string" && URL.indexOf("skin://") === 0) {
+        const g = (typeof globalThis !== "undefined") ? globalThis : window;
+        const h = g.__pixelSkinHandles;
+        const canvas = (h && h.map) ? h.map.get(URL) : null;
+        if (h && h.map) h.map.delete(URL); // 一次性消费，防表增长
+        if (!canvas) return;
+        try {
+          if (typeof createImageBitmap === "function") {
+            const bmp = await createImageBitmap(canvas);
+            return renderer.createBitmapSkin(bmp, rotationCenter);
+          }
+        } catch (e) {
+          /* 回退到 canvas 直传 */
+        }
+        return renderer.createBitmapSkin(canvas, rotationCenter);
+      }
+
       let imageData;
       if (await Scratch.canFetch(URL)) {
         imageData = await Scratch.fetch(URL);

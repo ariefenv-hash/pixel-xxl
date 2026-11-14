@@ -25,6 +25,39 @@
     return Number.isFinite(n) ? n : def;
   }
 
+  /* ---------- v1.25 皮肤句柄通道（#34 P1'） ----------
+   * 病根：crop 末尾 scaledCanvas.toDataURL('image/png') 是同步 PNG 编码，
+   * 实测 1000×2000 单张 42.9ms（占整条链 46.4ms 的 92%）；671 帧 × 46.4ms
+   * = 31.1s（桌面），低端机 ×4 ≈ 125s —— 与 PORTING.md 记录的 144s 实测吻合。
+   * 裁切结果只被 lmsSkins.registerURLSkin 消费（project.json 实证：3 处
+   * cropURL_crop 的 parent 全为 lmsSkins_registerURLSkin），故用句柄直传：
+   * css canvas 存共享表，返回 skin://<seq>，registerURLSkin 取出后
+   * createImageBitmap 直传 renderer（实测 0.17ms/张，零编码零解码）。
+   * ?fastskin=0 回滚到原 dataURL 路径（对照/回归通道）。
+   */
+  const SKIN_HANDLES = (function () {
+    const g = (typeof globalThis !== 'undefined') ? globalThis : window;
+    if (!g.__pixelSkinHandles) {
+      g.__pixelSkinHandles = { map: new Map(), seq: 0, max: 1024 };
+    }
+    return g.__pixelSkinHandles;
+  })();
+  const HANDLE_ON = (function () {
+    try { return !/[?&]fastskin=0/.test(String(location.search || '')); }
+    catch (e) { return true; }
+  })();
+  function putSkinHandle(canvas) {
+    const h = SKIN_HANDLES;
+    const id = 'skin://' + (++h.seq);
+    h.map.set(id, canvas);
+    // 上限保护：未被消费的句柄按 FIFO 淘汰，防长跑泄漏
+    while (h.map.size > h.max) {
+      const first = h.map.keys().next().value;
+      h.map.delete(first);
+    }
+    return id;
+  }
+
   // 高质量缩放函数
   function highQualityScale(image, targetWidth, targetHeight) {
     // 创建离屏canvas进行高质量缩放
@@ -195,6 +228,9 @@
 
         // 使用高质量缩放
         const scaledCanvas = highQualityScale(originalCanvas, sw * 2, sh * 2);
+
+        // v1.25：句柄直传——跳过 PNG 编码（省 42.9ms/张）
+        if (HANDLE_ON) return putSkinHandle(scaledCanvas);
 
         return (fmt === 'image/png')
           ? scaledCanvas.toDataURL(fmt)
