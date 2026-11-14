@@ -6,12 +6,16 @@
 
 | 项 | 值 |
 | --- | --- |
-| 版本 | **v2.0.0**（tag 已落远端，主线跃迁，v1.2x 路线作废） |
-| commit | `866b928`（整仓重写）→ `24285e2`（gate 别名修复）→ `3c2ae78`（桌面图标去重 + 文档对齐） |
-| 线上 | <https://ariefenv-hash.github.io/pixel-xxl/>（Pages `build_type=workflow`） |
-| CI | 每次 push 跑 `gates`（typecheck / build / playwright / perf-gate）+ `deploy` |
+| 版本 | **v2.2.0**（v2.0 整仓重写 → v2.1 动效重建 → v2.2 固件对齐） |
+| commit | `866b928`（重写）→ `3c2ae78`（图标去重）→ `d855559`（窗口按中心插值）→ **`03d7091`（v2.2 主体）** |
+| 线上 | <https://ariefenv-hash.github.io/pixel-xxl/>（Pages `build_type=workflow`，产物 `index-BAIbUF9N.js`） |
+| CI | `43596155611`：`gates` ✅（typecheck / build / perf-gate）+ `deploy` ✅ |
 | 交接 | 议题 **#35**（兼 CI 红灯登记处）· 交付记录 议题 #34 |
-| 实测 | 可交互 418 ms · FCP 284 ms · 首传 56.1 KB · 长任务 0 · 开窗 60fps · 页面错误 0 |
+| 实测 | 可交互 **555 ms** · FCP **344 ms** · 首传 **63.6 KB** · 长任务 1（128 ms）· 页面错误 0 · **PASS** |
+
+> 本次推送走的是 **Git Data API**（blob → tree → commit → `PATCH refs/heads/main`），
+> 因为沙箱到 `github.com` 的 git-pack 传输被限到 <1 KB/s（`curl 28` / `Operation too slow`），
+> 而 `api.github.com` 正常。仓库内容与产物一致，历史以远端 `d855559` 为父提交，没有强推。
 
 `npm run gate` 可直接在本地复跑同一套门禁（需 `pip install playwright && playwright install chromium`）；
 门禁不通过退出码 1，不要绕过，改预算要同时改 `src/core/perf.ts`、`scripts/perf-gate.py`、`docs/PERF.md` 三处。

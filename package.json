@@ -1,7 +1,7 @@
 {
   "name": "pixel-xxl",
   "private": true,
-  "version": "2.0.0",
+  "version": "2.2.0",
   "type": "module",
   "description": "Android 17 桌面 · 纯 Web 实现（零框架 / 零运行时计算 / 构建期烘焙）",
   "scripts": {
