@@ -25,10 +25,11 @@ shell/index.html
 ├── <div id="fast-face" data-phase=…>           ← 快速启动面（v1.21 · #23 fast-path；
 │     └─ 壁纸渐变 + DOM 时钟(1s tick) + 实时进度文案 + 细进度条     v1.23 伴随遮蔽 · #33）
 │        壳层第一帧即渲染，遮蔽 iframe 里的 VM boot 链；
-│        attach 成功 → companion 伴随态继续遮蔽空窗（v1.21 的
-│        「attach 即淡出」时点缺陷修正——attach ≠ 桌面可用）；
-│        handover 判定命中（镜像 v1.06 五通道）→ 480ms 淡出 →
-│        iframe 桌面接管。?fast=0 关断（回归/对照通道），默认启用。
+│        attach 成功 → **自动开机开**：companion 伴随态继续遮蔽空窗
+│        （v1.21「attach 即淡出」时点缺陷修正——attach ≠ 桌面可用），
+│        handover 判定命中（镜像 v1.06 五通道）→ 480ms 淡出；
+│        **?boot=0 手动模式**：保持 v1.21 语义 attach 即淡出（伴随常驻
+│        会遮绿旗屏 200s，手动用户点不到绿旗）。?fast=0 关断，默认启用。
 ├── 绿旗自动开机（auto-boot.ts，v1.23 #33）      ← 启动屏出现后代点绿旗
 │     └─ DOM 级 .click()（零运行时 API 触碰），?boot=0 关断；
 │        ?fast=0&boot=0 = 完整恢复 v1.20 行为（回归通道）。
@@ -50,12 +51,13 @@ shell/index.html
   `data-phase` 外显（探针断言锚）。
   用户定锚（2026-11-13）：迁移根本目的 = 取消每次重建的 VM 串行初始化等待，
   vite 壳第一帧的 DOM 可见性是技术栈优势的第一落点；
-- **伴随态驱动**（main.ts 1s 轮询 + `boot-progress.ts` 纯函数）：active 态显示
-  装载段进度（`__packState()` 四态口径，镜像根入口 v1.06 loading-note）；
+- **伴随态驱动**（main.ts 1s 轮询 + `boot-progress.ts` 纯函数，仅自动开机路径）：
+  active 态显示装载段进度（`__packState()` 四态口径，镜像根入口 v1.06 loading-note）；
   companion 态显示渲染段进度（工程变量「渲染的进度/渲染数」→「正在渲染桌面
   X%…」，变量优先、runtime 阶段阶梯兜底——镜像 v1.06 #boot-feedback 口径，
-  全部只读零红线）。handover 判定 = iframe `#boot-feedback` hidden（v1.06 五通道
-  收层的稳定外显信号，不重新发明点亮检测）+ 硬封顶 200s 兜底（nofb 模式无反馈层）；
+  全部只读零红线）。handover 判定 = iframe `#boot-feedback` **曾激活后再次
+  hidden**（v1.06 五通道收层稳定终态；未激活态 ≠ 已收层——v1.23 返工修正）+
+  硬封顶 200s 兜底（nofb 模式无反馈层）；
 - **绿旗自动开机**（`auto-boot.ts`，v1.23 #33）：启动屏出现后壳层代点绿旗——
   **DOM 级模拟点击**（同源 iframe 文档内 `#launch.click()`，语义=用户代理点击，
   零运行时 API 触碰；先例：v1.10 fps 尾部块覆写运行时行为，本切片连根入口

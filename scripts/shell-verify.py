@@ -125,13 +125,12 @@ def main():
                 "() => { const s = document.getElementById('bridge-status');"
                 "return s && !s.hidden && s.dataset.level === 'ok'; }", timeout=30000)
             out['A']['bridge_status'] = page.evaluate(JS_BRIDGE_STATUS)
-            # fast-face 伴随态冒烟（v1.23 #33）：attach ok 后快速面**不淡出**（attach ≠
-            # 桌面可用——v1.21 的 handover 时点缺陷修正），转 companion 继续遮蔽。
-            # 淡出逻辑由 v1.06 五通道镜像判定驱动（vitest handoverVerdict 覆盖）。
+            # fast-face 手动模式交接冒烟（v1.23 #33 第 3 修正）：本场景 boot=0 →
+            # attach 即淡出（v1.21 语义保持——伴随常驻会遮绿旗屏 200s，手动用户
+            # 点不到绿旗）；伴随态路径由场景 E（默认参数，代点在跑）断言。
             page.wait_for_timeout(800)
-            out['A']['fast_face_companion'] = page.evaluate(
-                "() => { const el = document.getElementById('fast-face');"
-                " return !!el && el.dataset.phase === 'companion'; }")
+            out['A']['fast_face_handover'] = page.evaluate(
+                "() => !document.getElementById('fast-face')")
 
             # ---------- B) QS 面板 DOM ----------
             out['B'] = {
@@ -245,7 +244,7 @@ def main():
           # 心跳文案 v1.19 起覆写为「桥接就绪 · 磁贴写通道已启用 · targets=…」，
           # 「对账一致」只在 attach 瞬时存在——锚稳定前缀「桥接就绪」
           and '桥接就绪' in a['bridge_status']['text']
-          and a.get('fast_face_seen') and a.get('fast_face_companion')
+          and a.get('fast_face_seen') and a.get('fast_face_handover')
           and b['panel_present'] and b['tile_count'] >= 6
           # 磁贴面已演进到 16（v1.20 全量铺开）；断言锚关键磁贴存在，不锁死总数
           and 'brightness' in b['tile_ids'] and 'wallpaper' in b['tile_ids']

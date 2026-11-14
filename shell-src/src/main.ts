@@ -39,8 +39,10 @@ bindFrame(frame);
  * 用户定锚：取消每次重建的 VM 串行初始化等待。壳层第一帧即渲染 DOM 快速面
  * （壁纸渐变 + DOM 时钟 + 实时进度），iframe 的 VM boot 链全程被遮蔽。
  * v1.21 缺陷修正（#33）：attach ≠ 桌面可用（attach 后淡出 → 用户看到绿旗屏）——
- * 现 attach 成功仅转入 companion 伴随态继续遮蔽空窗，handover 判定镜像 v1.06
- * 五通道（iframe #boot-feedback hidden → 交接；硬封顶 200s 兜底）。
+ * **自动开机开启时** attach 只转 companion 伴随态继续遮蔽空窗（代点在跑，VM 必然
+ * 启动，遮蔽到 v1.06 五通道收层）；**?boot=0 手动模式保持 v1.21 语义**（attach 即
+ * 淡出）——伴随常驻会遮住绿旗屏 200s，手动用户点不到绿旗（CI run 43551829669
+ * dump 实证：#fast-face companion 拦截 pointer events，v1.23 返工第 3 修正）。
  * ?fast=0 关断快速面（默认开）。 */
 let fastFace: FastFaceHandle | null = null;
 if (isFastFaceEnabled(window.location.search)) {
@@ -54,7 +56,8 @@ if (isFastFaceEnabled(window.location.search)) {
  * 状态语义（v1.23 返工修正）：#launch 装载前即 hidden——只有「曾可见后隐藏」
  * 才算外部已启动（停表防二次 start）；装载中 hidden 继续轮询（决策纯函数
  * autoBootAction，auto-boot.ts）。 */
-if (isAutoBootEnabled(window.location.search)) {
+const autoBoot = isAutoBootEnabled(window.location.search);
+if (autoBoot) {
   let seenVisible = false;
   const bootTimer = window.setInterval(() => {
     const action = autoBootAction({ launch: readLaunchState(frame), seenVisible });
@@ -104,11 +107,16 @@ function tryAttach(): void {
     return;
   }
   panel = new QsPanel(bridge, qsRoot as HTMLElement);
-  // fast-face 伴随态（v1.23 #33）：attach 成功 ≠ 桌面可用——转 companion 继续遮蔽，
-  // handover 由下方 1s 轮询按镜像 v1.06 五通道判定（不再 attach 即淡出）。
+  // fast-face 交接分径（v1.23 #33）：自动开机开 → companion 伴随态继续遮蔽
+  // （代点在跑，VM 必然启动；handover 由 1s 轮询按五通道判定）；boot=0 手动
+  // 模式 → v1.21 语义 attach 即淡出（伴随常驻会遮绿旗屏 200s，手动用户点不到）。
   if (fastFace && !fastFace.isDismissed() && fastFace.getPhase() === 'active') {
-    fastFace.enterCompanion();
-    companionSince = Date.now();
+    if (autoBoot) {
+      fastFace.enterCompanion();
+      companionSince = Date.now();
+    } else {
+      fastFace.dismiss();
+    }
   }
   setStatus('桥接就绪（变量目录 94 项对账一致）· 磁贴写通道已启用', 'ok');
   // 探针/自动化出口（scripts/shell-probe.py 旧约定握手名 __PIXEL_SHELL；

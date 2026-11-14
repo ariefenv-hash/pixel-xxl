@@ -155,8 +155,11 @@ TurboWarp 单文件打包产物（57.4MB）→ **忠实多文件 Web 移植**（
   （工程变量「渲染的进度/渲染数」优先、runtime 阶段阶梯兜底——镜像 v1.06
   #boot-feedback 口径）+ .ff-bar 细进度条；数据源全部只读零红线
   （readStageVarValue 新增于 bridge/runtime.ts，v1.06 readVar 同口径）；
-  ④ **handover 判定**：iframe `#boot-feedback` hidden（v1.06 五通道收层的稳定外显信号，
-  不重新发明点亮检测）→ 淡出；nofb 模式（无反馈层）硬封顶 200s 兜底。
+  ④ **handover 判定**：iframe `#boot-feedback` **曾激活后再次 hidden**（v1.06 五通道
+  收层稳定终态；未激活态 ≠ 已收层——返工修正）→ 淡出；nofb 模式硬封顶 200s 兜底；
+  ⑤ **第 3 修正（CI 43551829669 实证）**：伴随常驻只在自动开机路径（代点在跑 VM
+  必然启动）；?boot=0 手动模式保持 v1.21「attach 即淡出」语义——否则伴随层遮绿旗
+  屏 200s，手动用户点不到绿旗 + shell-probe D 场景 QS 交互被拦截。
 - **探针演进**：shell-verify.py 场景 E 新增（默认参数二访：绿旗代点隐藏 → attach →
   companion → 实时进度文案断言；不等 handover——软渲染分钟级，判定纯函数 vitest
   handoverVerdict 覆盖）+ A 场景改 `?probe=1&boot=0`（本场景 VM 静默基线保持，
