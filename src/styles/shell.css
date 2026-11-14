@@ -898,37 +898,124 @@ svg {
   color: var(--color-on-surface);
   pointer-events: auto;
   overflow: hidden;
-  /* 打开动画：从图标位置缩放淡入（transform-only） */
+  border-radius: var(--app-radius);
+  /* 开/关窗由 motion/launch.ts 逐帧写 transform + border-radius（容器变换），
+     这里不留任何 CSS 过渡，避免两套时间轴互相打架 */
+  transform-origin: 0 0;
+  will-change: auto;
+  /* 内容淡入只走开窗后段（QuickstepTransitionManager 的 content alpha 语义） */
+  --launch-content: 1;
+}
+
+.app-window__header,
+.app-window__body {
+  opacity: var(--launch-content, 1);
+}
+
+/* 开窗起点的图标色（逐帧淡出，见 motion/launch.ts）—— 让「图标变成窗口」读得出来 */
+.app-window::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  z-index: 3;
+  pointer-events: none;
+  border-radius: inherit;
+  background: var(--launch-tint, transparent);
+  opacity: var(--launch-tint-a, 0);
+}
+
+/* 预测式返回：窗口压暗层（进度驱动，见 motion/predictive.ts） */
+.app-window::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  z-index: 4;
+  pointer-events: none;
+  background: #000;
+  opacity: var(--back-dim, 0);
+}
+
+/* 开窗时的图标复制体：真实图标节点的克隆，随进度放大并淡出 */
+.launch-ghost {
+  position: absolute;
+  z-index: calc(var(--z-app) + 1);
+  display: grid;
+  place-items: center;
+  pointer-events: none;
+  will-change: transform, opacity;
+}
+
+.launch-ghost .icon__tile {
+  width: 100%;
+  height: 100%;
+}
+
+.launch-ghost .icon__svg {
+  width: 46%;
+  height: 46%;
+}
+
+.launch-scrim {
+  position: absolute;
+  inset: 0;
+  z-index: calc(var(--z-app) - 1);
+  background: #000;
+  pointer-events: none;
+  will-change: opacity;
+}
+
+/* 预测式返回的返回箭头：AOSP EdgePanel 几何（48×48 圆角 24，距边 14） */
+.back-arrow {
+  position: absolute;
+  z-index: calc(var(--z-shade, 60) + 20);
+  width: 48px;
+  height: 48px;
+  display: grid;
+  place-items: center;
+  pointer-events: none;
+  opacity: 0;
+  will-change: opacity, transform;
+}
+
+.back-arrow__bg {
+  position: absolute;
+  inset: 0;
+  border-radius: 24px;
+  background: var(--color-surface-container-highest);
+  box-shadow: 0 2px 8px rgb(0 0 0 / 28%);
+  transform: scale(calc(0.55 + 0.45 * var(--p, 0)));
+}
+
+.back-arrow__chev {
+  position: relative;
+  width: 20px;
+  height: 20px;
+  fill: none;
+  stroke: var(--color-on-surface);
+  stroke-width: 2.2;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+}
+
+.back-arrow[data-side='left'] {
+  left: 14px;
+}
+
+.back-arrow[data-side='right'] {
+  right: 14px;
   transform-origin: center;
-  animation: app-in var(--dur-medium3) var(--ease-emphasized) both;
 }
 
-.app-window[data-closing='1'] {
-  animation: app-out var(--dur-short4) var(--ease-standard-accel) both;
+.back-arrow[data-side='left'] .back-arrow__chev {
+  /* 图标本体指向左（= 右缘手势的提交方向）；左缘手势要镜像成指右 */
+  scale: -1 1;
 }
 
-@keyframes app-in {
-  from {
-    opacity: 0;
-    transform: scale(0.92);
-    border-radius: 32px;
-  }
-  to {
-    opacity: 1;
-    transform: scale(1);
-    border-radius: var(--app-radius) var(--app-radius) 0 0;
-  }
-}
-
-@keyframes app-out {
-  from {
-    opacity: 1;
-    transform: scale(1);
-  }
-  to {
-    opacity: 0;
-    transform: scale(0.94);
-  }
+/* 预测式返回的「预览上一层」：桌面随进度显形，不是只露出壁纸 */
+.screen[data-view='app'] .desktop {
+  opacity: calc(var(--back-p, 0));
+  transform: scale(calc(0.94 + 0.06 * var(--back-p, 0)));
+  pointer-events: none;
 }
 
 .app-window__header {

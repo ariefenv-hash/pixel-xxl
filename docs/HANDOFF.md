@@ -11,10 +11,26 @@
 | 线上 | <https://ariefenv-hash.github.io/pixel-xxl/>（Pages `build_type=workflow`） |
 | CI | 每次 push 跑 `gates`（typecheck / build / playwright / perf-gate）+ `deploy` |
 | 交接 | 议题 **#35**（兼 CI 红灯登记处）· 交付记录 议题 #34 |
-| 实测 | 可交互 399 ms · FCP 288 ms · 首传 50.7 KB · 长任务 0 · 页面错误 0 |
+| 实测 | 可交互 418 ms · FCP 284 ms · 首传 56.1 KB · 长任务 0 · 开窗 60fps · 页面错误 0 |
 
 `npm run gate` 可直接在本地复跑同一套门禁（需 `pip install playwright && playwright install chromium`）；
 门禁不通过退出码 1，不要绕过，改预算要同时改 `src/core/perf.ts`、`scripts/perf-gate.py`、`docs/PERF.md` 三处。
+
+## 〇·二、动效（v2.1，用户点名的重点）
+
+**这一版之前我把开/关动画砍成了「淡入 + 缩放」，被用户直接指出——那是削掉了整个项目
+唯一不可替代的东西。** 现已按 AOSP 与 md3 内核重建：
+
+- `src/motion/launch.ts` —— 容器变换：窗口从图标的那个正方形长到全屏，
+  开 500ms / 关 250ms、主曲线 emphasized、X 走 app_open_x、图标色块 + 图标克隆 + 内容
+  三层叠加；关窗是开窗曲线的时间镜像。
+- `src/motion/predictive.ts` —— 预测式返回：边缘 24px 起手，窗口缩小让位、桌面按进度显形、
+  48×48 圆角指示器 + 箭头，松手按 0.32 / 850px/s 判提交，否则弹簧弹回（可中途再拖）。
+- `src/motion/vendor/` —— md3 内核原样内嵌（解析解弹簧、定时轴打断协议、AOSP 曲线、IIO）。
+- `docs/MOTION-SPEC.md` —— 每个数值的出处（AOSP 资源名 / md3 常量 / 原 Scratch 公式）；
+  `docs/aosp/` 存了 AOSP 原始文件，可直接 grep 验证。
+
+慢放检视：`window.__launchSpeed = 0.1`。4× CPU 节流实测开窗恒定 17ms/帧、10 次开合 0 长任务。
 
 ## 一、这一窗发生了什么
 

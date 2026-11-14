@@ -11,12 +11,14 @@ import { $, el } from '../core/dom';
 import { APPS, type AppContext, type AppModule } from '../core/registry';
 import { store } from '../core/store';
 import { mark } from '../core/perf';
+import { playClose, playOpen, rectOf, type Rect } from '../motion/launch';
+import { initPredictive } from '../motion/predictive';
 import type { ShadeApi } from './shade';
 import { applyPalette, applyTheme, applyWallpaper } from './system';
 
 export interface AppManager {
-  open(id: string): void;
-  close(): void;
+  open(id: string, source?: Element | null): void;
+  close(instant?: boolean): void;
   showRecents(): void;
   hideRecents(): void;
   back(): void;
@@ -27,6 +29,9 @@ interface Mounted {
   node: HTMLElement;
   body: HTMLElement;
   unmount?: () => void;
+  /** 打开来源的几何（关窗/预测式返回把窗口收回去的那一点） */
+  rect: Rect | null;
+  source: Element | null;
 }
 
 let current: Mounted | null = null;
@@ -82,7 +87,7 @@ export function initApps(shade: ShadeApi): AppManager {
       '<div class="app-window__body"></div>';
     const body = node.querySelector<HTMLElement>('.app-window__body')!;
     node.querySelector('.app-window__back')!.addEventListener('click', () => manager.back());
-    return { id, node, body };
+    return { id, node, body, rect: null, source: null };
   }
 
   function teardown(inst: Mounted): void {
@@ -96,7 +101,7 @@ export function initApps(shade: ShadeApi): AppManager {
 
   /* ------------------------------- 打开 app ------------------------------- */
 
-  async function open(id: string): Promise<void> {
+  async function open(id: string, source?: Element | null): Promise<void> {
     const def = APPS[id];
     if (!def) {
       toast(`未注册的应用：${id}`);
@@ -113,6 +118,15 @@ export function initApps(shade: ShadeApi): AppManager {
     layer.append(inst.node);
     screen.dataset.view = 'app';
     mark(`app-open:${id}`);
+
+    // 容器变换：图标（或 Recents 卡片）→ 全屏。窗口先以图标尺寸投影出来，
+    // 再由 500ms emphasized 主时间轴拉到全屏；内容只走最后 45%。
+    const src = source ?? null;
+    const rect = src ? rectOf(src, layer.getBoundingClientRect(), !src.classList.contains('recent-card')) : null;
+    inst.rect = rect;
+    inst.source = src;
+    if (rect) void playOpen(inst.node, rect, src);
+    else inst.node.style.setProperty('--launch-content', '1');
 
     // 记录最近使用（去重后置顶，最多 6 个）
     const recent = [id, ...store.get('recent').filter((x) => x !== id)].slice(0, 6);
@@ -136,13 +150,17 @@ export function initApps(shade: ShadeApi): AppManager {
 
   /* ------------------------------- 关闭 app ------------------------------- */
 
-  function close(): void {
+  function close(instant = false): void {
     if (!current) return;
     const inst = current;
     current = null;
     delete screen.dataset.view; // 桌面立即恢复（CSS transition 接管）
-    inst.node.dataset.closing = '1';
-    window.setTimeout(() => teardown(inst), 200);
+    if (instant || !inst.rect) {
+      teardown(inst);
+      return;
+    }
+    // 关窗 = 开窗曲线的反向（250ms），窗口收进图标后再卸载
+    void playClose(inst.node, inst.rect, inst.source).then(() => teardown(inst));
   }
 
   /** 返回键语义：Recents 开着 → 先关 Recents；否则关 app */
@@ -168,7 +186,7 @@ export function initApps(shade: ShadeApi): AppManager {
           `<span class="icon__tile"><svg><use href="#ic-${def?.icon ?? 'apps'}"/></svg></span>` +
           `<span>${def?.name ?? id}</span></span>` +
           `<span class="recent-card__body"><svg class="recent-card__mark"><use href="#ic-${def?.icon ?? 'apps'}"/></svg></span>`;
-        card.addEventListener('click', () => open(id));
+        card.addEventListener('click', () => open(id, card));
         return card;
       })
     );
@@ -202,54 +220,21 @@ export function initApps(shade: ShadeApi): AppManager {
       const btn = (e.target as HTMLElement).closest<HTMLElement>('[data-app]');
       if (!btn) return;
       const id = btn.dataset.app!;
-      open(id);
+      open(id, btn);
     };
     grid.addEventListener('click', handler);
     dock.addEventListener('click', handler);
   }
 
-  /* ---------------------------- 返回手势（边缘） ---------------------------- */
+  /* ---------------------------- 预测式返回 ---------------------------- */
 
-  function bindBackGesture(): void {
-    const EDGE = 22;
-    let tracking = false;
-    let startX = 0;
-    let startY = 0;
-    let fromLeft = false;
-
-    screen.addEventListener(
-      'pointerdown',
-      (e) => {
-        if (screen.dataset.shade === '1') return;
-        const rect = screen.getBoundingClientRect();
-        const x = e.clientX - rect.left;
-        if (x > EDGE && x < rect.width - EDGE) return;
-        tracking = true;
-        fromLeft = x <= EDGE;
-        startX = e.clientX;
-        startY = e.clientY;
-      },
-      { passive: true }
-    );
-
-    screen.addEventListener(
-      'pointerup',
-      (e) => {
-        if (!tracking) return;
-        tracking = false;
-        const dx = e.clientX - startX;
-        const dy = Math.abs(e.clientY - startY);
-        if (dy > 60) return;
-        const passed = fromLeft ? dx > 70 : dx < -70;
-        if (passed) back();
-      },
-      { passive: true }
-    );
-
-    screen.addEventListener('pointercancel', () => {
-      tracking = false;
-    });
-  }
+  // 拖动即预览：窗口按进度缩小让位，松手收进图标或弹回（见 motion/predictive.ts）
+  initPredictive({
+    screen,
+    getWindow: () => current?.node ?? null,
+    getSource: () => current?.rect ?? null,
+    onCommit: () => close(true),
+  });
 
   /* ------------------------------- 空手势区 ------------------------------- */
 
@@ -290,7 +275,6 @@ export function initApps(shade: ShadeApi): AppManager {
   const manager: AppManager = { open, close, showRecents, hideRecents, back };
 
   bindDesktop();
-  bindBackGesture();
   bindDesktopGestures();
 
   return manager;
